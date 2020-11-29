@@ -21,6 +21,17 @@ def writeMetadata(category_list, drive):
                         tmp_metadata.append(file)
             placeholder_metadata.append({"name": category["name"], "type": category["type"], "id": category["id"],
                                          "teamDriveId": category["teamDriveId"], "files": tmp_metadata})
+        elif category["type"] == "tv":
+            tmp_metadata = []
+            for path, root, dirs, files in driveWalk(category["id"], False, drive):
+                root["files"] = files
+                root["subFolders"] = dirs
+                stdin = "tmp_metadata"
+                for l in range(len(path)-2):
+                    stdin = stdin + "[-1]['subFolders']"
+                eval(stdin+".append(root)")
+            placeholder_metadata.append({"name": category["name"], "type": category["type"],
+                                         "id": category["id"], "teamDriveId": category["teamDriveId"], "files": tmp_metadata})
 
     metadata = placeholder_metadata
 

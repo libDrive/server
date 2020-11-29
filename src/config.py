@@ -74,7 +74,7 @@ def writeConfig():
         drive_id = input(
             "\nEnter the Google Drive Shared Drive ID for folder "+str(n)+":\n")
         category_list.append({"name": folder_name, "type": folder_type,
-                              "id": folder_id, "teamDriveId": drive_id})
+                              "id": folder_id, "driveId": drive_id})
         while stop not in ["y", "n"]:
             stop = input(
                 "\n- Would you like to add another folder? - (y/n):\n")

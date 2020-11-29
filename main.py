@@ -8,6 +8,7 @@ if os.path.exists("config.env"):
     account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, environment = readConfig()
 else:
     writeConfig()
+    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, environment = readConfig()
 
 drive, access_token = refreshCredentials(
     "", client_id, client_secret, refresh_token, True)

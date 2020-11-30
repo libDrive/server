@@ -159,3 +159,26 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
         w.write(json.dumps(metadata))
 
     return metadata
+
+def jsonExtract(obj=list(), key="", getObj=True):
+    arr = []
+    arr2 = []
+
+    def extract(obj, arr, key):
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if isinstance(v, (dict, list)):
+                    extract(v, arr, key)
+                elif k == key:
+                    arr.append(v)
+                    arr2.append(obj)
+        elif isinstance(obj, list):
+            for item in obj:
+                extract(item, arr, key)
+        return arr, arr2
+
+    values, values2 = extract(obj, arr, key)
+    if getObj == True:
+        return values2
+    else:
+        return values

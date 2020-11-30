@@ -78,6 +78,30 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
         return title, posterPath, backdropPath, releaseDate, overview
 
 
+def readMetadata(category_list):
+    if os.path.exists("metadata"):
+        pass
+    else:
+        os.mkdir("metadata")
+    metadata_dir = os.listdir("metadata")
+    if len(metadata_dir) > 4:
+        os.remove("metadata/"+min(metadata_dir))
+        metadata_file = max(metadata_dir)
+        with open("metadata/"+metadata_file, "r") as r:
+            metadata = json.load(r)
+    elif 0 < len(metadata_dir) < 6:
+        metadata_file = max(metadata_dir)
+        with open("metadata/"+metadata_file, "r") as r:
+            metadata = json.load(r)
+    else:
+        metadata = []
+        for category in category_list:
+            tmp = category
+            tmp["files"] = []
+            metadata.append(tmp)
+    return metadata
+
+
 def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url):
     placeholder_metadata = []
     for category in category_list:

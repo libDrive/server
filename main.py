@@ -28,11 +28,13 @@ poster_base_url = configuration_content["images"]["base_url"] + \
     configuration_content["images"]["poster_sizes"][3]
 
 metadata = readMetadata(category_list)
-metadata = writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
+metadata = writeMetadata(category_list, drive, tmdb_api_key,
+                         backdrop_base_url, poster_base_url)
 
 app = Flask(__name__)
 CORS(app)
 app.secret_key = secret_key
+
 
 @app.route("/api/v1/metadata")
 def metadataAPI():
@@ -86,7 +88,8 @@ def metadataAPI():
         if r:
             index = 0
             for category in tmp_metadata:
-                tmp_metadata[index]["files"] = eval("category['files']" + "[" + r + "]")
+                tmp_metadata[index]["files"] = eval(
+                    "category['files']" + "[" + r + "]")
                 index = index + 1
         if id:
             ids = jsonExtract(obj=tmp_metadata, key="id", getObj=True)
@@ -96,6 +99,7 @@ def metadataAPI():
         return jsonify(tmp_metadata)
     else:
         return None
+
 
 if __name__ == "__main__":
     app.run(port=31145)

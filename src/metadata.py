@@ -160,6 +160,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
 
     return metadata
 
+
 def jsonExtract(obj=list(), key="", getObj=True):
     arr = []
     arr2 = []

@@ -36,6 +36,17 @@ CORS(app)
 app.secret_key = secret_key
 
 
+@app.route("/api/v1/auth")
+def authAPI():
+    u = request.args.get("u")  # USERNAME
+    p = request.args.get("p")  # PASSWORD
+    if any(u == account["username"] for account in account_list) and any(p == account["password"] for account in account_list):
+        account = next((i for i in account_list if i["username"] == u), None)
+        return jsonify(account)
+    else:
+        return None
+
+
 @app.route("/api/v1/metadata")
 def metadataAPI():
     tmp_metadata = readMetadata(category_list)

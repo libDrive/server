@@ -1,15 +1,15 @@
 import ast
+import configparser
 import os
 import random
 import string
-from configparser import ConfigParser
 
-from google_auth_oauthlib.flow import InstalledAppFlow
+import google_auth_oauthlib
 
 
 def readConfig():
     if os.path.exists("config.env"):
-        confObj = ConfigParser()
+        confObj = configparser.ConfigParser()
         confObj.read("config.env")
         config = confObj["CONFIG"]
         account_list = ast.literal_eval(config["account_list"])
@@ -27,11 +27,11 @@ def readConfig():
 
 
 def writeConfig():
-    confObj = ConfigParser()
+    confObj = configparser.ConfigParser()
     confObj["CONFIG"] = {}
 
     try:
-        flow = InstalledAppFlow.from_client_secrets_file(
+        flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
             "credentials.json", ["https://www.googleapis.com/auth/drive.readonly"])
     except:
         raise FileNotFoundError(

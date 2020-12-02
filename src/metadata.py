@@ -5,7 +5,7 @@ import time
 
 import requests
 
-from src.walk import driveWalk
+import src.walk
 
 
 def parseName(name):
@@ -109,7 +109,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
             item["name"] == category["name"]) and (item["id"] == category["id"])), None)
         if category["type"] == "movies":
             tmp_metadata = []
-            for path, root, dirs, files in driveWalk(category["id"], False, drive):
+            for path, root, dirs, files in src.walk.driveWalk(category["id"], False, drive):
                 for file in files:
                     if "video" in file["mimeType"]:
                         try:
@@ -130,7 +130,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                                          "id": category["id"], "driveId": category["driveId"], "files": tmp_metadata[0]["files"], "folders": tmp_metadata[0]["folders"]})
         elif category["type"] == "tv":
             tmp_metadata = []
-            for path, root, dirs, files in driveWalk(category["id"], False, drive):
+            for path, root, dirs, files in src.walk.driveWalk(category["id"], False, drive):
                 root["files"] = [
                     file for file in files if "video" in file["mimeType"]]
                 for dir in dirs:

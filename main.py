@@ -11,10 +11,10 @@ import src.credentials
 import src.metadata
 
 if os.path.exists("config.env"):
-    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, environment = src.config.readConfig()
+    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key = src.config.readConfig()
 else:
     src.metadata.writeConfig()
-    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, environment = src.config.readConfig()
+    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key = src.config.readConfig()
 
 drive, access_token = src.credentials.refreshCredentials(
     "", client_id, client_secret, refresh_token, True)

@@ -19,9 +19,7 @@ def readConfig():
         refresh_token = config["refresh_token"]
         secret_key = config["secret_key"]
         tmdb_api_key = config["tmdb_api_key"]
-        environment = {"account_list": account_list, "client_id": client_id, "client_secret": client_secret,
-                       "category_list": category_list, "refresh_token": refresh_token, "secret_key": secret_key, "tmdb_api_key": tmdb_api_key}
-        return account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, environment
+        return account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key
     else:
         return None
 

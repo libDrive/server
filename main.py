@@ -47,6 +47,16 @@ def authAPI():
         return flask.Response("The username and/or password provided was incorrect.", status=401)
 
 
+@app.route("/api/v1/environment")
+def environmentAPI():
+    a = flask.request.args.get("a")  # AUTH
+    if any(a == account["auth"] for account in account_list):
+        account = next((i for i in account_list if i["auth"] == a), None)
+        tmp_environment = {"account_list": account,
+                           "category_list": category_list}
+        return flask.jsonify(tmp_environment)
+
+
 @app.route("/api/v1/metadata")
 def metadataAPI():
     tmp_metadata = src.metadata.readMetadata(category_list)

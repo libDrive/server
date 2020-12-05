@@ -13,7 +13,7 @@ import src.metadata
 if os.path.exists("config.env"):
     account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key = src.config.readConfig()
 else:
-    src.metadata.writeConfig()
+    src.config.writeConfig()
     account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key = src.config.readConfig()
 
 drive, access_token = src.credentials.refreshCredentials(
@@ -79,6 +79,8 @@ def metadataAPI():
             for category in tmp_metadata:
                 tmp_metadata[index]["files"] = [
                     item for item in category["files"] if q.lower() in item["title"].lower()]
+                tmp_metadata[index]["folders"] = [
+                    item for item in category["folders"] if q.lower() in item["title"].lower()]
                 index = index + 1
         if s:
             index = 0
@@ -86,23 +88,36 @@ def metadataAPI():
                 if s == "alphabet-asc":
                     tmp_metadata[index]["files"] = sorted(
                         category["files"], key=lambda k: k["title"])
+                    tmp_metadata[index]["folders"] = sorted(
+                        category["folders"], key=lambda k: k["title"])
                 elif s == "alphabet-des":
                     tmp_metadata[index]["files"] = sorted(
                         category["files"], key=lambda k: k["title"], reverse=True)
+                    tmp_metadata[index]["folders"] = sorted(
+                        category["folders"], key=lambda k: k["title"], reverse=True)
                 elif s == "date-asc":
                     tmp_metadata[index]["files"] = sorted(
                         category["files"], key=lambda k: tuple(map(int, k["releaseDate"].split('-'))))
+                    tmp_metadata[index]["folders"] = sorted(
+                        category["folders"], key=lambda k: tuple(map(int, k["releaseDate"].split('-'))))
                 elif s == "date-des":
                     tmp_metadata[index]["files"] = sorted(category["files"], key=lambda k: tuple(
+                        map(int, k["releaseDate"].split('-'))), reverse=True)
+                    tmp_metadata[index]["folders"] = sorted(category["folders"], key=lambda k: tuple(
                         map(int, k["releaseDate"].split('-'))), reverse=True)
                 elif s == "popularity-asc":
                     tmp_metadata[index]["files"] = sorted(
                         category["files"], key=lambda k: float(k["popularity"]))
+                    tmp_metadata[index]["folders"] = sorted(
+                        category["folders"], key=lambda k: float(k["popularity"]))
                 elif s == "popularity-des":
                     tmp_metadata[index]["files"] = sorted(
                         category["files"], key=lambda k: float(k["popularity"]), reverse=True)
+                    tmp_metadata[index]["folders"] = sorted(
+                        category["folders"], key=lambda k: float(k["popularity"]), reverse=True)
                 elif s == "random":
                     random.shuffle(tmp_metadata[index]["files"])
+                    random.shuffle(tmp_metadata[index]["folders"])
                 else:
                     return None
                 index = index + 1
@@ -111,6 +126,8 @@ def metadataAPI():
             for category in tmp_metadata:
                 tmp_metadata[index]["files"] = eval(
                     "category['files']" + "[" + r + "]")
+                tmp_metadata[index]["folders"] = eval(
+                    "category['folders']" + "[" + r + "]")
                 index = index + 1
         if id:
             ids = src.metadata.jsonExtract(

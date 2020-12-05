@@ -46,36 +46,63 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
         search_content = json.loads((requests.get(search_url)).content)
         try:
             title = search_content["results"][0]["title"]
+        except:
+            pass
+        try:
             posterPath = poster_base_url + \
                 search_content["results"][0]["poster_path"]
-            backdropPath = backdrop_base_url + \
-                search_content["results"][0]["backdrop_path"]
-            releaseDate = search_content["results"][0]["release_date"]
-            overview = search_content["results"][0]["overview"]
         except:
             posterPath = ""
+        try:
+            backdropPath = backdrop_base_url + \
+                search_content["results"][0]["backdrop_path"]
+        except:
             backdropPath = ""
+        try:
+            releaseDate = search_content["results"][0]["release_date"]
+        except:
             releaseDate = year + "-01-01"
+        try:
+            overview = search_content["results"][0]["overview"]
+        except:
             overview = ""
-        return title, posterPath, backdropPath, releaseDate, overview
+        try:
+            popularity = search_content["results"][0]["popularity"]
+        except:
+            popularity = 0.0
+        return title, posterPath, backdropPath, releaseDate, overview, popularity
     elif tv:
         search_url = "http://api.themoviedb.org/3/search/tv?api_key=" + \
             tmdb_api_key+"&query=" + title + "&year=" + year
         search_content = json.loads((requests.get(search_url)).content)
         try:
             title = search_content["results"][0]["name"]
+        except:
+            pass
+        try:
             posterPath = poster_base_url + \
                 search_content["results"][0]["poster_path"]
-            backdropPath = backdrop_base_url + \
-                search_content["results"][0]["backdrop_path"]
-            releaseDate = search_content["results"][0]["first_air_date"]
-            overview = search_content["results"][0]["overview"]
         except:
             posterPath = ""
+        try:
+            backdropPath = backdrop_base_url + \
+                search_content["results"][0]["backdrop_path"]
+        except:
             backdropPath = ""
+        try:
+            releaseDate = search_content["results"][0]["first_air_date"]
+        except:
             releaseDate = year + "-01-01"
+        try:
+            overview = search_content["results"][0]["overview"]
+        except:
             overview = ""
-        return title, posterPath, backdropPath, releaseDate, overview
+        try:
+            popularity = search_content["results"][0]["popularity"]
+        except:
+            popularity = 0.0
+
+        return title, posterPath, backdropPath, releaseDate, overview, popularity
 
 
 def readMetadata(category_list):
@@ -115,7 +142,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                         try:
                             title, year = parseName(
                                 file["name"])
-                            file["title"], file["posterPath"], file["backdropPath"], file["releaseDate"], file["overview"] = mediaIdentifier(
+                            file["title"], file["posterPath"], file["backdropPath"], file["releaseDate"], file["overview"], file["popularity"] = mediaIdentifier(
                                 tmdb_api_key, title, year, backdrop_base_url, poster_base_url, True, False)
                         except:
                             file["title"], file["posterPath"], file["backdropPath"], file["releaseDate"], file["overview"] = file["name"][:-len(
@@ -137,7 +164,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                     try:
                         title, year = parseName(
                             dir["name"])
-                        dir["title"], dir["posterPath"], dir["backdropPath"], dir["releaseDate"], dir["overview"] = mediaIdentifier(
+                        dir["title"], dir["posterPath"], dir["backdropPath"], dir["releaseDate"], dir["overview"], dir["popularity"] = mediaIdentifier(
                             tmdb_api_key, title, year, backdrop_base_url, poster_base_url, False, True)
                     except:
                         dir["title"], dir["posterPath"], dir["backdropPath"], dir["releaseDate"], dir["overview"] = dir["name"], "", "", "1900-01-01", ""

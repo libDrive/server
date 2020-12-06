@@ -154,7 +154,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                     stdin = stdin + "[-1]['folders']"
                 eval(stdin+".append(root)")
             placeholder_metadata.append({"name": category["name"], "type": category["type"],
-                                         "id": category["id"], "driveId": category["driveId"], "files": tmp_metadata[0]["files"], "folders": tmp_metadata[0]["folders"]})
+                                         "id": category["id"], "driveId": category["driveId"], "length": (len(tmp_metadata[0]["files"])+len(tmp_metadata[0]["folders"])), "files": tmp_metadata[0]["files"], "folders": tmp_metadata[0]["folders"]})
         elif category["type"] == "tv":
             tmp_metadata = []
             for path, root, dirs, files in src.walk.driveWalk(category["id"], False, drive):
@@ -174,7 +174,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                     stdin = stdin + "[-1]['folders']"
                 eval(stdin+".append(root)")
             placeholder_metadata.append({"name": category["name"], "type": category["type"],
-                                         "id": category["id"], "driveId": category["driveId"], "files": tmp_metadata[0]["files"], "folders": tmp_metadata[0]["folders"]})
+                                         "id": category["id"], "driveId": category["driveId"], "length": (len(tmp_metadata[0]["files"])+len(tmp_metadata[0]["folders"])), "files": tmp_metadata[0]["files"], "folders": tmp_metadata[0]["folders"]})
 
     metadata = placeholder_metadata
 

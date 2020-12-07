@@ -137,8 +137,12 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
         if category["type"] == "movies":
             tmp_metadata = []
             for path, root, dirs, files in src.walk.driveWalk(category["id"], False, drive):
+                root["path"] = path
+                deleteList = []
+                processNo = 0
                 for file in files:
                     if "video" in file["mimeType"]:
+                        file["path"] = path
                         try:
                             title, year = parseName(
                                 file["name"])
@@ -147,8 +151,19 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                         except:
                             file["title"], file["posterPath"], file["backdropPath"], file["releaseDate"], file["tmdbId"] = file["name"][:-len(
                                 file["fullFileExtention"])], "", "", "1900-01-01", ""
+                    else:
+                        deleteList.insert(0, processNo)
+                    processNo += 1    
+                if len(deleteList) > 0:
+                    for item in deleteList:
+                        del files[item]   
+  
+                for dir in dirs:
+                    dir["path"] = path
+
                 root["files"] = files
                 root["folders"] = dirs
+
                 stdin = "tmp_metadata"
                 for l in range(len(path)-2):
                     stdin = stdin + "[-1]['folders']"
@@ -158,9 +173,21 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
         elif category["type"] == "tv":
             tmp_metadata = []
             for path, root, dirs, files in src.walk.driveWalk(category["id"], False, drive):
-                root["files"] = [
-                    file for file in files if "video" in file["mimeType"]]
+                root["path"] = path
+                deleteList = []
+                processNo = 0
+                for file in files:
+                    if "video" in file["mimeType"]:
+                        file["path"] = path
+                    else:
+                        deleteList.insert(0, processNo)
+                    processNo += 1
+                if len(deleteList) > 0:
+                    for item in deleteList:
+                        del files[item]
+
                 for dir in dirs:
+                    dir["path"] = path
                     try:
                         title, year = parseName(
                             dir["name"])
@@ -168,6 +195,8 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                             tmdb_api_key, title, year, backdrop_base_url, poster_base_url, False, True)
                     except:
                         dir["title"], dir["posterPath"], dir["backdropPath"], dir["releaseDate"], dir["tmdbId"] = dir["name"], "", "", "1900-01-01", ""
+
+                root["files"] = files
                 root["folders"] = dirs
                 stdin = "tmp_metadata"
                 for l in range(len(path)-2):

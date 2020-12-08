@@ -140,5 +140,34 @@ def metadataAPI():
         return flask.Response("The auth code provided was incorrect.", status=401)
 
 
+@app.route("/api/v1/download")
+def downloadAPI():
+    def download_file(streamable):
+        with streamable as stream:
+            stream.raise_for_status()
+            for chunk in stream.iter_content(chunk_size=512):
+                yield chunk
+
+    a = flask.request.args.get("a")
+    id = flask.request.args.get("id")
+    if any(a == account["auth"] for account in account_list) and id:
+        headers = {key: value for (
+            key, value) in flask.request.headers if key != 'Host'}
+        headers["Authorization"] = "Bearer "+access_token
+        resp = requests.request(
+            method=flask.request.method,
+            url="https://www.googleapis.com/drive/v3/files/"+id+"?alt=media",
+            headers=headers,
+            data=flask.request.get_data(),
+            cookies=flask.request.cookies,
+            allow_redirects=False,
+            stream=True)
+        excluded_headers = ['content-encoding',
+                            'content-length', 'transfer-encoding', 'connection']
+        headers = [(name, value) for (name, value) in resp.raw.headers.items()
+                   if name.lower() not in excluded_headers]
+        return flask.Response(download_file(resp), resp.status_code, headers)
+
+
 if __name__ == "__main__":
     app.run(port=31145)

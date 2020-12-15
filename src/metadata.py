@@ -63,6 +63,10 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
         except:
             releaseDate = year + "-01-01"
         try:
+            overview = search_content["results"][0]["overview"]
+        except:
+            overview = ""
+        try:
             tmdbId = search_content["results"][0]["id"]
         except:
             tmdbId = ""
@@ -70,7 +74,7 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
             popularity = search_content["results"][0]["popularity"]
         except:
             popularity = 0.0
-        return title, posterPath, backdropPath, releaseDate, tmdbId, popularity
+        return title, posterPath, backdropPath, releaseDate, overview, tmdbId, popularity
     elif tv:
         search_url = "http://api.themoviedb.org/3/search/tv?api_key=" + \
             tmdb_api_key+"&query=" + title + "&year=" + year
@@ -94,6 +98,10 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
         except:
             releaseDate = year + "-01-01"
         try:
+            overview = search_content["results"][0]["overview"]
+        except:
+            overview = ""
+        try:
             tmdbId = search_content["results"][0]["id"]
         except:
             tmdbId = ""
@@ -102,7 +110,7 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
         except:
             popularity = 0.0
 
-        return title, posterPath, backdropPath, releaseDate, tmdbId, popularity
+        return title, posterPath, backdropPath, releaseDate, overview, tmdbId, popularity
 
 
 def readMetadata(category_list):
@@ -146,18 +154,18 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                         try:
                             title, year = parseName(
                                 file["name"])
-                            file["title"], file["posterPath"], file["backdropPath"], file["releaseDate"], file["tmdbId"], file["popularity"] = mediaIdentifier(
+                            file["title"], file["posterPath"], file["backdropPath"], file["releaseDate"], file["overview"], file["tmdbId"], file["popularity"] = mediaIdentifier(
                                 tmdb_api_key, title, year, backdrop_base_url, poster_base_url, True, False)
                         except:
-                            file["title"], file["posterPath"], file["backdropPath"], file["releaseDate"], file["tmdbId"] = file["name"][:-len(
+                            file["title"], file["posterPath"], file["backdropPath"], file["releaseDate"], file["overview"], file["tmdbId"] = file["name"][:-len(
                                 file["fullFileExtention"])], "", "", "1900-01-01", ""
                     else:
                         deleteList.insert(0, processNo)
-                    processNo += 1    
+                    processNo += 1
                 if len(deleteList) > 0:
                     for item in deleteList:
-                        del files[item]   
-  
+                        del files[item]
+
                 for dir in dirs:
                     dir["path"] = path
 
@@ -191,10 +199,11 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                     try:
                         title, year = parseName(
                             dir["name"])
-                        dir["title"], dir["posterPath"], dir["backdropPath"], dir["releaseDate"], dir["tmdbId"], dir["popularity"] = mediaIdentifier(
+                        dir["title"], dir["posterPath"], dir["backdropPath"], dir["releaseDate"], dir["overview"], dir["tmdbId"], dir["popularity"] = mediaIdentifier(
                             tmdb_api_key, title, year, backdrop_base_url, poster_base_url, False, True)
                     except:
-                        dir["title"], dir["posterPath"], dir["backdropPath"], dir["releaseDate"], dir["tmdbId"] = dir["name"], "", "", "1900-01-01", ""
+                        dir["title"], dir["posterPath"], dir["backdropPath"], dir["releaseDate"], dir[
+                            "overview"], dir["tmdbId"] = dir["name"], "", "", "1900-01-01", "", ""
 
                 root["files"] = files
                 root["folders"] = dirs

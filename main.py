@@ -135,6 +135,7 @@ def metadataAPI():
             for item in ids:
                 if item["id"] == id:
                     tmp_metadata = item
+
         return flask.jsonify(tmp_metadata)
     else:
         return flask.Response("The auth code provided was incorrect.", status=401)

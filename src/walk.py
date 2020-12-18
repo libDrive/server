@@ -9,7 +9,7 @@ def driveWalk(top, by_name, drive):
         if parent is not None:
             q.append("'%s' in parents" % parent.replace("'", "\\'"))
         params = {'pageToken': None, 'orderBy': order_by, "supportsAllDrives": True, "includeItemsFromAllDrives": True,
-                  "fields": "files(id,name,mimeType,fullFileExtension), incompleteSearch, nextPageToken"}
+                  "fields": "files(id,name,mimeType), incompleteSearch, nextPageToken"}
         if q:
             params['q'] = ' and '.join(q)
         while True:

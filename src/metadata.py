@@ -146,6 +146,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                 fileId=category["id"], supportsAllDrives=True).execute()
             tmp_metadata = src.tree.driveTree(root, drive)
             tmp_metadata["categoryInfo"] = category
+            tmp_metadata["length"] = len(tmp_metadata["children"])
             for item in tmp_metadata["children"]:
                 if item["type"] == "file":
                     try:
@@ -162,6 +163,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                 fileId=category["id"], supportsAllDrives=True).execute()
             tmp_metadata = src.tree.driveTree(root, drive)
             tmp_metadata["categoryInfo"] = category
+            tmp_metadata["length"] = len(tmp_metadata["children"])
             for item in tmp_metadata["children"]:
                 if item["type"] == "directory":
                     try:

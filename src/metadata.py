@@ -6,6 +6,7 @@ import time
 import requests
 
 import src.walk
+import src.tree
 
 
 def parseName(name):
@@ -132,7 +133,7 @@ def readMetadata(category_list):
         metadata = []
         for category in category_list:
             tmp = category
-            tmp["files"] = []
+            tmp["children"] = []
             metadata.append(tmp)
     return metadata
 
@@ -140,79 +141,38 @@ def readMetadata(category_list):
 def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url):
     placeholder_metadata = []
     for category in category_list:
-        index = next((i for i, item in enumerate(category_list) if (
-            item["name"] == category["name"]) and (item["id"] == category["id"])), None)
         if category["type"] == "movies":
-            tmp_metadata = []
-            for path, root, dirs, files in src.walk.driveWalk(category["id"], False, drive):
-                root["path"] = path
-                deleteList = []
-                processNo = 0
-                for file in files:
-                    if "video" in file["mimeType"]:
-                        file["path"] = path
-                        try:
-                            title, year = parseName(
-                                file["name"])
-                            file["title"], file["posterPath"], file["backdropPath"], file["releaseDate"], file["overview"], file["tmdbId"], file["popularity"] = mediaIdentifier(
-                                tmdb_api_key, title, year, backdrop_base_url, poster_base_url, True, False)
-                        except:
-                            file["title"], file["posterPath"], file["backdropPath"], file["releaseDate"], file["overview"], file["tmdbId"] = file["name"][:-len(
-                                file["fullFileExtention"])], "", "", "1900-01-01", ""
-                    else:
-                        deleteList.insert(0, processNo)
-                    processNo += 1
-                if len(deleteList) > 0:
-                    for item in deleteList:
-                        del files[item]
-
-                for dir in dirs:
-                    dir["path"] = path
-
-                root["files"] = files
-                root["folders"] = dirs
-
-                stdin = "tmp_metadata"
-                for l in range(len(path)-2):
-                    stdin = stdin + "[-1]['folders']"
-                eval(stdin+".append(root)")
-            placeholder_metadata.append({"name": category["name"], "type": category["type"],
-                                         "id": category["id"], "driveId": category["driveId"], "length": (len(tmp_metadata[0]["files"])+len(tmp_metadata[0]["folders"])), "files": tmp_metadata[0]["files"], "folders": tmp_metadata[0]["folders"]})
-        elif category["type"] == "tv":
-            tmp_metadata = []
-            for path, root, dirs, files in src.walk.driveWalk(category["id"], False, drive):
-                root["path"] = path
-                deleteList = []
-                processNo = 0
-                for file in files:
-                    if "video" in file["mimeType"]:
-                        file["path"] = path
-                    else:
-                        deleteList.insert(0, processNo)
-                    processNo += 1
-                if len(deleteList) > 0:
-                    for item in deleteList:
-                        del files[item]
-
-                for dir in dirs:
-                    dir["path"] = path
+            root = drive.files().get(
+                fileId=category["id"], supportsAllDrives=True).execute()
+            tmp_metadata = src.tree.driveTree(root, drive)
+            tmp_metadata["categoryInfo"] = category
+            for item in tmp_metadata["children"]:
+                if item["type"] == "file":
                     try:
-                        title, year = parseName(
-                            dir["name"])
-                        dir["title"], dir["posterPath"], dir["backdropPath"], dir["releaseDate"], dir["overview"], dir["tmdbId"], dir["popularity"] = mediaIdentifier(
+                        title, year = parseName(item["name"])
+                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["tmdbId"], item["popularity"] = mediaIdentifier(
+                            tmdb_api_key, title, year, backdrop_base_url, poster_base_url, True, False)
+                    except:
+                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item[
+                            "tmdbId"] = item["name"][:-len(item["fullFileExtention"])], "", "", "1900-01-01", ""
+
+            placeholder_metadata.append(tmp_metadata)
+        elif category["type"] == "tv":
+            root = drive.files().get(
+                fileId=category["id"], supportsAllDrives=True).execute()
+            tmp_metadata = src.tree.driveTree(root, drive)
+            tmp_metadata["categoryInfo"] = category
+            for item in tmp_metadata["children"]:
+                if item["type"] == "directory":
+                    try:
+                        title, year = parseName(item["name"])
+                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["tmdbId"], item["popularity"] = mediaIdentifier(
                             tmdb_api_key, title, year, backdrop_base_url, poster_base_url, False, True)
                     except:
-                        dir["title"], dir["posterPath"], dir["backdropPath"], dir["releaseDate"], dir[
-                            "overview"], dir["tmdbId"] = dir["name"], "", "", "1900-01-01", "", ""
+                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item[
+                            "tmdbId"] = item["name"][:-len(item["fullFileExtention"])], "", "", "1900-01-01", ""
 
-                root["files"] = files
-                root["folders"] = dirs
-                stdin = "tmp_metadata"
-                for l in range(len(path)-2):
-                    stdin = stdin + "[-1]['folders']"
-                eval(stdin+".append(root)")
-            placeholder_metadata.append({"name": category["name"], "type": category["type"],
-                                         "id": category["id"], "driveId": category["driveId"], "length": (len(tmp_metadata[0]["files"])+len(tmp_metadata[0]["folders"])), "files": tmp_metadata[0]["files"], "folders": tmp_metadata[0]["folders"]})
+            placeholder_metadata.append(tmp_metadata)
 
     metadata = placeholder_metadata
 

@@ -127,7 +127,28 @@ def metadataAPI():
 
 
 @app.route("/api/v1/download")
-def downloadAPI():
+def downloadRedirectAPI():
+    tmp_metadata = metadata
+    a = flask.request.args.get("a")
+    id = flask.request.args.get("id")
+    ids = src.metadata.jsonExtract(
+        obj=tmp_metadata, key="id", getObj=True)
+    name = ""
+    for item in ids:
+        if item["id"] == id:
+            name = item["name"]
+    keys = [i for i in flask.request.args.keys()]
+    values = [i for i in flask.request.args.values()]
+
+    args = "?"
+    for i in range(len(keys)):
+        args += keys[i] + "=" + values[i] + "&"
+    args = args[:-1]
+    
+    return flask.redirect("/api/v1/download/"+name+args)
+
+@app.route("/api/v1/download/<name>")
+def downloadAPI(name):
     def download_file(streamable):
         with streamable as stream:
             stream.raise_for_status()
@@ -153,6 +174,8 @@ def downloadAPI():
         headers = [(name, value) for (name, value) in resp.raw.headers.items()
                    if name.lower() not in excluded_headers]
         return flask.Response(download_file(resp), resp.status_code, headers)
+    else:
+        return flask.Response("The auth code or id provided was incorrect.", status=401)
 
 
 if __name__ == "__main__":

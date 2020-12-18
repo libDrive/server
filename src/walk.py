@@ -1,3 +1,5 @@
+### This function is no longer in use and has been replaced by tree.py
+
 def driveWalk(top, by_name, drive):
     def iterfiles(name, is_folder, parent, order_by, drive):
         q = []

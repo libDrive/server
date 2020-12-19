@@ -11,27 +11,24 @@ import src.credentials
 import src.metadata
 
 if os.path.exists("config.env"):
-    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key = src.config.readConfig()
+    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
 else:
     src.config.writeConfig()
-    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key = src.config.readConfig()
+    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
 
 drive, access_token = src.credentials.refreshCredentials(
     "", client_id, client_secret, refresh_token, True)
 
 configuration_url = "http://api.themoviedb.org/3/configuration?api_key=" + tmdb_api_key
-configuration_content = json.loads(
-    (requests.get(configuration_url)).content)
+configuration_content = json.loads(requests.get(configuration_url).content)
 backdrop_base_url = configuration_content["images"]["base_url"] + \
     configuration_content["images"]["backdrop_sizes"][3]
 poster_base_url = configuration_content["images"]["base_url"] + \
     configuration_content["images"]["poster_sizes"][3]
 
 metadata = src.metadata.readMetadata(category_list)
-metadata = src.metadata.writeMetadata(category_list, drive, tmdb_api_key,
-                                      backdrop_base_url, poster_base_url)
-metadata = src.metadata.writeMetadata(
-    category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
+# metadata = src.metadata.writeMetadata(
+#    category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
 
 app = flask.Flask(__name__)
 flask_cors.CORS(app)
@@ -40,10 +37,15 @@ app.secret_key = secret_key
 
 @app.route("/api/v1/auth")
 def authAPI():
+    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
     u = flask.request.args.get("u")  # USERNAME
     p = flask.request.args.get("p")  # PASSWORD
+    a = flask.request.args.get("a")  # AUTH
     if any(u == account["username"] for account in account_list) and any(p == account["password"] for account in account_list):
         account = next((i for i in account_list if i["username"] == u), None)
+        return flask.jsonify(account)
+    elif any(a == account["auth"] for account in account_list):
+        account = next((i for i in account_list if i["auth"] == a), None)
         return flask.jsonify(account)
     else:
         return flask.Response("The username and/or password provided was incorrect.", status=401)
@@ -51,6 +53,7 @@ def authAPI():
 
 @app.route("/api/v1/environment")
 def environmentAPI():
+    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
     a = flask.request.args.get("a")  # AUTH
     if any(a == account["auth"] for account in account_list):
         account = next((i for i in account_list if i["auth"] == a), None)
@@ -61,6 +64,7 @@ def environmentAPI():
 
 @app.route("/api/v1/metadata")
 def metadataAPI():
+    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
     tmp_metadata = src.metadata.readMetadata(category_list)
     a = flask.request.args.get("a")  # AUTH
     c = flask.request.args.get("c")  # CATEGORY
@@ -129,10 +133,8 @@ def metadataAPI():
 @app.route("/api/v1/download")
 def downloadRedirectAPI():
     tmp_metadata = metadata
-    a = flask.request.args.get("a")
     id = flask.request.args.get("id")
-    ids = src.metadata.jsonExtract(
-        obj=tmp_metadata, key="id", getObj=True)
+    ids = src.metadata.jsonExtract(obj=tmp_metadata, key="id", getObj=True)
     name = ""
     for item in ids:
         if item["id"] == id:
@@ -144,8 +146,9 @@ def downloadRedirectAPI():
     for i in range(len(keys)):
         args += keys[i] + "=" + values[i] + "&"
     args = args[:-1]
-    
+
     return flask.redirect("/api/v1/download/"+name+args)
+
 
 @app.route("/api/v1/download/<name>")
 def downloadAPI(name):
@@ -169,14 +172,36 @@ def downloadAPI(name):
             cookies=flask.request.cookies,
             allow_redirects=False,
             stream=True)
-        excluded_headers = ['content-encoding',
-                            'content-length', 'transfer-encoding', 'connection']
-        headers = [(name, value) for (name, value) in resp.raw.headers.items()
-                   if name.lower() not in excluded_headers]
+        excluded_headers = ["content-encoding",
+                            "content-length", "transfer-encoding", "connection"]
+        headers = [(name, value) for (name, value) in resp.raw.headers.items(
+        ) if name.lower() not in excluded_headers]
         return flask.Response(download_file(resp), resp.status_code, headers)
     else:
         return flask.Response("The auth code or id provided was incorrect.", status=401)
 
 
+@app.route("/api/v1/config", methods=['GET', 'POST'])
+def configAPI():
+    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
+    if flask.request.method == "GET":
+        secret = flask.request.args.get("secret")
+        if secret == secret_key:
+            environment = {"account_list": account_list, "category_list": category_list,
+                           "secret_key": secret_key, "tmdb_api_key": tmdb_api_key}
+            return flask.jsonify(environment)
+        else:
+            return flask.Response("The secret key provided was incorrect", status=401)
+    elif flask.request.method == "POST":
+        secret = flask.request.args.get("secret")
+        if secret == secret_key:
+            data = flask.request.json
+            src.config.updateConfig(access_token, data["account_list"], client_id, client_secret,
+                                    refresh_token, data["category_list"], data["secret_key"], tmdb_api_key)
+            return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+        else:
+            return flask.Response("The secret key provided was incorrect", status=401)
+
+
 if __name__ == "__main__":
-    app.run(port=31145)
+    app.run(port=31145, debug=True)

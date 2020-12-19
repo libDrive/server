@@ -19,7 +19,7 @@ def readConfig():
         refresh_token = config["refresh_token"]
         secret_key = config["secret_key"]
         tmdb_api_key = config["tmdb_api_key"]
-        return account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key
+        return account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config
     else:
         return None
 
@@ -30,7 +30,7 @@ def writeConfig():
 
     try:
         flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
-            "credentials.json", ["https://www.googleapis.com/auth/drive.readonly"])
+            "credentials.json", ["https://www.googleapis.com/auth/drive"])
     except:
         raise FileNotFoundError(
             "There is no 'credentials.json' file in the current directory.")
@@ -92,4 +92,20 @@ def writeConfig():
     confObj["CONFIG"]["secret_key"] = str(secret_key)
     confObj["CONFIG"]["tmdb_api_key"] = str(tmdb_api_key)
     with open("config.env", "w+") as w:
+        confObj.write(w)
+
+def updateConfig(access_token, account_list, client_id, client_secret, refresh_token, category_list, secret_key, tmdb_api_key):
+    confObj = configparser.ConfigParser()
+    confObj["CONFIG"] = {}
+    
+    confObj["CONFIG"]["access_token"] = str(access_token)
+    confObj["CONFIG"]["account_list"] = str(account_list)
+    confObj["CONFIG"]["client_id"] = str(client_id)
+    confObj["CONFIG"]["client_secret"] = str(client_secret)
+    confObj["CONFIG"]["refresh_token"] = str(refresh_token)
+    confObj["CONFIG"]["category_list"] = str(category_list)
+    confObj["CONFIG"]["secret_key"] = str(secret_key)
+    confObj["CONFIG"]["tmdb_api_key"] = str(tmdb_api_key)
+
+    with open("config.env", "w") as w:
         confObj.write(w)

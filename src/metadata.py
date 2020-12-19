@@ -5,8 +5,8 @@ import time
 
 import requests
 
-import src.walk
 import src.tree
+import src.walk
 
 
 def parseName(name):
@@ -182,7 +182,8 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
         pass
     else:
         os.mkdir("./metadata")
-    with open("./metadata/"+time.strftime("%Y%m%d-%H%M%S")+".json", "w+") as w:
+    metadata_file_name = time.strftime("%Y%m%d-%H%M%S")+".json"
+    with open(metadata_file_name, "w+") as w:
         w.write(json.dumps(metadata))
 
     return metadata

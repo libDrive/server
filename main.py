@@ -166,7 +166,7 @@ def downloadAPI(name):
     def download_file(streamable):
         with streamable as stream:
             stream.raise_for_status()
-            for chunk in stream.iter_content(chunk_size=512):
+            for chunk in stream.iter_content(chunk_size=2048):
                 yield chunk
 
     a = flask.request.args.get("a")

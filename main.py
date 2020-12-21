@@ -30,20 +30,18 @@ metadata = src.metadata.readMetadata(category_list)
 metadata = src.metadata.writeMetadata(
     category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
 
-app = flask.Flask(__name__, static_folder=os.path.dirname(
-    __file__) + "./build", static_url_path="")
+app = flask.Flask(__name__, static_folder="build")
 flask_cors.CORS(app)
 app.secret_key = secret_key
 
 
-@app.errorhandler(404)
-def not_found(e):
-    if flask.request.path.startswith("/api"):
-        return flask.Response("Page not found", status=404)
-    elif flask.request.path.startswith("/null"):
-        return flask.Response("Page not found", status=404)
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve(path):
+    if (path != "") and os.path.exists(app.static_folder + "/" + path):
+        return flask.send_from_directory(app.static_folder, path)
     else:
-        return app.send_static_file("index.html")
+        return flask.send_from_directory(app.static_folder, "index.html")
 
 
 @app.route("/api/v1/auth")

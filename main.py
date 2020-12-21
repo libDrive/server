@@ -27,12 +27,23 @@ poster_base_url = configuration_content["images"]["base_url"] + \
     configuration_content["images"]["poster_sizes"][3]
 
 metadata = src.metadata.readMetadata(category_list)
-# metadata = src.metadata.writeMetadata(
-#    category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
+metadata = src.metadata.writeMetadata(
+    category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
 
-app = flask.Flask(__name__)
+app = flask.Flask(__name__, static_folder=os.path.dirname(
+    __file__) + "./build", static_url_path="")
 flask_cors.CORS(app)
 app.secret_key = secret_key
+
+
+@app.errorhandler(404)
+def not_found(e):
+    if flask.request.path.startswith("/api"):
+        return flask.Response("Page not found", status=404)
+    elif flask.request.path.startswith("/null"):
+        return flask.Response("Page not found", status=404)
+    else:
+        return app.send_static_file("index.html")
 
 
 @app.route("/api/v1/auth")
@@ -204,4 +215,4 @@ def configAPI():
 
 
 if __name__ == "__main__":
-    app.run(port=31145, debug=True)
+    app.run(port=31145)

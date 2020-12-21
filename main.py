@@ -214,5 +214,10 @@ def configAPI():
             return flask.Response("The secret key provided was incorrect", status=401)
 
 
+@app.route("/api/v1/ping")
+def pingAPI():
+    return flask.Response("Pong")
+
+
 if __name__ == "__main__":
     app.run(port=31145)

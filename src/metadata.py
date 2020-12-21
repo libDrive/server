@@ -182,7 +182,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
         pass
     else:
         os.mkdir("./metadata")
-    metadata_file_name = time.strftime("%Y%m%d-%H%M%S")+".json"
+    metadata_file_name = "metadata/"+time.strftime("%Y%m%d-%H%M%S")+".json"
     with open(metadata_file_name, "w+") as w:
         w.write(json.dumps(metadata))
 

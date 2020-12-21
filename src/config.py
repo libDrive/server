@@ -58,6 +58,7 @@ def writeConfig():
         stop = ""
         folder_name = input("\nEnter a custom name for folder "+str(n)+":\n")
         folder_choice = 0
+        folder_type = ""
         while folder_choice not in [1, 2, 3]:
             folder_choice = int(input("\nChoose a type for folder " +
                                       str(n)+":\n"+"(1) Movies\n(2) TV Shows\n(3) Other\n"))

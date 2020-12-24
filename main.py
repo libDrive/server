@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import random
@@ -11,13 +12,13 @@ import src.credentials
 import src.metadata
 
 if os.path.exists("config.env"):
-    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
 else:
     src.config.writeConfig()
-    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
 
-drive, access_token = src.credentials.refreshCredentials(
-    "", client_id, client_secret, refresh_token, True)
+access_token, drive, token_expiry = src.credentials.refreshCredentials(
+    "", client_id, client_secret, refresh_token)
 
 configuration_url = "http://api.themoviedb.org/3/configuration?api_key=" + tmdb_api_key
 configuration_content = json.loads(requests.get(configuration_url).content)
@@ -27,8 +28,8 @@ poster_base_url = configuration_content["images"]["base_url"] + \
     configuration_content["images"]["poster_sizes"][3]
 
 metadata = src.metadata.readMetadata(category_list)
-metadata = src.metadata.writeMetadata(
-    category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
+# metadata = src.metadata.writeMetadata(
+#    category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
 
 app = flask.Flask(__name__, static_folder="build")
 flask_cors.CORS(app)
@@ -46,7 +47,7 @@ def serve(path):
 
 @app.route("/api/v1/auth")
 def authAPI():
-    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     u = flask.request.args.get("u")  # USERNAME
     p = flask.request.args.get("p")  # PASSWORD
     a = flask.request.args.get("a")  # AUTH
@@ -62,7 +63,7 @@ def authAPI():
 
 @app.route("/api/v1/environment")
 def environmentAPI():
-    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     a = flask.request.args.get("a")  # AUTH
     if any(a == account["auth"] for account in account_list):
         account = next((i for i in account_list if i["auth"] == a), None)
@@ -73,7 +74,7 @@ def environmentAPI():
 
 @app.route("/api/v1/metadata")
 def metadataAPI():
-    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     tmp_metadata = src.metadata.readMetadata(category_list)
     a = flask.request.args.get("a")  # AUTH
     c = flask.request.args.get("c")  # CATEGORY
@@ -164,8 +165,13 @@ def downloadAPI(name):
     def download_file(streamable):
         with streamable as stream:
             stream.raise_for_status()
-            for chunk in stream.iter_content(chunk_size=2048):
+            for chunk in stream.iter_content(chunk_size=4096):
                 yield chunk
+
+    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    if token_expiry <= datetime.datetime.utcnow():
+        access_token, drive, token_expiry = src.credentials.refreshCredentials(
+            access_token, client_id, client_secret, refresh_token)
 
     a = flask.request.args.get("a")
     id = flask.request.args.get("id")
@@ -185,14 +191,14 @@ def downloadAPI(name):
                             "content-length", "transfer-encoding", "connection"]
         headers = [(name, value) for (name, value) in resp.raw.headers.items(
         ) if name.lower() not in excluded_headers]
-        return flask.Response(download_file(resp), resp.status_code, headers)
+        return flask.Response(flask.stream_with_context(download_file(resp)), resp.status_code, headers)
     else:
         return flask.Response("The auth code or id provided was incorrect.", status=401)
 
 
 @app.route("/api/v1/config", methods=['GET', 'POST'])
 def configAPI():
-    account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     if flask.request.method == "GET":
         secret = flask.request.args.get("secret")
         if secret == secret_key:

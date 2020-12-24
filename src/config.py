@@ -1,5 +1,6 @@
 import ast
 import configparser
+import datetime
 import os
 import random
 import string
@@ -12,6 +13,7 @@ def readConfig():
         confObj = configparser.ConfigParser()
         confObj.read("config.env")
         config = confObj["CONFIG"]
+        access_token = config["access_token"]
         account_list = ast.literal_eval(config["account_list"])
         client_id = config["client_id"]
         client_secret = config["client_secret"]
@@ -19,7 +21,8 @@ def readConfig():
         refresh_token = config["refresh_token"]
         secret_key = config["secret_key"]
         tmdb_api_key = config["tmdb_api_key"]
-        return account_list, client_id, client_secret, category_list, refresh_token, secret_key, tmdb_api_key, config
+        token_expiry = datetime.datetime.strptime(config["token_expiry"], "%Y-%m-%d %H:%M:%S.%f")
+        return access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry
     else:
         return None
 
@@ -92,13 +95,13 @@ def writeConfig():
     confObj["CONFIG"]["category_list"] = str(category_list)
     confObj["CONFIG"]["secret_key"] = str(secret_key)
     confObj["CONFIG"]["tmdb_api_key"] = str(tmdb_api_key)
+    confObj["CONFIG"]["token_expiry"] = str(credentials.token_expiry)
     with open("config.env", "w+") as w:
         confObj.write(w)
 
-def updateConfig(access_token, account_list, client_id, client_secret, refresh_token, category_list, secret_key, tmdb_api_key):
+def updateConfig(access_token, account_list, client_id, client_secret, refresh_token, category_list, secret_key, tmdb_api_key, token_expiry):
     confObj = configparser.ConfigParser()
-    confObj["CONFIG"] = {}
-    
+    confObj.read("config.env")
     confObj["CONFIG"]["access_token"] = str(access_token)
     confObj["CONFIG"]["account_list"] = str(account_list)
     confObj["CONFIG"]["client_id"] = str(client_id)
@@ -107,6 +110,7 @@ def updateConfig(access_token, account_list, client_id, client_secret, refresh_t
     confObj["CONFIG"]["category_list"] = str(category_list)
     confObj["CONFIG"]["secret_key"] = str(secret_key)
     confObj["CONFIG"]["tmdb_api_key"] = str(tmdb_api_key)
+    confObj["CONFIG"]["token_expiry"] = str(token_expiry)
 
-    with open("config.env", "w") as w:
+    with open("config.env", "w+") as w:
         confObj.write(w)

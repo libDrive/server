@@ -20,7 +20,8 @@ else:
 access_token, drive, token_expiry = src.credentials.refreshCredentials(
     "", client_id, client_secret, refresh_token)
 
-configuration_url = "https://api.themoviedb.org/3/configuration?api_key=" + tmdb_api_key
+configuration_url = "https://api.themoviedb.org/3/configuration?api_key=%s" % (
+    tmdb_api_key)
 configuration_content = json.loads(requests.get(configuration_url).content)
 backdrop_base_url = configuration_content["images"]["secure_base_url"] + \
     configuration_content["images"]["backdrop_sizes"][3]
@@ -39,7 +40,7 @@ app.secret_key = secret_key
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve(path):
-    if (path != "") and os.path.exists(app.static_folder + "/" + path):
+    if (path != "") and os.path.exists("%s/%s" % (app.static_folder, path)):
         return flask.send_from_directory(app.static_folder, path)
     else:
         return flask.send_from_directory(app.static_folder, "index.html")
@@ -95,7 +96,7 @@ def metadataAPI():
             for category in tmp_metadata:
                 tmp_metadata[index]["children"] = [
                     item for item in category["children"] if q.lower() in item["title"].lower()]
-                index = index + 1
+                index += 1
         if s:
             index = 0
             for category in tmp_metadata:
@@ -110,7 +111,7 @@ def metadataAPI():
                         category["children"], key=lambda k: tuple(map(int, k["releaseDate"].split('-'))))
                 elif s == "date-des":
                     tmp_metadata[index]["children"] = sorted(category["children"], key=lambda k: tuple(
-                        map(int, k["releaseDate"].split('-'))), reverse=True)
+                        map(int, k["releaseDate"].split("-"))), reverse=True)
                 elif s == "popularity-asc":
                     tmp_metadata[index]["children"] = sorted(
                         category["children"], key=lambda k: float(k["popularity"]))
@@ -121,13 +122,13 @@ def metadataAPI():
                     random.shuffle(tmp_metadata[index]["children"])
                 else:
                     return None
-                index = index + 1
+                index += 1
         if r:
             index = 0
             for category in tmp_metadata:
                 tmp_metadata[index]["children"] = eval(
                     "category['children']" + "[" + r + "]")
-                index = index + 1
+                index += 1
         if id:
             ids = src.metadata.jsonExtract(
                 obj=tmp_metadata, key="id", getObj=True)
@@ -154,10 +155,10 @@ def downloadRedirectAPI():
 
     args = "?"
     for i in range(len(keys)):
-        args += keys[i] + "=" + values[i] + "&"
+        args += "%s=%s&" % (keys[i], values[i])
     args = args[:-1]
 
-    return flask.redirect("/api/v1/download/"+name+args)
+    return flask.redirect("/api/v1/download/%s%s" % (name, args))
 
 
 @app.route("/api/v1/download/<name>")
@@ -177,11 +178,12 @@ def downloadAPI(name):
     id = flask.request.args.get("id")
     if any(a == account["auth"] for account in account_list) and id:
         headers = {key: value for (
-            key, value) in flask.request.headers if key != 'Host'}
-        headers["Authorization"] = "Bearer "+access_token
+            key, value) in flask.request.headers if key != "Host"}
+        headers["Authorization"] = "Bearer %s" % (access_token)
         resp = requests.request(
             method=flask.request.method,
-            url="https://www.googleapis.com/drive/v3/files/"+id+"?alt=media",
+            url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (
+                id),
             headers=headers,
             data=flask.request.get_data(),
             cookies=flask.request.cookies,
@@ -196,7 +198,7 @@ def downloadAPI(name):
         return flask.Response("The auth code or id provided was incorrect.", status=401)
 
 
-@app.route("/api/v1/config", methods=['GET', 'POST'])
+@app.route("/api/v1/config", methods=["GET", "POST"])
 def configAPI():
     access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     if flask.request.method == "GET":
@@ -213,7 +215,7 @@ def configAPI():
             data = flask.request.json
             src.config.updateConfig(access_token, data["account_list"], client_id, client_secret,
                                     refresh_token, data["category_list"], data["secret_key"], tmdb_api_key)
-            return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+            return json.dumps({"success": True}), 200, {"ContentType": "application/json"}
         else:
             return flask.Response("The secret key provided was incorrect", status=401)
 

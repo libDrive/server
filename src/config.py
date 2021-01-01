@@ -43,12 +43,12 @@ def writeConfig():
     n = 1
     while True:
         stop = ""
-        username = input("\nEnter the username for accont "+str(n)+":\n")
-        password = input("\nEnter the password for account "+str(n)+":\n")
+        username = input("\nEnter the username for accont %s:\n" % (str(n)))
+        password = input("\nEnter the password for account %s:\n" % (str(n)))
         auth = "".join(random.choice(string.ascii_letters) for i in range(32))
         account_list.append(
             {"username": username, "password": password, "auth": auth, "pic": ""})
-        n = n + 1
+        n += 1
         while stop not in ["y", "n"]:
             stop = input(
                 "\n- Would you like to add another account? - (y/n):\n")
@@ -59,12 +59,11 @@ def writeConfig():
     n = 1
     while True:
         stop = ""
-        folder_name = input("\nEnter a custom name for folder "+str(n)+":\n")
+        folder_name = input("\nEnter a custom name for folder %s:\n" % (str(n)))
         folder_choice = 0
         folder_type = ""
         while folder_choice not in [1, 2, 3]:
-            folder_choice = int(input("\nChoose a type for folder " +
-                                      str(n)+":\n"+"(1) Movies\n(2) TV Shows\n(3) Other\n"))
+            folder_choice = int(input("\nChoose a type for folder %s:\n(1) Movies\n(2) TV Shows\n(3) Other\n" % (str(n))))
             if folder_choice == 1:
                 folder_type = "movies"
             elif folder_choice == 2:
@@ -72,9 +71,9 @@ def writeConfig():
             elif folder_choice == 3:
                 folder_type = "other"
         folder_id = input(
-            "\nEnter the Google Drive folder ID for folder "+str(n)+":\n")
+            "\nEnter the Google Drive folder ID for folder %s:\n" % (str(n)))
         drive_id = input(
-            "\nEnter the Google Drive Shared Drive ID for folder "+str(n)+":\n")
+            "\nEnter the Google Drive Shared Drive ID for folder %s:\n" % (str(n)))
         category_list.append({"name": folder_name, "type": folder_type,
                               "id": folder_id, "driveId": drive_id})
         while stop not in ["y", "n"]:

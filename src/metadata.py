@@ -6,7 +6,6 @@ import time
 import requests
 
 import src.tree
-import src.walk
 
 
 def parseName(name):
@@ -42,8 +41,7 @@ def parseName(name):
 
 def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_url, movie=False, tv=False):
     if movie:
-        search_url = "https://api.themoviedb.org/3/search/movie?api_key=" + \
-            tmdb_api_key+"&query=" + title + "&year=" + year
+        search_url = "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s" % (tmdb_api_key, title, year)
         search_content = json.loads((requests.get(search_url)).content)
         try:
             title = search_content["results"][0]["title"]
@@ -62,7 +60,7 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
         try:
             releaseDate = search_content["results"][0]["release_date"]
         except:
-            releaseDate = year + "-01-01"
+            releaseDate = "%s-01-01" % (year)
         try:
             overview = search_content["results"][0]["overview"]
         except:
@@ -77,8 +75,7 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
             popularity = 0.0
         return title, posterPath, backdropPath, releaseDate, overview, tmdbId, popularity
     elif tv:
-        search_url = "https://api.themoviedb.org/3/search/tv?api_key=" + \
-            tmdb_api_key+"&query=" + title + "&year=" + year
+        search_url = "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&year=%s" % (tmdb_api_key, title, year)
         search_content = json.loads((requests.get(search_url)).content)
         try:
             title = search_content["results"][0]["name"]
@@ -97,7 +94,7 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
         try:
             releaseDate = search_content["results"][0]["first_air_date"]
         except:
-            releaseDate = year + "-01-01"
+            releaseDate = "%s-01-01" % (year)
         try:
             overview = search_content["results"][0]["overview"]
         except:
@@ -121,13 +118,13 @@ def readMetadata(category_list):
         os.mkdir("metadata")
     metadata_dir = os.listdir("metadata")
     if len(metadata_dir) > 4:
-        os.remove("metadata/"+min(metadata_dir))
+        os.remove("metadata/%s" % (min(metadata_dir)))
         metadata_file = max(metadata_dir)
-        with open("metadata/"+metadata_file, "r") as r:
+        with open("metadata/%s" % (metadata_file), "r") as r:
             metadata = json.load(r)
     elif 0 < len(metadata_dir) < 6:
         metadata_file = max(metadata_dir)
-        with open("metadata/"+metadata_file, "r") as r:
+        with open("metadata/%s" % (metadata_file), "r") as r:
             metadata = json.load(r)
     else:
         metadata = []
@@ -182,7 +179,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
         pass
     else:
         os.mkdir("./metadata")
-    metadata_file_name = "metadata/"+time.strftime("%Y%m%d-%H%M%S")+".json"
+    metadata_file_name = "metadata/%s.json" % (time.strftime("%Y%m%d-%H%M%S"))
     with open(metadata_file_name, "w+") as w:
         w.write(json.dumps(metadata))
 

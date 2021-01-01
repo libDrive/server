@@ -88,6 +88,7 @@ def writeConfig():
     secret_key = input("\nEnter a secret key:\n")
 
     confObj["CONFIG"]["access_token"] = str(credentials.token)
+    confObj["CONFIG"]["token_expiry"] = str(credentials.expiry)
     confObj["CONFIG"]["account_list"] = str(account_list)
     confObj["CONFIG"]["client_id"] = str(credentials.client_id)
     confObj["CONFIG"]["client_secret"] = str(credentials.client_secret)
@@ -95,7 +96,6 @@ def writeConfig():
     confObj["CONFIG"]["category_list"] = str(category_list)
     confObj["CONFIG"]["secret_key"] = str(secret_key)
     confObj["CONFIG"]["tmdb_api_key"] = str(tmdb_api_key)
-    confObj["CONFIG"]["token_expiry"] = str(credentials.token_expiry)
     with open("config.env", "w+") as w:
         confObj.write(w)
 

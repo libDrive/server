@@ -28,8 +28,8 @@ poster_base_url = configuration_content["images"]["base_url"] + \
     configuration_content["images"]["poster_sizes"][3]
 
 metadata = src.metadata.readMetadata(category_list)
-# metadata = src.metadata.writeMetadata(
-#    category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
+metadata = src.metadata.writeMetadata(
+    category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
 
 app = flask.Flask(__name__, static_folder="build")
 flask_cors.CORS(app)

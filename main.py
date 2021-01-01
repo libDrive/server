@@ -20,11 +20,11 @@ else:
 access_token, drive, token_expiry = src.credentials.refreshCredentials(
     "", client_id, client_secret, refresh_token)
 
-configuration_url = "http://api.themoviedb.org/3/configuration?api_key=" + tmdb_api_key
+configuration_url = "https://api.themoviedb.org/3/configuration?api_key=" + tmdb_api_key
 configuration_content = json.loads(requests.get(configuration_url).content)
-backdrop_base_url = configuration_content["images"]["base_url"] + \
+backdrop_base_url = configuration_content["images"]["secure_base_url"] + \
     configuration_content["images"]["backdrop_sizes"][3]
-poster_base_url = configuration_content["images"]["base_url"] + \
+poster_base_url = configuration_content["images"]["secure_base_url"] + \
     configuration_content["images"]["poster_sizes"][3]
 
 metadata = src.metadata.readMetadata(category_list)

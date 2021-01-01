@@ -42,7 +42,7 @@ def parseName(name):
 
 def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_url, movie=False, tv=False):
     if movie:
-        search_url = "http://api.themoviedb.org/3/search/movie?api_key=" + \
+        search_url = "https://api.themoviedb.org/3/search/movie?api_key=" + \
             tmdb_api_key+"&query=" + title + "&year=" + year
         search_content = json.loads((requests.get(search_url)).content)
         try:
@@ -77,7 +77,7 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
             popularity = 0.0
         return title, posterPath, backdropPath, releaseDate, overview, tmdbId, popularity
     elif tv:
-        search_url = "http://api.themoviedb.org/3/search/tv?api_key=" + \
+        search_url = "https://api.themoviedb.org/3/search/tv?api_key=" + \
             tmdb_api_key+"&query=" + title + "&year=" + year
         search_content = json.loads((requests.get(search_url)).content)
         try:

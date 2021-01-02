@@ -11,11 +11,15 @@ import src.config
 import src.credentials
 import src.metadata
 
-if os.path.exists("config.env"):
-    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+if os.getenv("ENVIRON_MODE") == "True":
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readEnviron()
+    src.config.updateConfig(access_token, account_list, category_list, client_id,
+                            client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry)
+elif os.path.exists("config.env"):
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
 else:
     src.config.writeConfig()
-    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
 
 access_token, drive, token_expiry = src.credentials.refreshCredentials(
     "", client_id, client_secret, refresh_token)
@@ -48,7 +52,7 @@ def serve(path):
 
 @app.route("/api/v1/auth")
 def authAPI():
-    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     u = flask.request.args.get("u")  # USERNAME
     p = flask.request.args.get("p")  # PASSWORD
     a = flask.request.args.get("a")  # AUTH
@@ -64,7 +68,7 @@ def authAPI():
 
 @app.route("/api/v1/environment")
 def environmentAPI():
-    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     a = flask.request.args.get("a")  # AUTH
     if any(a == account["auth"] for account in account_list):
         account = next((i for i in account_list if i["auth"] == a), None)
@@ -75,7 +79,7 @@ def environmentAPI():
 
 @app.route("/api/v1/metadata")
 def metadataAPI():
-    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     tmp_metadata = src.metadata.readMetadata(category_list)
     a = flask.request.args.get("a")  # AUTH
     c = flask.request.args.get("c")  # CATEGORY
@@ -169,7 +173,7 @@ def downloadAPI(name):
             for chunk in stream.iter_content(chunk_size=4096):
                 yield chunk
 
-    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     if token_expiry <= datetime.datetime.utcnow():
         access_token, drive, token_expiry = src.credentials.refreshCredentials(
             access_token, client_id, client_secret, refresh_token)
@@ -200,7 +204,7 @@ def downloadAPI(name):
 
 @app.route("/api/v1/config", methods=["GET", "POST"])
 def configAPI():
-    access_token, account_list, category_list, client_id, client_secret, config, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     if flask.request.method == "GET":
         secret = flask.request.args.get("secret")
         if secret == secret_key:
@@ -213,8 +217,8 @@ def configAPI():
         secret = flask.request.args.get("secret")
         if secret == secret_key:
             data = flask.request.json
-            src.config.updateConfig(access_token, data["account_list"], client_id, client_secret,
-                                    refresh_token, data["category_list"], data["secret_key"], tmdb_api_key)
+            src.config.updateConfig(access_token, data["account_list"], data["category_list"], client_id, client_secret,
+                                    refresh_token, data["secret_key"], tmdb_api_key, token_expiry)
             return json.dumps({"success": True}), 200, {"ContentType": "application/json"}
         else:
             return flask.Response("The secret key provided was incorrect", status=401)

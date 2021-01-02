@@ -112,10 +112,10 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
 
 
 def readMetadata(category_list):
-    if os.path.exists("metadata"):
-        pass
-    else:
+    try:
         os.mkdir("metadata")
+    except:
+        pass
     metadata_dir = os.listdir("metadata")
     if len(metadata_dir) > 4:
         os.remove("metadata/%s" % (min(metadata_dir)))

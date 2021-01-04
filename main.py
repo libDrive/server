@@ -245,7 +245,13 @@ def configAPI():
 
 @app.route("/api/v1/restart")
 def restartAPI():
-    os.execv(sys.executable, [sys.executable] + sys.argv)
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+
+    secret = flask.request.args.get("secret")
+    if secret == secret_key:
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+    else:
+        return flask.Response("The secret key provided was incorrect", status=401)
 
 @app.route("/api/v1/ping")
 def pingAPI():

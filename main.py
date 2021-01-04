@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import random
+import sys
 
 import flask
 import flask_cors
@@ -242,10 +243,14 @@ def configAPI():
             return flask.Response("The secret key provided was incorrect", status=401)
 
 
+@app.route("/api/v1/restart")
+def restartAPI():
+    os.execv(sys.executable, [sys.executable] + sys.argv)
+
 @app.route("/api/v1/ping")
 def pingAPI():
     return flask.Response("Pong")
 
 
 if __name__ == "__main__":
-    app.run(port=31145, threaded=True)
+    app.run(host="0.0.0.0", port=31145, threaded=True)

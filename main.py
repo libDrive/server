@@ -12,39 +12,30 @@ import src.config
 import src.credentials
 import src.metadata
 
-if os.getenv("ENVIRON_MODE") == "True":
-    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readEnviron()
-    environment = {"access_token": access_token, "account_list": account_list, "category_list": category_list, "client_id": client_id,
-                   "client_secret": client_secret, "refresh_token": refresh_token, "secret_key": secret_key, "tmdb_api_key": tmdb_api_key, "token_expiry": token_expiry}
-    src.config.updateConfig(environment)
-    isConfig = True
+if os.getenv("LIBDRIVE_CONFIG"):
+    config_str = os.getenv("LIBDRIVE_CONFIG").replace("\\n", "\n")
+    with open("config.env", "w+") as w:
+        w.write(config_str)
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
 elif os.path.exists("config.env"):
     access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
-    isConfig = True
 else:
-    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = "", [
-    ], [], "", "", "", "", "", datetime.datetime.utcnow()
-    environment = {"access_token": access_token, "account_list": account_list, "category_list": category_list, "client_id": client_id,
-                   "client_secret": client_secret, "refresh_token": refresh_token, "secret_key": secret_key, "tmdb_api_key": tmdb_api_key, "token_expiry": token_expiry}
-    isConfig = False
+    sys.exit()
 
-if isConfig:
-    access_token, drive, token_expiry = src.credentials.refreshCredentials(
-        "", client_id, client_secret, refresh_token)
+access_token, drive, token_expiry = src.credentials.refreshCredentials(
+    "", client_id, client_secret, refresh_token)
 
-    configuration_url = "https://api.themoviedb.org/3/configuration?api_key=%s" % (
-        tmdb_api_key)
-    configuration_content = json.loads(requests.get(configuration_url).content)
-    backdrop_base_url = configuration_content["images"]["secure_base_url"] + \
-        configuration_content["images"]["backdrop_sizes"][3]
-    poster_base_url = configuration_content["images"]["secure_base_url"] + \
-        configuration_content["images"]["poster_sizes"][3]
+configuration_url = "https://api.themoviedb.org/3/configuration?api_key=%s" % (
+    tmdb_api_key)
+configuration_content = json.loads(requests.get(configuration_url).content)
+backdrop_base_url = configuration_content["images"]["secure_base_url"] + \
+    configuration_content["images"]["backdrop_sizes"][3]
+poster_base_url = configuration_content["images"]["secure_base_url"] + \
+    configuration_content["images"]["poster_sizes"][3]
 
-    metadata = src.metadata.readMetadata(category_list)
-    metadata = src.metadata.writeMetadata(
-        category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
-else:
-    metadata = []
+metadata = src.metadata.readMetadata(category_list)
+metadata = src.metadata.writeMetadata(
+    category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
 
 app = flask.Flask(__name__, static_folder="build")
 flask_cors.CORS(app)
@@ -62,10 +53,7 @@ def serve(path):
 
 @app.route("/api/v1/auth")
 def authAPI():
-    if os.path.exists("config.env"):
-        access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
-    else:
-        return flask.Response("/settings/login", status=302)
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     u = flask.request.args.get("u")  # USERNAME
     p = flask.request.args.get("p")  # PASSWORD
     a = flask.request.args.get("a")  # AUTH
@@ -217,11 +205,7 @@ def downloadAPI(name):
 
 @app.route("/api/v1/config", methods=["GET", "POST"])
 def configAPI():
-    if os.path.exists("config.env"):
-        access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
-    else:
-        access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = "", [
-        ], [], "", "", "", "", "", datetime.datetime.utcnow()
+    access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
     if flask.request.method == "GET":
         secret = flask.request.args.get("secret")
         if secret == secret_key:
@@ -246,12 +230,12 @@ def configAPI():
 @app.route("/api/v1/restart")
 def restartAPI():
     access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
-
     secret = flask.request.args.get("secret")
     if secret == secret_key:
         os.execv(sys.executable, [sys.executable] + sys.argv)
     else:
         return flask.Response("The secret key provided was incorrect", status=401)
+
 
 @app.route("/api/v1/ping")
 def pingAPI():

@@ -20,21 +20,11 @@ def readConfig():
     refresh_token = config["refresh_token"]
     secret_key = config["secret_key"]
     tmdb_api_key = config["tmdb_api_key"]
-    token_expiry = datetime.datetime.strptime(
-        config["token_expiry"], "%Y-%m-%d %H:%M:%S.%f")
-    return access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry
-
-
-def readEnviron():
-    access_token = ""
-    account_list = ast.literal_eval(os.getenv("account_list"))
-    client_id = os.getenv("client_id")
-    client_secret = os.getenv("client_secret")
-    category_list = ast.literal_eval(os.getenv("category_list"))
-    refresh_token = os.getenv("refresh_token")
-    secret_key = os.getenv("secret_key")
-    tmdb_api_key = os.getenv("tmdb_api_key")
-    token_expiry = datetime.datetime.utcnow()
+    try:
+        token_expiry = datetime.datetime.strptime(
+            config["token_expiry"], "%Y-%m-%d %H:%M:%S.%f")
+    except:
+        token_expiry = datetime.datetime.utcnow()
     return access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry
 
 

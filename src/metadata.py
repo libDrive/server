@@ -138,7 +138,7 @@ def readMetadata(category_list):
 def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url):
     placeholder_metadata = []
     for category in category_list:
-        if category["type"] == "movies":
+        if category["type"] == "Movies":
             root = drive.files().get(
                 fileId=category["id"], supportsAllDrives=True).execute()
             tmp_metadata = src.tree.driveTree(root, drive)
@@ -155,7 +155,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                             "tmdbId"] = item["name"][:-len(item["fullFileExtention"])], "", "", "1900-01-01", ""
 
             placeholder_metadata.append(tmp_metadata)
-        elif category["type"] == "tv":
+        elif category["type"] == "TV Shows":
             root = drive.files().get(
                 fileId=category["id"], supportsAllDrives=True).execute()
             tmp_metadata = src.tree.driveTree(root, drive)

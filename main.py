@@ -20,6 +20,7 @@ if os.getenv("LIBDRIVE_CONFIG"):
 elif os.path.exists("config.env"):
     access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
 else:
+    print("\033[91m\nThe \033[4mconfig.env\033[0m \033[91mfile or \033[91m\033[4mLIBDRIVE_CONFIG\033[0m \033[91menvironment variable is required for libDrive to function! Please create one at the following URL: https://libdrive-config.netlify.app/\n" + "\033[0m")
     sys.exit()
 
 access_token, drive, token_expiry = src.credentials.refreshCredentials(

@@ -169,7 +169,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                             tmdb_api_key, title, year, backdrop_base_url, poster_base_url, False, True)
                     except:
                         item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item[
-                            "tmdbId"] = item["name"][:-len(item["fullFileExtention"])], "", "", "1900-01-01", ""
+                            "tmdbId"] = item["name"], "", "", "1900-01-01", ""
 
             placeholder_metadata.append(tmp_metadata)
 

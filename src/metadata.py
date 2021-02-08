@@ -13,7 +13,7 @@ def parseName(name):
         r'''^\(([1-2][0-9]{3})\)([^\.]*)''', name)  # Example: (2008) Iron Man.mkv
     match_2 = re.search(
         r'''^([^\.]{1,}?)\(([1-2][0-9]{3})\)''', name)  # Example: Iron Man (2008).mkv
-    match_3 = re.search(r'''^([^\*]{1,}?)([1-2][0-9]{3})[^\*]''',
+    match_3 = re.search(r'''^(.*?)\W(?:(\d{4})(?:\W(\d+p)?)|(\d+p)(?:\W(\d{4}))?)\b''',
                         name)  # Example: Iron.Man.2008.REMASTERED.1080p.BluRay.x265-RARBG.mkv
     if match_1:
         try:
@@ -41,7 +41,8 @@ def parseName(name):
 
 def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_url, movie=False, tv=False):
     if movie:
-        search_url = "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s" % (tmdb_api_key, title, year)
+        search_url = "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s" % (
+            tmdb_api_key, title, year)
         search_content = json.loads((requests.get(search_url)).content)
         try:
             title = search_content["results"][0]["title"]
@@ -66,16 +67,13 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
         except:
             overview = ""
         try:
-            tmdbId = search_content["results"][0]["id"]
-        except:
-            tmdbId = ""
-        try:
             popularity = search_content["results"][0]["popularity"]
         except:
             popularity = 0.0
-        return title, posterPath, backdropPath, releaseDate, overview, tmdbId, popularity
+        return title, posterPath, backdropPath, releaseDate, overview, popularity
     elif tv:
-        search_url = "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&year=%s" % (tmdb_api_key, title, year)
+        search_url = "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&year=%s" % (
+            tmdb_api_key, title, year)
         search_content = json.loads((requests.get(search_url)).content)
         try:
             title = search_content["results"][0]["name"]
@@ -100,15 +98,11 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
         except:
             overview = ""
         try:
-            tmdbId = search_content["results"][0]["id"]
-        except:
-            tmdbId = ""
-        try:
             popularity = search_content["results"][0]["popularity"]
         except:
             popularity = 0.0
 
-        return title, posterPath, backdropPath, releaseDate, overview, tmdbId, popularity
+        return title, posterPath, backdropPath, releaseDate, overview, popularity
 
 
 def readMetadata(category_list):
@@ -148,11 +142,10 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                 if item["type"] == "file":
                     try:
                         title, year = parseName(item["name"])
-                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["tmdbId"], item["popularity"] = mediaIdentifier(
+                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["popularity"] = mediaIdentifier(
                             tmdb_api_key, title, year, backdrop_base_url, poster_base_url, True, False)
                     except:
-                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item[
-                            "tmdbId"] = item["name"][:-len(item["fullFileExtention"])], "", "", "1900-01-01", ""
+                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", "", ""
 
             placeholder_metadata.append(tmp_metadata)
         elif category["type"] == "TV Shows":
@@ -165,11 +158,11 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                 if item["type"] == "directory":
                     try:
                         title, year = parseName(item["name"])
-                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["tmdbId"], item["popularity"] = mediaIdentifier(
+                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["popularity"] = mediaIdentifier(
                             tmdb_api_key, title, year, backdrop_base_url, poster_base_url, False, True)
                     except:
-                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item[
-                            "tmdbId"] = item["name"], "", "", "1900-01-01", ""
+                        item["title"], item["posterPath"], item["backdropPath"], item[
+                            "releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", ""
 
             placeholder_metadata.append(tmp_metadata)
 

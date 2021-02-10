@@ -1,12 +1,6 @@
 import ast
 import configparser
 import datetime
-import os
-import random
-import string
-
-import google_auth_oauthlib
-
 
 def readConfig():
     confObj = configparser.ConfigParser()
@@ -17,6 +11,7 @@ def readConfig():
     client_id = config["client_id"]
     client_secret = config["client_secret"]
     category_list = ast.literal_eval(config["category_list"])
+    cloudflare = config["cloudflare"]
     refresh_token = config["refresh_token"]
     secret_key = config["secret_key"]
     tmdb_api_key = config["tmdb_api_key"]
@@ -25,7 +20,7 @@ def readConfig():
             config["token_expiry"], "%Y-%m-%d %H:%M:%S.%f")
     except:
         token_expiry = datetime.datetime.utcnow()
-    return access_token, account_list, category_list, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry
+    return access_token, account_list, category_list, cloudflare, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry
 
 
 def updateConfig(environment):

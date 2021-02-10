@@ -185,7 +185,6 @@ def downloadRedirectAPI():
         args += "%s=%s&" % (keys[i], values[i])
     args = args[:-1]
 
-    cloudflare = ""
     if cloudflare != None and cloudflare != "":
         return flask.redirect(cloudflare + "/%s%s" % (name, args))
     else:

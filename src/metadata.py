@@ -150,7 +150,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                         item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["popularity"] = mediaIdentifier(
                             tmdb_api_key, title, year, backdrop_base_url, poster_base_url, True, False)
                     except:
-                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", "", ""
+                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", ""
 
             placeholder_metadata.append(tmp_metadata)
         elif category["type"] == "TV Shows":

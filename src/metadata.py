@@ -6,6 +6,7 @@ import time
 import requests
 
 import src.tree
+import src.walk
 
 
 def parseName(name):
@@ -135,7 +136,11 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
         if category["type"] == "Movies":
             root = drive.files().get(
                 fileId=category["id"], supportsAllDrives=True).execute()
-            tmp_metadata = src.tree.driveTree(root, drive)
+            tree = root
+            tree["type"] = "directory"
+            tree["children"] = []
+            tmp_metadata = src.walk.driveWalk(root, tree, [], drive)
+            tmp_metadata["children"] = [x for x in tmp_metadata["children"] if x["mimeType"] != "application/vnd.google-apps.folder"]
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])
             for item in tmp_metadata["children"]:

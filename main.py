@@ -107,25 +107,46 @@ def metadataAPI():
             index = 0
             for category in tmp_metadata:
                 if s == "alphabet-asc":
-                    tmp_metadata[index]["children"] = sorted(
-                        category["children"], key=lambda k: k["title"])
+                    try:
+                        tmp_metadata[index]["children"] = sorted(
+                            category["children"], key=lambda k: k["title"])
+                    except:
+                        pass
                 elif s == "alphabet-des":
-                    tmp_metadata[index]["children"] = sorted(
-                        category["children"], key=lambda k: k["title"], reverse=True)
+                    try:
+                        tmp_metadata[index]["children"] = sorted(
+                            category["children"], key=lambda k: k["title"], reverse=True)
+                    except:
+                        pass
                 elif s == "date-asc":
-                    tmp_metadata[index]["children"] = sorted(
-                        category["children"], key=lambda k: tuple(map(int, k["releaseDate"].split('-'))))
+                    try:
+                        tmp_metadata[index]["children"] = sorted(
+                            category["children"], key=lambda k: tuple(map(int, k["releaseDate"].split('-'))))
+                    except:
+                        pass
                 elif s == "date-des":
-                    tmp_metadata[index]["children"] = sorted(category["children"], key=lambda k: tuple(
-                        map(int, k["releaseDate"].split("-"))), reverse=True)
+                    try:
+                        tmp_metadata[index]["children"] = sorted(category["children"], key=lambda k: tuple(
+                            map(int, k["releaseDate"].split("-"))), reverse=True)
+                    except:
+                        pass
                 elif s == "popularity-asc":
-                    tmp_metadata[index]["children"] = sorted(
-                        category["children"], key=lambda k: float(k["popularity"]))
+                    try:
+                        tmp_metadata[index]["children"] = sorted(
+                            category["children"], key=lambda k: float(k["popularity"]))
+                    except:
+                        pass
                 elif s == "popularity-des":
-                    tmp_metadata[index]["children"] = sorted(
-                        category["children"], key=lambda k: float(k["popularity"]), reverse=True)
+                    try:
+                        tmp_metadata[index]["children"] = sorted(
+                            category["children"], key=lambda k: float(k["popularity"]), reverse=True)
+                    except:
+                        pass
                 elif s == "random":
-                    random.shuffle(tmp_metadata[index]["children"])
+                    try:
+                        random.shuffle(tmp_metadata[index]["children"])
+                    except:
+                        pass
                 else:
                     return None
                 index += 1

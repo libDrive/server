@@ -12,6 +12,8 @@ import src.config
 import src.credentials
 import src.metadata
 
+print("================ STARTING... ================")
+
 if os.getenv("LIBDRIVE_CONFIG"):
     config_str = os.getenv("LIBDRIVE_CONFIG")
     with open("config.json", "w+") as w:
@@ -23,6 +25,8 @@ else:
     print("\033[91m\nThe \033[4mconfig.env\033[0m \033[91mfile or \033[91m\033[4mLIBDRIVE_CONFIG\033[0m \033[91menvironment variable is required for libDrive to function! Please create one at the following URL: https://libdrive-config.netlify.app/\n" + "\033[0m")
     sys.exit()
 
+print("================ READING CONFIG... ================")
+
 config, drive = src.credentials.refreshCredentials(config)
 
 configuration_url = "https://api.themoviedb.org/3/configuration?api_key=%s" % (
@@ -33,9 +37,13 @@ backdrop_base_url = configuration_content["images"]["secure_base_url"] + \
 poster_base_url = configuration_content["images"]["secure_base_url"] + \
     configuration_content["images"]["poster_sizes"][3]
 
+print("================ GETTING CREDENTIALS... ================")
+
 metadata = src.metadata.readMetadata(config["category_list"])
 metadata = src.metadata.writeMetadata(
     config["category_list"], drive, config["tmdb_api_key"], backdrop_base_url, poster_base_url)
+
+print("================ BUILDING METADATA... ================")
 
 app = flask.Flask(__name__, static_folder="build")
 flask_cors.CORS(app)
@@ -271,4 +279,5 @@ def pingAPI():
 
 
 if __name__ == "__main__":
+    print("================ SERVING SERVER... ================")
     app.run(host="0.0.0.0", port=31145, threaded=True)

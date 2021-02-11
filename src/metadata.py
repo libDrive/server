@@ -140,7 +140,8 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
             tree["type"] = "directory"
             tree["children"] = []
             tmp_metadata = src.walk.driveWalk(root, tree, [], drive)
-            tmp_metadata["children"] = [x for x in tmp_metadata["children"] if x["mimeType"] != "application/vnd.google-apps.folder"]
+            tmp_metadata["children"] = [x for x in tmp_metadata["children"]
+                                        if x["mimeType"] != "application/vnd.google-apps.folder"]
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])
             for item in tmp_metadata["children"]:
@@ -150,7 +151,8 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                         item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["popularity"] = mediaIdentifier(
                             tmdb_api_key, title, year, backdrop_base_url, poster_base_url, True, False)
                     except:
-                        item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", ""
+                        item["title"], item["posterPath"], item["backdropPath"], item[
+                            "releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", ""
 
             placeholder_metadata.append(tmp_metadata)
         elif category["type"] == "TV Shows":

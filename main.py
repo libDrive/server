@@ -13,34 +13,33 @@ import src.credentials
 import src.metadata
 
 if os.getenv("LIBDRIVE_CONFIG"):
-    config_str = os.getenv("LIBDRIVE_CONFIG").replace("\\n", "\n")
-    with open("config.env", "w+") as w:
-        w.write(config_str)
-    access_token, account_list, category_list, cloudflare, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
-elif os.path.exists("config.env"):
-    access_token, account_list, category_list, cloudflare, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    config_str = os.getenv("LIBDRIVE_CONFIG")
+    with open("config.json", "w+") as w:
+        json.dump(config_str, w)
+    config = src.config.readConfig
+elif os.path.exists("config.json"):
+    config = src.config.readConfig()
 else:
     print("\033[91m\nThe \033[4mconfig.env\033[0m \033[91mfile or \033[91m\033[4mLIBDRIVE_CONFIG\033[0m \033[91menvironment variable is required for libDrive to function! Please create one at the following URL: https://libdrive-config.netlify.app/\n" + "\033[0m")
     sys.exit()
 
-access_token, drive, token_expiry = src.credentials.refreshCredentials(
-    "", client_id, client_secret, refresh_token)
+config, drive = src.credentials.refreshCredentials(config)
 
 configuration_url = "https://api.themoviedb.org/3/configuration?api_key=%s" % (
-    tmdb_api_key)
+    config["tmdb_api_key"])
 configuration_content = json.loads(requests.get(configuration_url).content)
 backdrop_base_url = configuration_content["images"]["secure_base_url"] + \
     configuration_content["images"]["backdrop_sizes"][3]
 poster_base_url = configuration_content["images"]["secure_base_url"] + \
     configuration_content["images"]["poster_sizes"][3]
 
-metadata = src.metadata.readMetadata(category_list)
+metadata = src.metadata.readMetadata(config["category_list"])
 metadata = src.metadata.writeMetadata(
-    category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url)
+    config["category_list"], drive, config["tmdb_api_key"], backdrop_base_url, poster_base_url)
 
 app = flask.Flask(__name__, static_folder="build")
 flask_cors.CORS(app)
-app.secret_key = secret_key
+app.secret_key = config["secret_key"]
 
 
 @app.route("/", defaults={"path": ""})
@@ -54,15 +53,17 @@ def serve(path):
 
 @app.route("/api/v1/auth")
 def authAPI():
-    access_token, account_list, category_list, cloudflare, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    config = src.config.readConfig()
     u = flask.request.args.get("u")  # USERNAME
     p = flask.request.args.get("p")  # PASSWORD
     a = flask.request.args.get("a")  # AUTH
-    if any(u == account["username"] for account in account_list) and any(p == account["password"] for account in account_list):
-        account = next((i for i in account_list if i["username"] == u), None)
+    if any(u == account["username"] for account in config["account_list"]) and any(p == account["password"] for account in config["account_list"]):
+        account = next(
+            (i for i in config["account_list"] if i["username"] == u), None)
         return flask.jsonify(account)
-    elif any(a == account["auth"] for account in account_list):
-        account = next((i for i in account_list if i["auth"] == a), None)
+    elif any(a == account["auth"] for account in config["account_list"]):
+        account = next(
+            (i for i in config["account_list"] if i["auth"] == a), None)
         return flask.jsonify(account)
     else:
         return flask.Response("The username and/or password provided was incorrect.", status=401)
@@ -70,26 +71,27 @@ def authAPI():
 
 @app.route("/api/v1/environment")
 def environmentAPI():
-    access_token, account_list, category_list, cloudflare, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    config = src.config.readConfig()
     a = flask.request.args.get("a")  # AUTH
-    if any(a == account["auth"] for account in account_list):
-        account = next((i for i in account_list if i["auth"] == a), None)
+    if any(a == account["auth"] for account in config["account_list"]):
+        account = next(
+            (i for i in config["account_list"] if i["auth"] == a), None)
         tmp_environment = {"account_list": account,
-                           "category_list": category_list}
+                           "category_list": config["category_list"]}
         return flask.jsonify(tmp_environment)
 
 
 @app.route("/api/v1/metadata")
 def metadataAPI():
-    access_token, account_list, category_list, cloudflare, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
-    tmp_metadata = src.metadata.readMetadata(category_list)
+    config = src.config.readConfig()
+    tmp_metadata = src.metadata.readMetadata(config["category_list"])
     a = flask.request.args.get("a")  # AUTH
     c = flask.request.args.get("c")  # CATEGORY
     q = flask.request.args.get("q")  # SEARCH-QUERY
     s = flask.request.args.get("s")  # SORT-ORDER
     r = flask.request.args.get("r")  # RANGE
     id = flask.request.args.get("id")  # ID
-    if any(a == account["auth"] for account in account_list):
+    if any(a == account["auth"] for account in config["account_list"]):
         if c:
             tmp_metadata = [
                 next((i for i in tmp_metadata if i["name"] == c), None)]
@@ -168,8 +170,8 @@ def metadataAPI():
         return flask.Response("The auth code provided was incorrect.", status=401)
 
 
-@app.route("/api/v1/download")
-def downloadRedirectAPI():
+@app.route("/api/v1/redirectdownload/<name>")
+def downloadRedirectAPI(name):
     tmp_metadata = metadata
     id = flask.request.args.get("id")
     ids = src.metadata.jsonExtract(obj=tmp_metadata, key="id", getObj=True)
@@ -185,8 +187,11 @@ def downloadRedirectAPI():
         args += "%s=%s&" % (keys[i], values[i])
     args = args[:-1]
 
-    if cloudflare != None and cloudflare != "":
-        return flask.redirect(cloudflare + "/%s%s" % (name, args))
+    if "cloudflare" in config:
+        if config["cloudflare"] != "":
+            return flask.redirect(config["cloudflare"] + "/%s%s" % (name, args))
+        else:
+            return flask.redirect("/api/v1/download/%s%s" % (name, args))
     else:
         return flask.redirect("/api/v1/download/%s%s" % (name, args))
 
@@ -199,17 +204,17 @@ def downloadAPI(name):
             for chunk in stream.iter_content(chunk_size=4096):
                 yield chunk
 
-    access_token, account_list, category_list, cloudflare, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
-    if token_expiry <= datetime.datetime.utcnow():
-        access_token, drive, token_expiry = src.credentials.refreshCredentials(
-            access_token, client_id, client_secret, refresh_token)
+    config = src.config.readConfig()
+
+    if datetime.datetime.strptime(config["token_expiry"], "%Y-%m-%d %H:%M:%S.%f") <= datetime.datetime.utcnow():
+        config, drive = src.credentials.refreshCredentials(config)
 
     a = flask.request.args.get("a")
     id = flask.request.args.get("id")
-    if any(a == account["auth"] for account in account_list) and id:
+    if any(a == account["auth"] for account in config["account_list"]) and id:
         headers = {key: value for (
             key, value) in flask.request.headers if key != "Host"}
-        headers["Authorization"] = "Bearer %s" % (access_token)
+        headers["Authorization"] = "Bearer %s" % (config["access_token"])
         resp = requests.request(
             method=flask.request.method,
             url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (
@@ -230,22 +235,20 @@ def downloadAPI(name):
 
 @app.route("/api/v1/config", methods=["GET", "POST"])
 def configAPI():
-    access_token, account_list, category_list, cloudflare, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    config = src.config.readConfig()
     if flask.request.method == "GET":
         secret = flask.request.args.get("secret")
-        if secret == secret_key:
-            environment = {"access_token": access_token, "account_list": account_list, "category_list": category_list, "cloudflare": cloudflare, "client_id": client_id,
-                           "client_secret": client_secret, "refresh_token": refresh_token, "secret_key": secret_key, "tmdb_api_key": tmdb_api_key, "token_expiry": token_expiry}
-            return flask.jsonify(environment)
+        if secret == config["secret_key"]:
+            return flask.jsonify(config)
         else:
             return flask.Response("The secret key provided was incorrect", status=401)
     elif flask.request.method == "POST":
         secret = flask.request.args.get("secret")
         if secret == None:
             secret = ""
-        if secret == secret_key:
+        if secret == config["secret_key"]:
             data = flask.request.json
-            data["token_expiry"] = datetime.datetime.utcnow()
+            data["token_expiry"] = str(datetime.datetime.utcnow())
             src.config.updateConfig(data)
             return json.dumps({"success": True}), 200, {"ContentType": "application/json"}
         else:
@@ -254,9 +257,9 @@ def configAPI():
 
 @app.route("/api/v1/restart")
 def restartAPI():
-    access_token, account_list, category_list, cloudflare, client_id, client_secret, refresh_token, secret_key, tmdb_api_key, token_expiry = src.config.readConfig()
+    config = src.config.readConfig()
     secret = flask.request.args.get("secret")
-    if secret == secret_key:
+    if secret == config["secret_key"]:
         os.execv(sys.executable, [sys.executable] + sys.argv)
     else:
         return flask.Response("The secret key provided was incorrect", status=401)

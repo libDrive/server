@@ -117,7 +117,7 @@ def readMetadata(category_list):
         metadata_file = max(metadata_dir)
         with open("metadata/%s" % (metadata_file), "r") as r:
             metadata = json.load(r)
-    elif 0 < len(metadata_dir) < 6:
+    elif len(metadata_dir) < 5:
         metadata_file = max(metadata_dir)
         with open("metadata/%s" % (metadata_file), "r") as r:
             metadata = json.load(r)

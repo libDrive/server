@@ -15,8 +15,8 @@ import src.metadata
 if os.getenv("LIBDRIVE_CONFIG"):
     config_str = os.getenv("LIBDRIVE_CONFIG")
     with open("config.json", "w+") as w:
-        json.dump(config_str, w)
-    config = src.config.readConfig
+        json.dump(json.loads(config_str), w)
+    config = src.config.readConfig()
 elif os.path.exists("config.json"):
     config = src.config.readConfig()
 else:

@@ -10,34 +10,21 @@ import src.walk
 
 
 def parseName(name):
-    match_1 = re.search(
-        r'''^\(([1-2][0-9]{3})\)([^\.]*)''', name)  # Example: (2008) Iron Man.mkv
-    match_2 = re.search(
-        r'''^([^\.]{1,}?)\(([1-2][0-9]{3})\)''', name)  # Example: Iron Man (2008).mkv
-    match_3 = re.search(r'''^(.*?)\W(?:(\d{4})(?:\W(\d+p)?)|(\d+p)(?:\W(\d{4}))?)\b''',
-                        name)  # Example: Iron.Man.2008.REMASTERED.1080p.BluRay.x265-RARBG.mkv
-    if match_1:
-        try:
-            title = match_1.group(2)
-            year = match_1.group(1)
-            return title, year
-        except:
-            pass
-    elif match_2:
-        try:
-            title = match_2.group(1)[:-1]
-            year = match_2.group(2)
-            return title, year
-        except:
-            pass
-    elif match_3:
-        try:
-            if match_3.group(1) != "(":
-                title = match_3.group(1).replace(".", " ")[:-1]
-                year = match_3.group(2)
-                return title, year
-        except:
-            pass
+    reg_1 = r'^[\(\[\{](?P<year>\d{4})[\)\]\}]\s(?P<title>[^.]+).*(?P<extention>\..*)$' # (2008) Iron Man.mkv
+    reg_2 = r'^(?P<title>.*)\s[\(\[\{](?P<year>\d{4})[\)\]\}].*(?P<extention>\..*)$' # Iron Man (2008).mkv
+    reg_3 = r'^(?P<title>(?:(?!\.\d{4}).)*)\.(?P<year>\d{4}).*(?P<extention>\..*)$' # Iron.Man.2008.1080p.WEBRip.DDP5.1.Atmos.x264.mkv
+    reg_4 = r'^(?<year>)(.*).*(?<extention>\..*)$' # Iron Man.mkv
+    if re.match(reg_1, name):
+        match = re.search(reg_1, name)
+    elif re.match(reg_2, name):
+        match = re.search(reg_2, name)
+    elif re.match(reg_3, name):
+        match = re.search(reg_3, name)
+    elif re.match(reg_4, name):
+        match = re.search(reg_4, name)
+    else:
+        return
+    return match["title"], match["year"]
 
 
 def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_url, movie=False, tv=False):

@@ -13,7 +13,7 @@ def parseName(name):
     reg_1 = r'^[\(\[\{](?P<year>\d{4})[\)\]\}]\s(?P<title>[^.]+).*(?P<extention>\..*)?$' # (2008) Iron Man.mkv
     reg_2 = r'^(?P<title>.*)\s[\(\[\{](?P<year>\d{4})[\)\]\}].*(?P<extention>\..*)?$' # Iron Man (2008).mkv
     reg_3 = r'^(?P<title>(?:(?!\.\d{4}).)*)\.(?P<year>\d{4}).*(?P<extention>\..*)?$' # Iron.Man.2008.1080p.WEBRip.DDP5.1.Atmos.x264.mkv
-    reg_4 = r'^(?<year>)(.*).*(?<extention>\..*)?$' # Iron Man.mkv
+    reg_4 = r'^(?P<year>)(.*).*(?P<extention>\..*)?$' # Iron Man.mkv
     if re.match(reg_1, name):
         match = re.search(reg_1, name)
     elif re.match(reg_2, name):

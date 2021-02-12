@@ -60,7 +60,7 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
             popularity = 0.0
         return title, posterPath, backdropPath, releaseDate, overview, popularity
     elif tv:
-        search_url = "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&year=%s" % (
+        search_url = "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&first_air_date_year=%s" % (
             tmdb_api_key, title, year)
         search_content = json.loads((requests.get(search_url)).content)
         try:

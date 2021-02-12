@@ -112,21 +112,23 @@ def readMetadata(category_list):
     except:
         pass
     metadata_dir = os.listdir("metadata")
-    if len(metadata_dir) > 4:
-        os.remove("metadata/%s" % (min(metadata_dir)))
-        metadata_file = max(metadata_dir)
-        with open("metadata/%s" % (metadata_file), "r") as r:
-            metadata = json.load(r)
-    elif len(metadata_dir) < 5:
-        metadata_file = max(metadata_dir)
-        with open("metadata/%s" % (metadata_file), "r") as r:
-            metadata = json.load(r)
-    else:
+    if len(metadata_dir) == 0:
         metadata = []
         for category in category_list:
             tmp = category
             tmp["children"] = []
             metadata.append(tmp)
+    elif len(metadata_dir) <= 5:
+        metadata_file = max(metadata_dir)
+        with open("metadata/%s" % (metadata_file), "r") as r:
+            metadata = json.load(r)
+    elif len(metadata_dir) > 5:
+        os.remove("metadata/%s" % (min(metadata_dir)))
+        metadata_file = max(metadata_dir)
+        with open("metadata/%s" % (metadata_file), "r") as r:
+            metadata = json.load(r)
+    else:
+        pass
     return metadata
 
 

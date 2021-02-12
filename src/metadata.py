@@ -19,7 +19,7 @@ def parseName(name):
     elif re.match(reg_2, name):
         match = re.search(reg_2, name)
     elif re.match(reg_3, name):
-        match = re.search(reg_3, name)
+        match = re.search(reg_3, name.replace(".", " ")
     elif re.match(reg_4, name):
         match = re.search(reg_4, name)
     else:

@@ -3,6 +3,7 @@ import json
 import os
 import random
 import sys
+import threading
 
 import flask
 import flask_cors
@@ -258,7 +259,34 @@ def configAPI():
             data = flask.request.json
             data["token_expiry"] = str(datetime.datetime.utcnow())
             src.config.updateConfig(data)
-            return json.dumps({"success": True}), 200, {"ContentType": "application/json"}
+            return flask.jsonify({"success": True}), 200
+        else:
+            return flask.jsonify({"error": {"code": 401, "message": "The secret key provided was incorrect."}}), 401
+
+
+@app.route("/api/v1/rebuild")
+def rebuildAPI():
+    config = src.config.readConfig()
+    force = flask.request.args.get("force")
+    if force == "true":
+        secret = flask.request.args.get("secret")
+        if secret == config["secret_key"]:
+            thread = threading.Thread(target=src.metadata.writeMetadata, args=(
+                config["category_list"], drive, config["tmdb_api_key"]))
+            thread.daemon = True
+            thread.start()
+            return flask.redirect("/")
+        else:
+            return flask.jsonify({"error": {"code": 401, "message": "The secret key provided was incorrect."}}), 401
+    else:
+        metadata = src.metadata.readMetadata(config["category_list"])
+        build_time = datetime.datetime.strptime(metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f")
+        if datetime.datetime.utcnow() >= build_time + datetime.timedelta(minutes=config["build_interval"]):
+            thread = threading.Thread(target=src.metadata.writeMetadata, args=(
+                config["category_list"], drive, config["tmdb_api_key"]))
+            thread.daemon = True
+            thread.start()
+            return flask.jsonify({"success": {"code": 200, "message": "libDrive is building your new metadata"}}), 200
         else:
             return flask.jsonify({"error": {"code": 401, "message": "The build interval restriction ends at %s UTC. Last build date was at %s UTC." % (build_time + datetime.timedelta(minutes=config["build_interval"]), build_time)}}), 401
 

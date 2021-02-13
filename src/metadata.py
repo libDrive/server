@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import re
@@ -119,7 +120,15 @@ def readMetadata(category_list):
     return metadata
 
 
-def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_base_url):
+def writeMetadata(category_list, drive, tmdb_api_key):
+    configuration_url = "https://api.themoviedb.org/3/configuration?api_key=%s" % (
+        tmdb_api_key)
+    configuration_content = json.loads(requests.get(configuration_url).content)
+    backdrop_base_url = configuration_content["images"]["secure_base_url"] + \
+        configuration_content["images"]["backdrop_sizes"][3]
+    poster_base_url = configuration_content["images"]["secure_base_url"] + \
+        configuration_content["images"]["poster_sizes"][3]
+
     placeholder_metadata = []
     for category in category_list:
         if category["type"] == "Movies":
@@ -133,6 +142,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
                                         if x["mimeType"] != "application/vnd.google-apps.folder"]
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])
+            tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
             for item in tmp_metadata["children"]:
                 if item["type"] == "file":
                     try:
@@ -150,6 +160,7 @@ def writeMetadata(category_list, drive, tmdb_api_key, backdrop_base_url, poster_
             tmp_metadata = src.tree.driveTree(root, drive)
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])
+            tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
             for item in tmp_metadata["children"]:
                 if item["type"] == "directory":
                     try:

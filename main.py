@@ -40,9 +40,6 @@ poster_base_url = configuration_content["images"]["secure_base_url"] + \
 
 print("================  READING METADATA  ================")
 metadata = src.metadata.readMetadata(config["category_list"])
-print("================  WRITING METADATA  ================")
-metadata = src.metadata.writeMetadata(
-    config["category_list"], drive, config["tmdb_api_key"])
 
 app = flask.Flask(__name__, static_folder="build")
 flask_cors.CORS(app)
@@ -278,7 +275,8 @@ def rebuildAPI():
             return flask.jsonify({"error": {"code": 401, "message": "The secret key provided was incorrect."}}), 401
     else:
         metadata = src.metadata.readMetadata(config["category_list"])
-        build_time = datetime.datetime.strptime(metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f")
+        build_time = datetime.datetime.strptime(
+            metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f")
         if datetime.datetime.utcnow() >= build_time + datetime.timedelta(minutes=config["build_interval"]):
             thread = threading.Thread(target=src.metadata.writeMetadata, args=(
                 config["category_list"], drive, config["tmdb_api_key"]))
@@ -305,5 +303,12 @@ def pingAPI():
 
 
 if __name__ == "__main__":
+    print("================  WRITING METADATA  ================")
+    thread=threading.Thread(target = src.metadata.writeMetadata, args = (
+        config["category_list"], drive, config["tmdb_api_key"]))
+    thread.daemon=True
+    thread.start()
+
+
     print("================   SERVING SERVER   ================")
-    app.run(host="0.0.0.0", port=31145, threaded=True)
+    app.run(host = "0.0.0.0", port = 31145, threaded = True)

@@ -130,7 +130,10 @@ def writeMetadata(category_list, drive, tmdb_api_key):
         configuration_content["images"]["poster_sizes"][3]
 
     placeholder_metadata = []
+    count = 0
     for category in category_list:
+        count = count + 1
+        print("Building metadata for category %s/%s (%s)" % (count, len(category_list), category["name"]), end="\r")
         if category["type"] == "Movies":
             root = drive.files().get(
                 fileId=category["id"], supportsAllDrives=True).execute()
@@ -172,6 +175,7 @@ def writeMetadata(category_list, drive, tmdb_api_key):
                             "releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", ""
 
             placeholder_metadata.append(tmp_metadata)
+    print("\n")
 
     metadata = placeholder_metadata
 

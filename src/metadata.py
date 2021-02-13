@@ -10,7 +10,7 @@ import src.tree
 import src.walk
 
 
-def parseName(name):
+def parseMovie(name):
     reg_1 = r'^[\(\[\{](?P<year>\d{4})[\)\]\}]\s(?P<title>[^.]+).*(?P<extention>\..*)?$' # (2008) Iron Man.mkv
     reg_2 = r'^(?P<title>.*)\s[\(\[\{](?P<year>\d{4})[\)\]\}].*(?P<extention>\..*)?$' # Iron Man (2008).mkv
     reg_3 = r'^(?P<title>(?:(?!\.\d{4}).)*)\.(?P<year>\d{4}).*(?P<extention>\..*)?$' # Iron.Man.2008.1080p.WEBRip.DDP5.1.Atmos.x264.mkv
@@ -20,7 +20,26 @@ def parseName(name):
     elif re.match(reg_2, name):
         match = re.search(reg_2, name)
     elif re.match(reg_3, name):
-        match = re.search(reg_3, name.replace(".", " "))
+        match = re.search(reg_3, name)
+        return match["title"].replace(".", " "), match["year"]
+    elif re.match(reg_4, name):
+        match = re.search(reg_4, name)
+    else:
+        return
+    return match["title"], match["year"]
+
+def parseTV(name):
+    reg_1 = r'^[\(\[\{](?P<year>\d{4})[\)\]\}]\s(?P<title>[^.]+).*$' # (2019) The Mandalorian
+    reg_2 = r'^(?P<title>.*)\s[\(\[\{](?P<year>\d{4})[\)\]\}].*$' # The Mandalorian (2019)
+    reg_3 = r'^(?P<title>(?:(?!\.\d{4}).)*)\.(?P<year>\d{4}).*$' # The.Mandalorian.2019.1080p.WEBRip
+    reg_4 = r'^(?P<year>)(?P<title>.*)$' # The Mandalorian
+    if re.match(reg_1, name):
+        match = re.search(reg_1, name)
+    elif re.match(reg_2, name):
+        match = re.search(reg_2, name)
+    elif re.match(reg_3, name):
+        match = re.search(reg_3, name)
+        return match["title"].replace(".", " "), match["year"]
     elif re.match(reg_4, name):
         match = re.search(reg_4, name)
     else:
@@ -130,7 +149,11 @@ def writeMetadata(category_list, drive, tmdb_api_key):
         configuration_content["images"]["poster_sizes"][3]
 
     placeholder_metadata = []
+    count = 0
     for category in category_list:
+        count += 1
+        start_time = datetime.datetime.utcnow()
+        print("Building metadata for category %s/%s (%s)" % (count, len(category_list), category["name"]))
         if category["type"] == "Movies":
             root = drive.files().get(
                 fileId=category["id"], supportsAllDrives=True).execute()
@@ -146,7 +169,7 @@ def writeMetadata(category_list, drive, tmdb_api_key):
             for item in tmp_metadata["children"]:
                 if item["type"] == "file":
                     try:
-                        title, year = parseName(item["name"])
+                        title, year = parseMovie(item["name"])
                         item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["popularity"] = mediaIdentifier(
                             tmdb_api_key, title, year, backdrop_base_url, poster_base_url, True, False)
                     except:
@@ -164,7 +187,7 @@ def writeMetadata(category_list, drive, tmdb_api_key):
             for item in tmp_metadata["children"]:
                 if item["type"] == "directory":
                     try:
-                        title, year = parseName(item["name"])
+                        title, year = parseTV(item["name"])
                         item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["popularity"] = mediaIdentifier(
                             tmdb_api_key, title, year, backdrop_base_url, poster_base_url, False, True)
                     except:
@@ -172,6 +195,7 @@ def writeMetadata(category_list, drive, tmdb_api_key):
                             "releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", ""
 
             placeholder_metadata.append(tmp_metadata)
+        print("Done in %s" % (str(datetime.datetime.utcnow() - start_time)))
 
     metadata = placeholder_metadata
 

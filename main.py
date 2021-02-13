@@ -269,13 +269,13 @@ def rebuildAPI():
     config = src.config.readConfig()
     force = flask.request.args.get("force")
     if force == "true":
-        secret = flask.request.args.get("secret")
-        if secret == config["secret_key"]:
+        a = flask.request.args.get("a")
+        if any(a == account["auth"] for account in config["account_list"]):
             thread = threading.Thread(target=src.metadata.writeMetadata, args=(
                 config["category_list"], drive, config["tmdb_api_key"]))
             thread.daemon = True
             thread.start()
-            return flask.redirect("/")
+            return flask.jsonify({"success": {"code": 200, "message": "libDrive is building your new metadata"}}), 200
         else:
             return flask.jsonify({"error": {"code": 401, "message": "The secret key provided was incorrect."}}), 401
     else:
@@ -288,7 +288,7 @@ def rebuildAPI():
             thread.start()
             return flask.jsonify({"success": {"code": 200, "message": "libDrive is building your new metadata"}}), 200
         else:
-            return flask.jsonify({"error": {"code": 401, "message": "The build interval restriction ends at %s UTC. Last build date was at %s UTC." % (build_time + datetime.timedelta(minutes=config["build_interval"]), build_time)}}), 401
+            return flask.jsonify({"error": {"code": 425, "message": "The build interval restriction ends at %s UTC. Last build date was at %s UTC." % (build_time + datetime.timedelta(minutes=config["build_interval"]), build_time)}}), 425
 
 
 @app.route("/api/v1/restart")

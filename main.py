@@ -1,4 +1,5 @@
 import datetime
+import io
 import json
 import os
 import random
@@ -7,6 +8,7 @@ import threading
 
 import flask
 import flask_cors
+import googleapiclient
 import requests
 
 import src.config
@@ -28,21 +30,44 @@ else:
 
 config, drive = src.credentials.refreshCredentials(config)
 
-configuration_url = "https://api.themoviedb.org/3/configuration?api_key=%s" % (
-    config["tmdb_api_key"])
-configuration_content = json.loads(requests.get(configuration_url).content)
-backdrop_base_url = configuration_content["images"]["secure_base_url"] + \
-    configuration_content["images"]["backdrop_sizes"][3]
-poster_base_url = configuration_content["images"]["secure_base_url"] + \
-    configuration_content["images"]["poster_sizes"][3]
-
 print("================  READING METADATA  ================")
-metadata = src.metadata.readMetadata(config["category_list"])
-print("================  WRITING METADATA  ================")
-metadata = src.metadata.writeMetadata(
-    config["category_list"], drive, config["tmdb_api_key"])
+if os.getenv("DRIVE_METADATA"):
+    params = {"supportsAllDrives": True, "includeItemsFromAllDrives": True,
+              "fields": "files(id,name)", "q": "'%s' in parents and trashed = false and mimeType = 'application/json'" % (os.getenv("DRIVE_METADATA")), "orderBy": "createdTime"}
+    files = drive.files().list(**params).execute()["files"]
+    if len(files) == 0:
+        metadata = src.metadata.readMetadata(config["category_list"])
+    else:
+        file = files[-1]
+        request = drive.files().get_media(fileId=file["id"])
 
-app = flask.Flask(__name__, static_folder="build")
+        fh = io.BytesIO()
+        downloader = googleapiclient.http.MediaIoBaseDownload(fh, request)
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+        metadata = json.loads(fh.getvalue())
+
+        try:
+            os.mkdir("metadata")
+        except:
+            pass
+        with open("metadata/%s" % (file["name"]), "w+") as w:
+            json.dump(metadata, w)
+else:
+    metadata = src.metadata.readMetadata(config["category_list"])
+
+
+def create_app():
+    app = flask.Flask(__name__, static_folder="build")
+    print("================  WRITING METADATA  ================")
+    thread = threading.Thread(target=src.metadata.writeMetadata, args=(
+        config["category_list"], drive, config["tmdb_api_key"]), daemon=True)
+    thread.start()
+    return app
+
+
+app = create_app()
 flask_cors.CORS(app)
 app.secret_key = config["secret_key"]
 
@@ -268,19 +293,18 @@ def rebuildAPI():
         a = flask.request.args.get("a")
         if any(a == account["auth"] for account in config["account_list"]):
             thread = threading.Thread(target=src.metadata.writeMetadata, args=(
-                config["category_list"], drive, config["tmdb_api_key"]))
-            thread.daemon = True
+                config["category_list"], drive, config["tmdb_api_key"]), daemon=True)
             thread.start()
             return flask.jsonify({"success": {"code": 200, "message": "libDrive is building your new metadata"}}), 200
         else:
             return flask.jsonify({"error": {"code": 401, "message": "The secret key provided was incorrect."}}), 401
     else:
         metadata = src.metadata.readMetadata(config["category_list"])
-        build_time = datetime.datetime.strptime(metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f")
+        build_time = datetime.datetime.strptime(
+            metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f")
         if datetime.datetime.utcnow() >= build_time + datetime.timedelta(minutes=config["build_interval"]):
             thread = threading.Thread(target=src.metadata.writeMetadata, args=(
-                config["category_list"], drive, config["tmdb_api_key"]))
-            thread.daemon = True
+                config["category_list"], drive, config["tmdb_api_key"]), daemon=True)
             thread.start()
             return flask.jsonify({"success": {"code": 200, "message": "libDrive is building your new metadata"}}), 200
         else:

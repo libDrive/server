@@ -4,6 +4,7 @@ import os
 import re
 import time
 
+import googleapiclient
 import requests
 
 import src.tree
@@ -11,10 +12,13 @@ import src.walk
 
 
 def parseMovie(name):
-    reg_1 = r'^[\(\[\{](?P<year>\d{4})[\)\]\}]\s(?P<title>[^.]+).*(?P<extention>\..*)?$' # (2008) Iron Man.mkv
-    reg_2 = r'^(?P<title>.*)\s[\(\[\{](?P<year>\d{4})[\)\]\}].*(?P<extention>\..*)?$' # Iron Man (2008).mkv
-    reg_3 = r'^(?P<title>(?:(?!\.\d{4}).)*)\.(?P<year>\d{4}).*(?P<extention>\..*)?$' # Iron.Man.2008.1080p.WEBRip.DDP5.1.Atmos.x264.mkv
-    reg_4 = r'^(?P<year>)(?P<title>.*).*(?P<extention>\..*?$)' # Iron Man.mkv
+    # (2008) Iron Man.mkv
+    reg_1 = r'^[\(\[\{](?P<year>\d{4})[\)\]\}]\s(?P<title>[^.]+).*(?P<extention>\..*)?$'
+    # Iron Man (2008).mkv
+    reg_2 = r'^(?P<title>.*)\s[\(\[\{](?P<year>\d{4})[\)\]\}].*(?P<extention>\..*)?$'
+    # Iron.Man.2008.1080p.WEBRip.DDP5.1.Atmos.x264.mkv
+    reg_3 = r'^(?P<title>(?:(?!\.\d{4}).)*)\.(?P<year>\d{4}).*(?P<extention>\..*)?$'
+    reg_4 = r'^(?P<year>)(?P<title>.*).*(?P<extention>\..*?$)'  # Iron Man.mkv
     if re.match(reg_1, name):
         match = re.search(reg_1, name)
     elif re.match(reg_2, name):
@@ -28,11 +32,15 @@ def parseMovie(name):
         return
     return match["title"], match["year"]
 
+
 def parseTV(name):
-    reg_1 = r'^[\(\[\{](?P<year>\d{4})[\)\]\}]\s(?P<title>[^.]+).*$' # (2019) The Mandalorian
-    reg_2 = r'^(?P<title>.*)\s[\(\[\{](?P<year>\d{4})[\)\]\}].*$' # The Mandalorian (2019)
-    reg_3 = r'^(?P<title>(?:(?!\.\d{4}).)*)\.(?P<year>\d{4}).*$' # The.Mandalorian.2019.1080p.WEBRip
-    reg_4 = r'^(?P<year>)(?P<title>.*)$' # The Mandalorian
+    # (2019) The Mandalorian
+    reg_1 = r'^[\(\[\{](?P<year>\d{4})[\)\]\}]\s(?P<title>[^.]+).*$'
+    # The Mandalorian (2019)
+    reg_2 = r'^(?P<title>.*)\s[\(\[\{](?P<year>\d{4})[\)\]\}].*$'
+    # The.Mandalorian.2019.1080p.WEBRip
+    reg_3 = r'^(?P<title>(?:(?!\.\d{4}).)*)\.(?P<year>\d{4}).*$'
+    reg_4 = r'^(?P<year>)(?P<title>.*)$'  # The Mandalorian
     if re.match(reg_1, name):
         match = re.search(reg_1, name)
     elif re.match(reg_2, name):
@@ -122,8 +130,8 @@ def readMetadata(category_list):
     if len(metadata_dir) == 0:
         metadata = []
         for category in category_list:
-            tmp = category
-            tmp["children"] = []
+            tmp = {"kind": "drive#file", "id": "", "name": "", "mimeType": "application/vnd.google-apps.folder",
+                   "teamDriveId": "", "driveId": "", "type": "directory", "children": [], "categoryInfo": category, "length": 0, "buildTime": str(datetime.datetime.utcnow())}
             metadata.append(tmp)
     elif len(metadata_dir) <= 5:
         metadata_file = max(metadata_dir)
@@ -153,7 +161,8 @@ def writeMetadata(category_list, drive, tmdb_api_key):
     for category in category_list:
         count += 1
         start_time = datetime.datetime.utcnow()
-        print("Building metadata for category %s/%s (%s)" % (count, len(category_list), category["name"]))
+        print("\n================  Building metadata for category %s/%s (%s)  ================\n" %
+              (count, len(category_list), category["name"]))
         if category["type"] == "Movies":
             root = drive.files().get(
                 fileId=category["id"], supportsAllDrives=True).execute()
@@ -206,6 +215,14 @@ def writeMetadata(category_list, drive, tmdb_api_key):
     metadata_file_name = "metadata/%s.json" % (time.strftime("%Y%m%d-%H%M%S"))
     with open(metadata_file_name, "w+") as w:
         w.write(json.dumps(metadata))
+
+    if os.getenv("DRIVE_METADATA"):
+        time.sleep(3)
+        file_metadata = {"name": metadata_file_name.replace(
+            "metadata/", ""), "mimeType": "application/json", "parents": [os.getenv("DRIVE_METADATA")]}
+        media = googleapiclient.http.MediaFileUpload(
+            metadata_file_name, mimetype="application/json", resumable=True)
+        drive.files().create(body=file_metadata, media_body=media).execute()
 
     return metadata
 

@@ -156,6 +156,7 @@ def writeMetadata(category_list, drive, tmdb_api_key):
     poster_base_url = configuration_content["images"]["secure_base_url"] + \
         configuration_content["images"]["poster_sizes"][3]
 
+    metadata_file_name = "metadata/%s.json" % (time.strftime("%Y%m%d-%H%M%S"))
     placeholder_metadata = []
     count = 0
     for category in category_list:
@@ -206,15 +207,14 @@ def writeMetadata(category_list, drive, tmdb_api_key):
             placeholder_metadata.append(tmp_metadata)
         print("Done in %s" % (str(datetime.datetime.utcnow() - start_time)))
 
-    metadata = placeholder_metadata
+        metadata = placeholder_metadata
 
-    if os.path.exists("./metadata"):
-        pass
-    else:
-        os.mkdir("./metadata")
-    metadata_file_name = "metadata/%s.json" % (time.strftime("%Y%m%d-%H%M%S"))
-    with open(metadata_file_name, "w+") as w:
-        w.write(json.dumps(metadata))
+        if os.path.exists("./metadata"):
+            pass
+        else:
+            os.mkdir("./metadata")
+        with open(metadata_file_name, "w+") as w:
+            w.write(json.dumps(metadata))
 
     if os.getenv("DRIVE_METADATA"):
         time.sleep(3)

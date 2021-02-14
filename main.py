@@ -99,7 +99,7 @@ def metadataAPI():
     if any(a == account["auth"] for account in config["account_list"]):
         if c:
             tmp_metadata = [
-                next((i for i in tmp_metadata if i["name"] == c), None)]
+                next((i for i in tmp_metadata if i["categoryInfo"]["name"] == c), None)]
             if tmp_metadata:
                 pass
             else:

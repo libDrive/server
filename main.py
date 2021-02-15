@@ -60,7 +60,7 @@ else:
 
 def create_app():
     app = flask.Flask(__name__, static_folder="build")
-    if not (len(metadata) > 0) and (datetime.datetime.utcnow() >= datetime.datetime.strptime(metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f") + datetime.timedelta(minutes=config["build_interval"])):
+    if (len(metadata) > 0) and (datetime.datetime.utcnow() <= datetime.datetime.strptime(metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f") + datetime.timedelta(minutes=config["build_interval"])):
         return app
     print("================  WRITING METADATA  ================")
     thread = threading.Thread(target=src.metadata.writeMetadata, args=(

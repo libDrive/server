@@ -121,7 +121,7 @@ def mediaIdentifier(tmdb_api_key, title, year, backdrop_base_url, poster_base_ur
         return title, posterPath, backdropPath, releaseDate, overview, popularity
 
 
-def readMetadata(category_list):
+def readMetadata(config):
     try:
         os.mkdir("metadata")
     except:
@@ -129,9 +129,9 @@ def readMetadata(category_list):
     metadata_dir = os.listdir("metadata")
     if len(metadata_dir) == 0:
         metadata = []
-        for category in category_list:
+        for category in config["category_list"]:
             tmp = {"kind": "drive#file", "id": "", "name": "", "mimeType": "application/vnd.google-apps.folder",
-                   "teamDriveId": "", "driveId": "", "type": "directory", "children": [], "categoryInfo": category, "length": 0, "buildTime": str(datetime.datetime.utcnow())}
+                   "teamDriveId": "", "driveId": "", "type": "directory", "children": [], "categoryInfo": category, "length": 0, "buildTime": str(datetime.datetime.utcnow() - datetime.timedelta(minutes=config["build_interval"]))}
             metadata.append(tmp)
     elif len(metadata_dir) <= 5:
         metadata_file = max(metadata_dir)
@@ -149,9 +149,9 @@ def readMetadata(category_list):
     return metadata
 
 
-def writeMetadata(category_list, drive, tmdb_api_key):
+def writeMetadata(config, drive):
     configuration_url = "https://api.themoviedb.org/3/configuration?api_key=%s" % (
-        tmdb_api_key)
+        config["tmdb_api_key"])
     configuration_content = json.loads(requests.get(configuration_url).content)
     backdrop_base_url = configuration_content["images"]["secure_base_url"] + \
         configuration_content["images"]["backdrop_sizes"][3]
@@ -161,11 +161,11 @@ def writeMetadata(category_list, drive, tmdb_api_key):
     metadata_file_name = "metadata/%s.json" % (time.strftime("%Y%m%d-%H%M%S"))
     placeholder_metadata = []
     count = 0
-    for category in category_list:
+    for category in config["category_list"]:
         count += 1
         start_time = datetime.datetime.utcnow()
         print("\n================  Building metadata for category %s/%s (%s)  ================\n" %
-              (count, len(category_list), category["name"]))
+              (count, len(config["category_list"]), category["name"]))
         if category["type"] == "Movies":
             root = drive.files().get(
                 fileId=category["id"], supportsAllDrives=True).execute()
@@ -183,7 +183,7 @@ def writeMetadata(category_list, drive, tmdb_api_key):
                     try:
                         title, year = parseMovie(item["name"])
                         item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["popularity"] = mediaIdentifier(
-                            tmdb_api_key, title, year, backdrop_base_url, poster_base_url, True, False)
+                            config["tmdb_api_key"], title, year, backdrop_base_url, poster_base_url, True, False)
                     except:
                         item["title"], item["posterPath"], item["backdropPath"], item[
                             "releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", ""
@@ -201,7 +201,7 @@ def writeMetadata(category_list, drive, tmdb_api_key):
                     try:
                         title, year = parseTV(item["name"])
                         item["title"], item["posterPath"], item["backdropPath"], item["releaseDate"], item["overview"], item["popularity"] = mediaIdentifier(
-                            tmdb_api_key, title, year, backdrop_base_url, poster_base_url, False, True)
+                            config["tmdb_api_key"], title, year, backdrop_base_url, poster_base_url, False, True)
                     except:
                         item["title"], item["posterPath"], item["backdropPath"], item[
                             "releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", ""

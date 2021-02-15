@@ -36,7 +36,7 @@ if os.getenv("DRIVE_METADATA"):
               "fields": "files(id,name)", "q": "'%s' in parents and trashed = false and mimeType = 'application/json'" % (os.getenv("DRIVE_METADATA")), "orderBy": "createdTime"}
     files = drive.files().list(**params).execute()["files"]
     if len(files) == 0:
-        metadata = src.metadata.readMetadata(config["category_list"])
+        metadata = src.metadata.readMetadata(config)
     else:
         file = files[-1]
         request = drive.files().get_media(fileId=file["id"])
@@ -55,14 +55,16 @@ if os.getenv("DRIVE_METADATA"):
         with open("metadata/%s" % (file["name"]), "w+") as w:
             json.dump(metadata, w)
 else:
-    metadata = src.metadata.readMetadata(config["category_list"])
+    metadata = src.metadata.readMetadata(config)
 
 
 def create_app():
     app = flask.Flask(__name__, static_folder="build")
+    if not (len(metadata) > 0) and (datetime.datetime.utcnow() >= datetime.datetime.strptime(metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f") + datetime.timedelta(minutes=config["build_interval"])):
+        return app
     print("================  WRITING METADATA  ================")
     thread = threading.Thread(target=src.metadata.writeMetadata, args=(
-        config["category_list"], drive, config["tmdb_api_key"]), daemon=True)
+        config, drive), daemon=True)
     thread.start()
     return app
 
@@ -114,7 +116,7 @@ def environmentAPI():
 @app.route("/api/v1/metadata")
 def metadataAPI():
     config = src.config.readConfig()
-    tmp_metadata = src.metadata.readMetadata(config["category_list"])
+    tmp_metadata = src.metadata.readMetadata(config)
     a = flask.request.args.get("a")  # AUTH
     c = flask.request.args.get("c")  # CATEGORY
     q = flask.request.args.get("q")  # SEARCH-QUERY
@@ -202,7 +204,7 @@ def metadataAPI():
 
 @app.route("/api/v1/redirectdownload/<name>")
 def downloadRedirectAPI(name):
-    tmp_metadata = src.metadata.readMetadata(config["category_list"])
+    tmp_metadata = src.metadata.readMetadata(config)
     id = flask.request.args.get("id")
     ids = src.metadata.jsonExtract(obj=tmp_metadata, key="id", getObj=True)
     name = ""
@@ -280,7 +282,7 @@ def configAPI():
             data = flask.request.json
             data["token_expiry"] = str(datetime.datetime.utcnow())
             src.config.updateConfig(data)
-            return flask.jsonify({"success": True}), 200
+            return flask.jsonify({"success": {"code": 200, "message": "libDrive is updating your config"}}), 200
         else:
             return flask.jsonify({"error": {"code": 401, "message": "The secret key provided was incorrect."}}), 401
 
@@ -293,18 +295,18 @@ def rebuildAPI():
         a = flask.request.args.get("a")
         if any(a == account["auth"] for account in config["account_list"]):
             thread = threading.Thread(target=src.metadata.writeMetadata, args=(
-                config["category_list"], drive, config["tmdb_api_key"]), daemon=True)
+                config, drive), daemon=True)
             thread.start()
             return flask.jsonify({"success": {"code": 200, "message": "libDrive is building your new metadata"}}), 200
         else:
             return flask.jsonify({"error": {"code": 401, "message": "The secret key provided was incorrect."}}), 401
     else:
-        metadata = src.metadata.readMetadata(config["category_list"])
+        metadata = src.metadata.readMetadata(config)
         build_time = datetime.datetime.strptime(
             metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f")
         if datetime.datetime.utcnow() >= build_time + datetime.timedelta(minutes=config["build_interval"]):
             thread = threading.Thread(target=src.metadata.writeMetadata, args=(
-                config["category_list"], drive, config["tmdb_api_key"]), daemon=True)
+                config, drive), daemon=True)
             thread.start()
             return flask.jsonify({"success": {"code": 200, "message": "libDrive is building your new metadata"}}), 200
         else:

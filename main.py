@@ -68,7 +68,6 @@ def create_app():
     thread.start()
     return app
 
-
 app = create_app()
 flask_cors.CORS(app)
 app.secret_key = config["secret_key"]

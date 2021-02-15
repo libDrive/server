@@ -14,6 +14,7 @@ import requests
 import src.config
 import src.credentials
 import src.metadata
+import src.tree
 
 print("================      STARTING      ================")
 if os.getenv("LIBDRIVE_CONFIG"):
@@ -197,6 +198,27 @@ def metadataAPI():
             for item in ids:
                 if item["id"] == id:
                     tmp_metadata = item
+                    tmp_metadata["children"] = []
+                    if tmp_metadata.get("title") and tmp_metadata["type"] == "directory":
+                        for item in src.tree.iterDrive(tmp_metadata, drive):
+                            if item["mimeType"] == "application/vnd.google-apps.folder":
+                                item["type"] = "directory"
+                                tmp_metadata["children"].append(item)
+                            else:
+                                item["type"] = "file"
+                                tmp_metadata["children"].append(item)
+                    return flask.jsonify(tmp_metadata)
+            tmp_metadata = drive.files().get(fileId=id, supportsAllDrives=True).execute()
+            if tmp_metadata["mimeType"] == "application/vnd.google-apps.folder":
+                tmp_metadata["type"] = "directory"
+                tmp_metadata["children"] = []
+                for item in src.tree.iterDrive(tmp_metadata, drive):
+                    if tmp_metadata["mimeType"] == "application/vnd.google-apps.folder":
+                        tmp_metadata["type"] = "directory"
+                        tmp_metadata["children"].append(item)
+                    else:
+                        tmp_metadata["type"] = "file"
+                        tmp_metadata["children"].append(item)
 
         return flask.jsonify(tmp_metadata)
     else:

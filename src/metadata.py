@@ -192,7 +192,17 @@ def writeMetadata(config, drive):
         elif category["type"] == "TV Shows":
             root = drive.files().get(
                 fileId=category["id"], supportsAllDrives=True).execute()
-            tmp_metadata = src.tree.driveTree(root, drive)
+            if root["mimeType"] == "application/vnd.google-apps.folder":
+                root["type"] = "directory"
+                root["children"] = []
+                for item in src.tree.iterDrive(root, drive):
+                    if root["mimeType"] == "application/vnd.google-apps.folder":
+                        item["type"] = "directory"
+                        root["children"].append(item)
+                    else:
+                        root["type"] = "file"
+                        root["children"].append(item)
+            tmp_metadata = root
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])
             tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())

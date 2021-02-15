@@ -131,7 +131,7 @@ def readMetadata(config):
         metadata = []
         for category in config["category_list"]:
             tmp = {"kind": "drive#file", "id": "", "name": "", "mimeType": "application/vnd.google-apps.folder",
-                   "teamDriveId": "", "driveId": "", "type": "directory", "children": [], "categoryInfo": category, "length": 0, "buildTime": str(datetime.datetime.utcnow() - datetime.timedelta(minutes=config["build_interval"]))}
+                   "teamDriveId": "", "driveId": "", "type": "directory", "children": [], "categoryInfo": category, "length": 0, "buildTime": str(datetime.datetime.utcnow() - datetime.timedelta(minutes=config["build_interval"]+1))}
             metadata.append(tmp)
     elif len(metadata_dir) <= 5:
         metadata_file = max(metadata_dir)

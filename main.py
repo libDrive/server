@@ -27,7 +27,6 @@ else:
     print("\033[91m\nThe \033[4mconfig.env\033[0m \033[91mfile or \033[91m\033[4mLIBDRIVE_CONFIG\033[0m \033[91menvironment variable is required for libDrive to function! Please create one at the following URL: https://libdrive-config.netlify.app/\n" + "\033[0m")
     sys.exit()
 
-
 config, drive = src.credentials.refreshCredentials(config)
 
 print("================  READING METADATA  ================")
@@ -64,9 +63,8 @@ def create_app():
         if datetime.datetime.utcnow() <= datetime.datetime.strptime(metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f") + datetime.timedelta(minutes=config["build_interval"]):
             return app
     print("================  WRITING METADATA  ================")
-    thread = threading.Thread(target=src.metadata.writeMetadata, args=(
-        config, drive), daemon=True)
-    thread.start()
+    buildThread = threading.Thread(target=src.metadata.writeMetadata, args=(
+        config, drive), daemon=True).start()
     return app
 
 
@@ -295,9 +293,8 @@ def rebuildAPI():
     if force == "true":
         a = flask.request.args.get("a")
         if any(a == account["auth"] for account in config["account_list"]):
-            thread = threading.Thread(target=src.metadata.writeMetadata, args=(
-                config, drive), daemon=True)
-            thread.start()
+            rebuildThread = threading.Thread(target=src.metadata.writeMetadata, args=(
+                config, drive), daemon=True).start()
             return flask.jsonify({"success": {"code": 200, "message": "libDrive is building your new metadata"}}), 200
         else:
             return flask.jsonify({"error": {"code": 401, "message": "The secret key provided was incorrect."}}), 401
@@ -306,9 +303,8 @@ def rebuildAPI():
         build_time = datetime.datetime.strptime(
             metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f")
         if datetime.datetime.utcnow() >= build_time + datetime.timedelta(minutes=config["build_interval"]):
-            thread = threading.Thread(target=src.metadata.writeMetadata, args=(
-                config, drive), daemon=True)
-            thread.start()
+            rebuildThread = threading.Thread(target=src.metadata.writeMetadata, args=(
+                config, drive), daemon=True).start()
             return flask.jsonify({"success": {"code": 200, "message": "libDrive is building your new metadata"}}), 200
         else:
             return flask.jsonify({"error": {"code": 425, "message": "The build interval restriction ends at %s UTC. Last build date was at %s UTC." % (build_time + datetime.timedelta(minutes=config["build_interval"]), build_time)}}), 425

@@ -186,7 +186,7 @@ def writeMetadata(config, drive):
                             config["tmdb_api_key"], title, year, backdrop_base_url, poster_base_url, True, False)
                     except:
                         item["title"], item["posterPath"], item["backdropPath"], item[
-                            "releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", ""
+                            "releaseDate"], item["overview"], item["popularity"] = item["name"], "", "", "1900-01-01", "", 0.0
 
             placeholder_metadata.append(tmp_metadata)
         elif category["type"] == "TV Shows":
@@ -214,7 +214,7 @@ def writeMetadata(config, drive):
                             config["tmdb_api_key"], title, year, backdrop_base_url, poster_base_url, False, True)
                     except:
                         item["title"], item["posterPath"], item["backdropPath"], item[
-                            "releaseDate"], item["overview"] = item["name"], "", "", "1900-01-01", ""
+                            "releaseDate"], item["overview"], item["popularity"] = item["name"], "", "", "1900-01-01", "", 0.0
 
             placeholder_metadata.append(tmp_metadata)
         print("Done in %s" % (str(datetime.datetime.utcnow() - start_time)))

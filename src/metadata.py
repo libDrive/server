@@ -70,13 +70,13 @@ def mediaIdentifier(
         try:
             posterPath = poster_base_url + search_content["results"][0]["poster_path"]
         except:
-            posterPath = ""
+            posterPath = None
         try:
             backdropPath = (
                 backdrop_base_url + search_content["results"][0]["backdrop_path"]
             )
         except:
-            backdropPath = ""
+            backdropPath = None
         try:
             releaseDate = search_content["results"][0]["release_date"]
         except:
@@ -84,7 +84,7 @@ def mediaIdentifier(
         try:
             overview = search_content["results"][0]["overview"]
         except:
-            overview = ""
+            overview = None
         try:
             popularity = search_content["results"][0]["popularity"]
         except:
@@ -115,13 +115,13 @@ def mediaIdentifier(
         try:
             posterPath = poster_base_url + search_content["results"][0]["poster_path"]
         except:
-            posterPath = ""
+            posterPath = None
         try:
             backdropPath = (
                 backdrop_base_url + search_content["results"][0]["backdrop_path"]
             )
         except:
-            backdropPath = ""
+            backdropPath = None
         try:
             releaseDate = search_content["results"][0]["first_air_date"]
         except:
@@ -129,7 +129,7 @@ def mediaIdentifier(
         try:
             overview = search_content["results"][0]["overview"]
         except:
-            overview = ""
+            overview = None
         try:
             popularity = search_content["results"][0]["popularity"]
         except:
@@ -259,7 +259,7 @@ def writeMetadata(config, drive):
                             item["overview"],
                             item["popularity"],
                             item["voteAverage"],
-                        ) = (item["name"], "", "", "1900-01-01", "", 0.0, 0.0)
+                        ) = (item["name"], None, None, "1900-01-01", None, 0.0, 0.0)
 
             placeholder_metadata.append(tmp_metadata)
         elif category["type"] == "TV Shows":
@@ -312,7 +312,7 @@ def writeMetadata(config, drive):
                             item["overview"],
                             item["popularity"],
                             item["voteAverage"],
-                        ) = (item["name"], "", "", "1900-01-01", "", 0.0, 0.0)
+                        ) = (item["name"], None, None, "1900-01-01", None, 0.0, 0.0)
 
             placeholder_metadata.append(tmp_metadata)
         print("Done in %s" % (str(datetime.datetime.utcnow() - start_time)))

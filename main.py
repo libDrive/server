@@ -10,6 +10,7 @@ import flask
 import flask_cors
 import googleapiclient
 import requests
+from PIL import Image, ImageDraw, ImageFont
 
 import src.config
 import src.credentials
@@ -65,6 +66,8 @@ if os.getenv("DRIVE_METADATA"):
 else:
     metadata = src.metadata.readMetadata(config)
 
+global font_req
+font_req = requests.get("https://raw.githack.com/googlefonts/roboto/master/src/hinted/Roboto-Regular.ttf", "rb")
 
 def create_app():
     app = flask.Flask(__name__, static_folder="build")
@@ -442,6 +445,63 @@ def configAPI():
                 401,
             )
 
+
+@app.route("/api/v1/image/<image_type>/<text>.<extention>")
+def imageAPI(image_type, text, extention):
+    if image_type == "poster":
+        img = Image.new("RGB", (342, 513), color=(255, 255, 255))
+        draw = ImageDraw.Draw(img)
+
+        font_size = 1
+        font_bytes = io.BytesIO(font_req.content)
+        font = ImageFont.truetype(font_bytes, font_size)
+        img_fraction = 0.9
+        breakpoint = img_fraction * img.size[0]
+        jumpsize = 75
+        while True:
+            if font.getsize(text)[0] < breakpoint:
+                font_size += jumpsize
+            else:
+                jumpsize = jumpsize // 2
+                font_size -= jumpsize
+            font_bytes = io.BytesIO(font_req.content)
+            font = ImageFont.truetype(font_bytes, font_size)
+            if jumpsize <= 1:
+                break
+        
+        width, height = draw.textsize(text, font=font)
+        draw.text(((342-width)/2,(513-height)/2), text, fill="black", font=font)
+        output = io.BytesIO()
+        img.save(output, format=extention)
+        output.seek(0, 0)
+        return flask.send_file(output, mimetype="image/%s" % (extention), as_attachment=False)
+    elif image_type == "backdrop":
+        img = Image.new("RGB", (1280, 720), color=(255, 255, 255))
+        draw = ImageDraw.Draw(img)
+
+        font_size = 1
+        font_bytes = io.BytesIO(font_req.content)
+        font = ImageFont.truetype(font_bytes, font_size)
+        img_fraction = 0.9
+        breakpoint = img_fraction * img.size[0]
+        jumpsize = 75
+        while True:
+            if font.getsize(text)[0] < breakpoint:
+                font_size += jumpsize
+            else:
+                jumpsize = jumpsize // 2
+                font_size -= jumpsize
+            font_bytes = io.BytesIO(font_req.content)
+            font = ImageFont.truetype(font_bytes, font_size)
+            if jumpsize <= 1:
+                break
+        
+        width, height = draw.textsize(text, font=font)
+        draw.text(((1280-width)/2,(720-height)/2), text, fill="black", font=font)
+        output = io.BytesIO()
+        img.save(output, format=extention)
+        output.seek(0, 0)
+        return flask.send_file(output, mimetype="image/%s" % (extention), as_attachment=False)
 
 @app.route("/api/v1/rebuild")
 def rebuildAPI():

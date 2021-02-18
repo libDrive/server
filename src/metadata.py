@@ -7,8 +7,7 @@ import time
 import googleapiclient
 import requests
 
-import src.tree
-import src.walk
+import src.drivetools
 
 
 def parseMovie(name):
@@ -226,12 +225,7 @@ def writeMetadata(config, drive):
             tree = root
             tree["type"] = "directory"
             tree["children"] = []
-            tmp_metadata = src.walk.driveWalk(root, tree, [], drive)
-            tmp_metadata["children"] = [
-                x
-                for x in tmp_metadata["children"]
-                if x["mimeType"] != "application/vnd.google-apps.folder"
-            ]
+            tmp_metadata = src.drivetools.driveWalk(root, drive, root)
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])
             tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
@@ -277,7 +271,7 @@ def writeMetadata(config, drive):
             if root["mimeType"] == "application/vnd.google-apps.folder":
                 root["type"] = "directory"
                 root["children"] = []
-                for item in src.tree.iterDrive(root, drive):
+                for item in src.drivetools.driveIter(root, drive):
                     if root["mimeType"] == "application/vnd.google-apps.folder":
                         item["type"] = "directory"
                         root["children"].append(item)

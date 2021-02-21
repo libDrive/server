@@ -18,7 +18,12 @@ import src.config
 import src.credentials
 import src.metadata
 
-print("================      STARTING      ================")
+print(
+    "====================================================\n\033[96m               libDrive - \033[92mv1.1.5\033[94m\n                   @eliasbenb\033[0m\n====================================================\n"
+)
+
+
+print("\033[91mREADING CONFIG...\033[0m")
 if os.getenv("LIBDRIVE_CONFIG"):
     config_str = os.getenv("LIBDRIVE_CONFIG")
     with open("config.json", "w+") as w:
@@ -32,10 +37,10 @@ else:
         + "\033[0m"
     )
     sys.exit()
-
 config, drive = src.credentials.refreshCredentials(config)
+print("DONE.\n")
 
-print("================  READING METADATA  ================")
+print("\033[91mREADING METADATA...\033[0m")
 if os.getenv("DRIVE_METADATA"):
     params = {
         "supportsAllDrives": True,
@@ -67,27 +72,26 @@ if os.getenv("DRIVE_METADATA"):
             json.dump(metadata, w)
 else:
     metadata = src.metadata.readMetadata(config)
-
 global font_req
 font_req = requests.get(
     "https://raw.githack.com/googlefonts/roboto/master/src/hinted/Roboto-Regular.ttf",
     "rb",
 )
+print("DONE.\n")
 
 
 def threaded_metadata():
+    print("\033[91mWRITING METADATA...\033[0m")
     for thread in threading.enumerate():
         if thread.name == "metadata_thread":
+            print("DONE.\n")
             return (
-                flask.jsonify(
                     {
                         "error": {
                             "code": 500,
                             "message": "libDrive is already building metadata, please wait.",
                         }
-                    }
-                ),
-                500,
+                    }, 500
             )
     config = src.config.readConfig()
     config, drive = src.credentials.refreshCredentials(config)
@@ -98,21 +102,31 @@ def threaded_metadata():
         name="metadata_thread",
     )
     metadata_thread.start()
+    print("DONE.\n")
     return (
-        flask.jsonify(
             {
                 "success": {
                     "code": 200,
                     "message": "libDrive is building your new metadata",
                 }
-            }
-        ),
-        200,
+            }, 200
     )
 
 
 def create_app():
     app = flask.Flask(__name__, static_folder="build")
+
+    if config["build_interval"] != 0:
+        print("\033[91mCREATING CRON JOB...\033[0m")
+        sched = apscheduler.schedulers.background.BackgroundScheduler(daemon=True)
+        sched.add_job(
+            threaded_metadata,
+            "interval",
+            minutes=config["build_interval"],
+        )
+        sched.start()
+        print("DONE.\n")
+
     config_categories = [d["id"] for d in config["category_list"]]
     metadata_categories = [d["id"] for d in metadata]
     if len(metadata) > 0 and sorted(config_categories) == sorted(metadata_categories):
@@ -123,20 +137,9 @@ def create_app():
         ) + datetime.timedelta(minutes=config["build_interval"]):
             return app
         else:
-            print("================  WRITING METADATA  ================")
             threaded_metadata()
     else:
-        print("================  WRITING METADATA  ================")
         threaded_metadata()
-    if config["build_interval"] != 0:
-        print("================  STARTING BUILD CRON JOB  ================")
-        sched = apscheduler.schedulers.background.BackgroundScheduler(daemon=True)
-        sched.add_job(
-            threaded_metadata,
-            "interval",
-            minutes=config["build_interval"],
-        )
-        sched.start()
 
     return app
 
@@ -573,7 +576,8 @@ def rebuildAPI():
     config = src.config.readConfig()
     a = flask.request.args.get("a")
     if any(a == account["auth"] for account in config["account_list"]):
-        return threaded_metadata()
+        res, code = threaded_metadata()
+        return flask.jsonify(res, code)
     else:
         return (
             flask.jsonify(
@@ -614,5 +618,6 @@ def pingAPI():
 
 
 if __name__ == "__main__":
-    print("================   SERVING SERVER   ================")
+    print("\033[91mSERVING SERVER...\033[0m")
+    print("DONE.\n")
     app.run(host="0.0.0.0", port=31145, threaded=True)

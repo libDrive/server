@@ -7,11 +7,11 @@ import random
 import sys
 import threading
 
+import apscheduler.schedulers.background
 import flask
 import flask_cors
 import googleapiclient
 import requests
-import apscheduler.schedulers.background
 from PIL import Image, ImageDraw, ImageFont
 
 import src.config

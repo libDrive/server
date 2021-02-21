@@ -78,12 +78,14 @@ def create_app():
     config_categories = [d["id"] for d in config["category_list"]]
     metadata_categories = [d["id"] for d in metadata]
     if len(metadata) > 0 and sorted(config_categories) == sorted(metadata_categories):
-        if datetime.datetime.utcnow() <= datetime.datetime.strptime(
+        if config["build_interval"] == 0:
+            return app
+        elif datetime.datetime.utcnow() <= datetime.datetime.strptime(
             metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f"
         ) + datetime.timedelta(minutes=config["build_interval"]):
             return app
     print("================  WRITING METADATA  ================")
-    buildThread = threading.Thread(
+    threading.Thread(
         target=src.metadata.writeMetadata, args=(config, drive), daemon=True
     ).start()
     return app

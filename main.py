@@ -86,12 +86,13 @@ def threaded_metadata():
         if thread.name == "metadata_thread":
             print("DONE.\n")
             return (
-                    {
-                        "error": {
-                            "code": 500,
-                            "message": "libDrive is already building metadata, please wait.",
-                        }
-                    }, 500
+                {
+                    "error": {
+                        "code": 500,
+                        "message": "libDrive is already building metadata, please wait.",
+                    }
+                },
+                500,
             )
     config = src.config.readConfig()
     config, drive = src.credentials.refreshCredentials(config)
@@ -104,12 +105,13 @@ def threaded_metadata():
     metadata_thread.start()
     print("DONE.\n")
     return (
-            {
-                "success": {
-                    "code": 200,
-                    "message": "libDrive is building your new metadata",
-                }
-            }, 200
+        {
+            "success": {
+                "code": 200,
+                "message": "libDrive is building your new metadata",
+            }
+        },
+        200,
     )
 
 

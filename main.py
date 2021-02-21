@@ -8,6 +8,7 @@ import sys
 import threading
 
 import apscheduler.schedulers.background
+import colorama
 import flask
 import flask_cors
 import googleapiclient
@@ -18,6 +19,7 @@ import src.config
 import src.credentials
 import src.metadata
 
+colorama.init()
 print(
     "====================================================\n\033[96m               libDrive - \033[92mv1.1.5\033[94m\n                   @eliasbenb\033[0m\n====================================================\n"
 )
@@ -81,7 +83,7 @@ print("DONE.\n")
 
 
 def threaded_metadata():
-    print("\033[91mWRITING METADATA...\033[0m")
+    print("\n\033[91mWRITING METADATA...\033[0m")
     for thread in threading.enumerate():
         if thread.name == "metadata_thread":
             print("DONE.\n")

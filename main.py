@@ -102,8 +102,8 @@ def threaded_metadata():
         daemon=True,
         name="metadata_thread",
     )
+    print("\n")
     metadata_thread.start()
-    print("DONE.\n")
     return (
         {
             "success": {

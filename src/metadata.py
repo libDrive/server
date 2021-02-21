@@ -213,7 +213,7 @@ def writeMetadata(config, drive):
         count += 1
         start_time = datetime.datetime.utcnow()
         print(
-            "\n================  Building metadata for category %s/%s (%s)  ================\n"
+            "\033[91mBUILDING METADATA FOR CATEGORY %s/%s (%s)...\033[0m"
             % (count, len(config["category_list"]), category["name"])
         )
         if category["type"] == "Movies":
@@ -315,7 +315,7 @@ def writeMetadata(config, drive):
                         ) = (item["name"], None, None, "1900-01-01", None, 0.0, 0.0)
 
             placeholder_metadata.append(tmp_metadata)
-        print("Done in %s" % (str(datetime.datetime.utcnow() - start_time)))
+        print("DONE IN %s.\n" % (str(datetime.datetime.utcnow() - start_time)))
 
         metadata = placeholder_metadata
 

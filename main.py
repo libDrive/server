@@ -1,3 +1,4 @@
+import atexit
 import datetime
 import io
 import json
@@ -10,6 +11,7 @@ import flask
 import flask_cors
 import googleapiclient
 import requests
+import apscheduler.schedulers.background
 from PIL import Image, ImageDraw, ImageFont
 
 import src.config
@@ -73,6 +75,42 @@ font_req = requests.get(
 )
 
 
+def threaded_metadata():
+    for thread in threading.enumerate():
+        if thread.name == "metadata_thread":
+            return (
+                flask.jsonify(
+                    {
+                        "error": {
+                            "code": 500,
+                            "message": "libDrive is already building metadata, please wait.",
+                        }
+                    }
+                ),
+                500,
+            )
+    config = src.config.readConfig()
+    config, drive = src.credentials.refreshCredentials(config)
+    metadata_thread = threading.Thread(
+        target=src.metadata.writeMetadata,
+        args=(config, drive),
+        daemon=True,
+        name="metadata_thread",
+    )
+    metadata_thread.start()
+    return (
+        flask.jsonify(
+            {
+                "success": {
+                    "code": 200,
+                    "message": "libDrive is building your new metadata",
+                }
+            }
+        ),
+        200,
+    )
+
+
 def create_app():
     app = flask.Flask(__name__, static_folder="build")
     config_categories = [d["id"] for d in config["category_list"]]
@@ -84,10 +122,22 @@ def create_app():
             metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f"
         ) + datetime.timedelta(minutes=config["build_interval"]):
             return app
-    print("================  WRITING METADATA  ================")
-    threading.Thread(
-        target=src.metadata.writeMetadata, args=(config, drive), daemon=True
-    ).start()
+        else:
+            print("================  WRITING METADATA  ================")
+            threaded_metadata()
+    else:
+        print("================  WRITING METADATA  ================")
+        threaded_metadata()
+    if config["build_interval"] != 0:
+        print("================  STARTING BUILD CRON JOB  ================")
+        sched = apscheduler.schedulers.background.BackgroundScheduler(daemon=True)
+        sched.add_job(
+            threaded_metadata,
+            "interval",
+            minutes=config["build_interval"],
+        )
+        sched.start()
+
     return app
 
 
@@ -521,75 +571,21 @@ def imageAPI(image_type, text, extention):
 @app.route("/api/v1/rebuild")
 def rebuildAPI():
     config = src.config.readConfig()
-    force = flask.request.args.get("force")
-    if force == "true":
-        a = flask.request.args.get("a")
-        if any(a == account["auth"] for account in config["account_list"]):
-            rebuildThread = threading.Thread(
-                target=src.metadata.writeMetadata, args=(config, drive), daemon=True
-            ).start()
-            return (
-                flask.jsonify(
-                    {
-                        "success": {
-                            "code": 200,
-                            "message": "libDrive is building your new metadata",
-                        }
-                    }
-                ),
-                200,
-            )
-        else:
-            return (
-                flask.jsonify(
-                    {
-                        "error": {
-                            "code": 401,
-                            "message": "The secret key provided was incorrect.",
-                        }
-                    }
-                ),
-                401,
-            )
+    a = flask.request.args.get("a")
+    if any(a == account["auth"] for account in config["account_list"]):
+        return threaded_metadata()
     else:
-        metadata = src.metadata.readMetadata(config)
-        build_time = datetime.datetime.strptime(
-            metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f"
+        return (
+            flask.jsonify(
+                {
+                    "error": {
+                        "code": 401,
+                        "message": "The secret key provided was incorrect.",
+                    }
+                }
+            ),
+            401,
         )
-        if datetime.datetime.utcnow() >= build_time + datetime.timedelta(
-            minutes=config["build_interval"]
-        ):
-            rebuildThread = threading.Thread(
-                target=src.metadata.writeMetadata, args=(config, drive), daemon=True
-            ).start()
-            return (
-                flask.jsonify(
-                    {
-                        "success": {
-                            "code": 200,
-                            "message": "libDrive is building your new metadata",
-                        }
-                    }
-                ),
-                200,
-            )
-        else:
-            return (
-                flask.jsonify(
-                    {
-                        "error": {
-                            "code": 425,
-                            "message": "The build interval restriction ends at %s UTC. Last build date was at %s UTC."
-                            % (
-                                build_time
-                                + datetime.timedelta(minutes=config["build_interval"]),
-                                build_time,
-                            ),
-                        }
-                    }
-                ),
-                425,
-            )
 
 
 @app.route("/api/v1/restart")

@@ -83,7 +83,6 @@ print("DONE.\n")
 
 
 def threaded_metadata():
-    print("\n\033[91mWRITING METADATA...\033[0m")
     for thread in threading.enumerate():
         if thread.name == "metadata_thread":
             print("DONE.\n")
@@ -104,7 +103,6 @@ def threaded_metadata():
         daemon=True,
         name="metadata_thread",
     )
-    print("\n")
     metadata_thread.start()
     return (
         {

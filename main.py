@@ -507,8 +507,10 @@ def configAPI():
             )
 
 
-@app.route("/api/v1/image/<image_type>/<text>.<extention>")
-def imageAPI(image_type, text, extention):
+@app.route("/api/v1/image/<image_type>")
+def imageAPI(image_type):
+    text = flask.request.args.get("text")
+    extention = "." + flask.request.args.get("extention")
     if image_type == "poster":
         img = Image.new("RGB", (342, 513), color=(255, 255, 255))
         draw = ImageDraw.Draw(img)
@@ -571,6 +573,15 @@ def imageAPI(image_type, text, extention):
         return flask.send_file(
             output, mimetype="image/%s" % (extention), as_attachment=False
         )
+    elif image_type == "thumbnail":
+        id = flask.request.args.get("id")
+        params = {
+            "fileId": id,
+            "fields": "thumbnailLink",
+            "supportsAllDrives": True,
+        }
+        res = drive.files().get(**params).execute()
+        return flask.redirect(res["thumbnailLink"], code=302)
 
 
 @app.route("/api/v1/rebuild")

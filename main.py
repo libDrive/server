@@ -1,9 +1,9 @@
-import atexit
 import datetime
 import io
 import json
 import os
 import random
+import re
 import sys
 import threading
 
@@ -510,7 +510,7 @@ def configAPI():
 @app.route("/api/v1/image/<image_type>")
 def imageAPI(image_type):
     text = flask.request.args.get("text")
-    extention = "." + flask.request.args.get("extention")
+    extention = flask.request.args.get("extention")
     if image_type == "poster":
         img = Image.new("RGB", (342, 513), color=(255, 255, 255))
         draw = ImageDraw.Draw(img)
@@ -581,7 +581,8 @@ def imageAPI(image_type):
             "supportsAllDrives": True,
         }
         res = drive.files().get(**params).execute()
-        return flask.redirect(res["thumbnailLink"], code=302)
+        thumbnail = re.sub(r"(s[^s]*)$", "s3840", res["thumbnailLink"])
+        return flask.redirect(thumbnail, code=302)
 
 
 @app.route("/api/v1/rebuild")
@@ -633,4 +634,4 @@ def pingAPI():
 if __name__ == "__main__":
     print("\033[91mSERVING SERVER...\033[0m")
     print("DONE.\n")
-    app.run(host="0.0.0.0", port=31145, threaded=True)
+    app.run(host="0.0.0.0", port=31145, threaded=True, debug=True)

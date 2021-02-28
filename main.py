@@ -6,6 +6,7 @@ import random
 import re
 import sys
 import threading
+import urllib
 
 import apscheduler.schedulers.background
 import colorama
@@ -372,7 +373,6 @@ def downloadRedirectAPI(name):
     tmp_metadata = src.metadata.readMetadata(config)
     id = flask.request.args.get("id")
     ids = src.metadata.jsonExtract(obj=tmp_metadata, key="id", getObj=True)
-    name = ""
     for item in ids:
         if item["id"] == id:
             name = item["name"]
@@ -383,7 +383,7 @@ def downloadRedirectAPI(name):
     for i in range(len(keys)):
         args += "%s=%s&" % (keys[i], values[i])
     args = args[:-1]
-
+    
     if "cloudflare" in config:
         if config["cloudflare"] != "":
             return flask.redirect(
@@ -413,20 +413,56 @@ def downloadAPI(name):
 
     a = flask.request.args.get("a")
     id = flask.request.args.get("id")
+    quality = flask.request.args.get("quality")
     if any(a == account["auth"] for account in config["account_list"]) and id:
         headers = {
             key: value for (key, value) in flask.request.headers if key != "Host"
         }
         headers["Authorization"] = "Bearer %s" % (config["access_token"])
-        resp = requests.request(
-            method=flask.request.method,
-            url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
-            headers=headers,
-            data=flask.request.get_data(),
-            cookies=flask.request.cookies,
-            allow_redirects=False,
-            stream=True,
-        )
+        if quality == "transcoded":
+            req = requests.get(
+                "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
+                % (id, config["access_token"]),
+                headers={"Authorization": "Bearer %s" % config["access_token"]},
+            )
+            parsed = urllib.parse.parse_qs(urllib.request.unquote(req.text))
+            print(parsed)
+            if parsed["status"] == ["ok"]:
+                url = ""
+                itag = re.search(r"^\d+[^\/]*", parsed["fmt_list"][0]).group(0)
+                for stream in parsed["url"]:
+                    if ("itag=%s" % (itag)) in stream:
+                        url = stream
+                        break
+                resp = requests.request(
+                    method=flask.request.method,
+                    url=url,
+                    headers=headers,
+                    data=flask.request.get_data(),
+                    cookies=req.cookies,
+                    allow_redirects=True,
+                    stream=True,
+                )
+            else:
+                resp = requests.request(
+                    method=flask.request.method,
+                    url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
+                    headers=headers,
+                    data=flask.request.get_data(),
+                    cookies=flask.request.cookies,
+                    allow_redirects=False,
+                    stream=True,
+                )
+        else:
+            resp = requests.request(
+                method=flask.request.method,
+                url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
+                headers=headers,
+                data=flask.request.get_data(),
+                cookies=flask.request.cookies,
+                allow_redirects=False,
+                stream=True,
+            )
         excluded_headers = [
             "content-encoding",
             "content-length",

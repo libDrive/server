@@ -384,13 +384,10 @@ def downloadRedirectAPI(name):
         args += "%s=%s&" % (keys[i], values[i])
     args = args[:-1]
     
-    if "cloudflare" in config:
-        if config["cloudflare"] != "":
-            return flask.redirect(
-                config["cloudflare"] + "/api/v1/download/%s%s" % (name, args)
-            )
-        else:
-            return flask.redirect("/api/v1/download/%s%s" % (name, args))
+    if config.get("cloudflare") != ("" and None):
+        return flask.redirect(
+            config["cloudflare"] + "/api/v1/download/%s%s" % (name, args)
+        )
     else:
         return flask.redirect("/api/v1/download/%s%s" % (name, args))
 
@@ -419,50 +416,54 @@ def downloadAPI(name):
             key: value for (key, value) in flask.request.headers if key != "Host"
         }
         headers["Authorization"] = "Bearer %s" % (config["access_token"])
-        if quality == "transcoded":
+        if quality == "transcoded" and config.get("transcoded") == True:
             req = requests.get(
                 "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
                 % (id, config["access_token"]),
                 headers={"Authorization": "Bearer %s" % config["access_token"]},
             )
             parsed = urllib.parse.parse_qs(urllib.request.unquote(req.text))
-            print(parsed)
             if parsed["status"] == ["ok"]:
-                url = ""
-                itag = re.search(r"^\d+[^\/]*", parsed["fmt_list"][0]).group(0)
-                for stream in parsed["url"]:
-                    if ("itag=%s" % (itag)) in stream:
-                        url = stream
-                        break
-                resp = requests.request(
-                    method=flask.request.method,
-                    url=url,
-                    headers=headers,
-                    data=flask.request.get_data(),
-                    cookies=req.cookies,
-                    allow_redirects=True,
-                    stream=True,
-                )
-            else:
-                resp = requests.request(
-                    method=flask.request.method,
-                    url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
-                    headers=headers,
-                    data=flask.request.get_data(),
-                    cookies=flask.request.cookies,
-                    allow_redirects=False,
-                    stream=True,
-                )
-        else:
-            resp = requests.request(
-                method=flask.request.method,
-                url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
-                headers=headers,
-                data=flask.request.get_data(),
-                cookies=flask.request.cookies,
-                allow_redirects=False,
-                stream=True,
-            )
+                if len(parsed["fmt_list"]) > 0:
+                    url = ""
+                    itag = re.search(r"^\d+[^\/]*", parsed["fmt_list"][0]).group(0)
+                    for stream in parsed["url"]:
+                        if ("itag=%s" % (itag)) in stream:
+                            url = stream
+                            break
+                    if url != "":
+                        resp = requests.request(
+                            method=flask.request.method,
+                            url=url,
+                            headers=headers,
+                            data=flask.request.get_data(),
+                            cookies=req.cookies,
+                            allow_redirects=True,
+                            stream=True,
+                        )
+                        excluded_headers = [
+                            "content-encoding",
+                            "content-length",
+                            "transfer-encoding",
+                            "connection",
+                        ]
+                        headers = [
+                            (name, value)
+                            for (name, value) in resp.raw.headers.items()
+                            if name.lower() not in excluded_headers
+                        ]
+                        return flask.Response(
+                            flask.stream_with_context(download_file(resp)), resp.status_code, headers
+                        )
+        resp = requests.request(
+            method=flask.request.method,
+            url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
+            headers=headers,
+            data=flask.request.get_data(),
+            cookies=flask.request.cookies,
+            allow_redirects=False,
+            stream=True,
+        )
         excluded_headers = [
             "content-encoding",
             "content-length",

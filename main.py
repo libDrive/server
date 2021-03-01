@@ -195,6 +195,18 @@ def environmentAPI():
     a = flask.request.args.get("a")  # AUTH
     if any(a == account["auth"] for account in config["account_list"]):
         account = next((i for i in config["account_list"] if i["auth"] == a), None)
+        if account.get("whitelist"):
+            category_list = []
+            for category in config["category_list"]:
+                if any(category["id"] == whitelist for whitelist in account["whitelist"]):
+                    category_list.append(category)
+                else:
+                    pass
+            tmp_environment = {
+                "account_list": account,
+                "category_list": category_list,
+            }
+            return flask.jsonify(tmp_environment)
         tmp_environment = {
             "account_list": account,
             "category_list": config["category_list"],
@@ -213,6 +225,13 @@ def metadataAPI():
     r = flask.request.args.get("r")  # RANGE
     id = flask.request.args.get("id")  # ID
     if any(a == account["auth"] for account in config["account_list"]):
+        account = next((i for i in config["account_list"] if i["auth"] == a), None)
+        if account.get("whitelist"):
+            tmp_metadata2 = []
+            for x in tmp_metadata:
+                if any(x["id"] == whitelist for whitelist in account["whitelist"]):
+                    tmp_metadata2.append(x)
+            tmp_metadata = tmp_metadata2
         if c:
             tmp_metadata = [
                 next((i for i in tmp_metadata if i["categoryInfo"]["name"] == c), None)

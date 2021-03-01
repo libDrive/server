@@ -690,4 +690,4 @@ def pingAPI():
 if __name__ == "__main__":
     print("\033[91mSERVING SERVER...\033[0m")
     print("DONE.\n")
-    app.run(host="0.0.0.0", port=31145, threaded=True, debug=True)
+    app.run(host="0.0.0.0", port=31145, threaded=True, debug=False)

@@ -198,7 +198,9 @@ def environmentAPI():
         if account.get("whitelist"):
             category_list = []
             for category in config["category_list"]:
-                if any(category["id"] == whitelist for whitelist in account["whitelist"]):
+                if any(
+                    category["id"] == whitelist for whitelist in account["whitelist"]
+                ):
                     category_list.append(category)
                 else:
                     pass
@@ -402,7 +404,7 @@ def downloadRedirectAPI(name):
     for i in range(len(keys)):
         args += "%s=%s&" % (keys[i], values[i])
     args = args[:-1]
-    
+
     if config.get("cloudflare") != ("" and None):
         return flask.redirect(
             config["cloudflare"] + "/api/v1/download/%s%s" % (name, args)
@@ -472,7 +474,9 @@ def downloadAPI(name):
                             if name.lower() not in excluded_headers
                         ]
                         return flask.Response(
-                            flask.stream_with_context(download_file(resp)), resp.status_code, headers
+                            flask.stream_with_context(download_file(resp)),
+                            resp.status_code,
+                            headers,
                         )
         resp = requests.request(
             method=flask.request.method,

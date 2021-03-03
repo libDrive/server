@@ -643,8 +643,21 @@ def imageAPI(image_type):
             "supportsAllDrives": True,
         }
         res = drive.files().get(**params).execute()
-        thumbnail = re.sub(r"(s[^s]*)$", "s3840", res["thumbnailLink"])
-        return flask.redirect(thumbnail, code=302)
+        if res.get("thumbnailLink"):
+            thumbnail = re.sub(r"(s[^s]*)$", "s3840", res["thumbnailLink"])
+            return flask.redirect(thumbnail, code=302)
+        else:
+            return (
+                flask.jsonify(
+                    {
+                        "error": {
+                            "code": 500,
+                            "message": "The thumbnail does not exist on Google's servers.",
+                        }
+                    }
+                ),
+                500,
+            )
 
 
 @app.route("/api/v1/rebuild")
@@ -700,5 +713,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=31145,
         threaded=True,
-        debug=(os.getenv("LIBDRIVE_DEBUG").lower() == "true"),
+        debug=os.getenv("LIBDRIVE_DEBUG"),
     )

@@ -1,11 +1,11 @@
-def driveIter(root, drive):
+def driveIter(root, drive, mimeType):
     params = {
         "pageToken": None,
         "supportsAllDrives": True,
         "includeItemsFromAllDrives": True,
         "fields": "files(id,name,mimeType), incompleteSearch, nextPageToken",
-        "q": "'%s' in parents and trashed = false and (mimeType = 'application/vnd.google-apps.folder' or mimeType contains 'video')"
-        % (root["id"]),
+        "q": "'%s' in parents and trashed = false and (mimeType = 'application/vnd.google-apps.folder' or mimeType contains '%s')"
+        % (root["id"], mimeType),
         "orderBy": "name",
     }
     while True:
@@ -18,11 +18,11 @@ def driveIter(root, drive):
             return
 
 
-def driveWalk(root, drive, walk):
+def driveWalk(root, drive, walk, mimeType):
     if root["mimeType"] == "application/vnd.google-apps.folder":
-        for item in driveIter(root, drive):
-            driveWalk(item, drive, walk)
-    elif "video" in root["mimeType"]:
+        for item in driveIter(root, drive, mimeType):
+            driveWalk(item, drive, walk, mimeType)
+    elif mimeType in root["mimeType"]:
         root["type"] = "file"
         walk["children"].append(root)
     else:
@@ -30,12 +30,12 @@ def driveWalk(root, drive, walk):
     return walk
 
 
-def driveTree(root, drive):
+def driveTree(root, drive, mimeType):
     if root["mimeType"] == "application/vnd.google-apps.folder":
         tree = root
         tree["type"] = "directory"
-        tree["children"] = [driveTree(item, drive) for item in driveIter(root, drive)]
-    elif "video" in root["mimeType"]:
+        tree["children"] = [driveTree(item, drive, mimeType) for item in driveIter(root, drive, mimeType)]
+    elif mimeType in root["mimeType"]:
         tree = root
         tree["type"] = "file"
     else:

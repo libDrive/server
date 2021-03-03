@@ -225,7 +225,7 @@ def writeMetadata(config, drive):
             tree = root
             tree["type"] = "directory"
             tree["children"] = []
-            tmp_metadata = src.drivetools.driveWalk(root, drive, root)
+            tmp_metadata = src.drivetools.driveWalk(root, drive, root, "video")
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])
             tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
@@ -271,7 +271,7 @@ def writeMetadata(config, drive):
             if root["mimeType"] == "application/vnd.google-apps.folder":
                 root["type"] = "directory"
                 root["children"] = []
-                for item in src.drivetools.driveIter(root, drive):
+                for item in src.drivetools.driveIter(root, drive, "video"):
                     if root["mimeType"] == "application/vnd.google-apps.folder":
                         item["type"] = "directory"
                         root["children"].append(item)

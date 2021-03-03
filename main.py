@@ -175,6 +175,17 @@ def authAPI():
     elif any(a == account["auth"] for account in config["account_list"]):
         account = next((i for i in config["account_list"] if i["auth"] == a), None)
         return flask.jsonify(account)
+    elif len(config["account_list"]) == 0:
+        config["account_list"] = [
+            {
+                "username": "",
+                "password": "",
+                "pic": "",
+                "auth": "0",
+            }
+        ]
+        src.config.updateConfig(config)
+        return flask.jsonify(config["account_list"][-1])
     else:
         return (
             flask.jsonify(

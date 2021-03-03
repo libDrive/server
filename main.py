@@ -228,12 +228,23 @@ def metadataAPI():
     id = flask.request.args.get("id")  # ID
     if any(a == account["auth"] for account in config["account_list"]):
         account = next((i for i in config["account_list"] if i["auth"] == a), None)
+        whitelisted_categories_metadata = []
+        for category in tmp_metadata:
+            category_config = next(
+                (i for i in config["category_list"] if i["id"] == category["id"]), None
+            )
+            if category_config.get("whitelist"):
+                if account["auth"] in category_config["whitelist"]:
+                    whitelisted_categories_metadata.append(category)
+            else:
+                whitelisted_categories_metadata.append(category)
+        tmp_metadata = whitelisted_categories_metadata
+        whitelisted_accounts_metadata = []
         if account.get("whitelist"):
-            tmp_metadata2 = []
             for x in tmp_metadata:
                 if any(x["id"] == whitelist for whitelist in account["whitelist"]):
-                    tmp_metadata2.append(x)
-            tmp_metadata = tmp_metadata2
+                    whitelisted_accounts_metadata.append(x)
+            tmp_metadata = whitelisted_accounts_metadata
         if c:
             tmp_metadata = [
                 next((i for i in tmp_metadata if i["categoryInfo"]["name"] == c), None)

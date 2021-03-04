@@ -44,37 +44,43 @@ config, drive = src.credentials.refreshCredentials(config)
 print("DONE.\n")
 
 print("\033[91mREADING METADATA...\033[0m")
-if os.getenv("DRIVE_METADATA"):
+metadata = src.metadata.readMetadata(config)
+if os.getenv("LIBDRIVE_CLOUD"):
     params = {
         "supportsAllDrives": True,
         "includeItemsFromAllDrives": True,
         "fields": "files(id,name)",
         "q": "'%s' in parents and trashed = false and mimeType = 'application/json'"
-        % (os.getenv("DRIVE_METADATA")),
-        "orderBy": "createdTime",
+        % (os.getenv("LIBDRIVE_CLOUD")),
     }
     files = drive.files().list(**params).execute()["files"]
-    if len(files) == 0:
-        metadata = src.metadata.readMetadata(config)
-    else:
-        file = files[-1]
-        request = drive.files().get_media(fileId=file["id"])
-
+    config_file = next((i for i in files if i["name"] == "config.json"), None)
+    metadata_file = next((i for i in files if i["name"] == "metadata.json"), None)
+    if config_file:
+        request = drive.files().get_media(fileId=config_file["id"])
+        fh = io.BytesIO()
+        downloader = googleapiclient.http.MediaIoBaseDownload(fh, request)
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+        config = json.loads(fh.getvalue())
+        config, drive = src.credentials.refreshCredentials(config)
+        with open(config_file["name"], "w+") as w:
+            json.dump(config, w)
+    if metadata_file:
+        request = drive.files().get_media(fileId=metadata_file["id"])
         fh = io.BytesIO()
         downloader = googleapiclient.http.MediaIoBaseDownload(fh, request)
         done = False
         while done is False:
             status, done = downloader.next_chunk()
         metadata = json.loads(fh.getvalue())
-
-        try:
-            os.mkdir("metadata")
-        except:
+        if os.path.exists("metadata"):
             pass
-        with open("metadata/%s" % (file["name"]), "w+") as w:
+        else:
+            os.mkdir("metadata")
+        with open("metadata/%s" % (metadata_file["name"]), "w+") as w:
             json.dump(metadata, w)
-else:
-    metadata = src.metadata.readMetadata(config)
 global font_req
 font_req = requests.get(
     "https://raw.githack.com/googlefonts/roboto/master/src/hinted/Roboto-Regular.ttf",

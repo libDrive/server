@@ -151,12 +151,14 @@ def mediaIdentifier(
 
 
 def readMetadata(config):
-    try:
-        os.mkdir("metadata")
-    except:
+    if os.path.exists("metadata"):
         pass
-    metadata_dir = os.listdir("metadata")
-    if len(metadata_dir) == 0:
+    else:
+        os.mkdir("metadata")
+    if os.path.isfile("./metadata/metadata.json"):
+        with open("./metadata/metadata.json", "r") as r:
+            metadata = json.load(r)
+    else:
         metadata = []
         for category in config["category_list"]:
             tmp = {
@@ -176,19 +178,6 @@ def readMetadata(config):
                 ),
             }
             metadata.append(tmp)
-    elif len(metadata_dir) <= 5:
-        metadata_file = max(metadata_dir)
-        with open("metadata/%s" % (metadata_file), "r") as r:
-            metadata = json.load(r)
-    elif len(metadata_dir) > 5:
-        while len(metadata_dir) > 5:
-            os.remove("metadata/%s" % (min(metadata_dir)))
-            metadata_dir = os.listdir("metadata")
-        metadata_file = max(metadata_dir)
-        with open("metadata/%s" % (metadata_file), "r") as r:
-            metadata = json.load(r)
-    else:
-        pass
     return metadata
 
 
@@ -206,7 +195,6 @@ def writeMetadata(config, drive):
         + configuration_content["images"]["poster_sizes"][3]
     )
 
-    metadata_file_name = "metadata/%s.json" % (time.strftime("%Y%m%d-%H%M%S"))
     placeholder_metadata = []
     count = 0
     for category in config["category_list"]:
@@ -323,21 +311,33 @@ def writeMetadata(config, drive):
             pass
         else:
             os.mkdir("./metadata")
-        with open(metadata_file_name, "w+") as w:
+        with open("./metadata/metadata.json", "w+") as w:
             w.write(json.dumps(metadata))
 
-    if os.getenv("DRIVE_METADATA"):
-        time.sleep(3)
+    if os.getenv("LIBDRIVE_CLOUD"):
+        config, drive = src.credentials.refreshCredentials(config)
+        params = {
+            "supportsAllDrives": True,
+            "includeItemsFromAllDrives": True,
+            "fields": "files(id,name)",
+            "q": "'%s' in parents and trashed = false and mimeType = 'application/json'"
+            % (os.getenv("LIBDRIVE_CLOUD")),
+        }
+        files = drive.files().list(**params).execute()["files"]
+        metadata_file = next((i for i in files if i["name"] == "metadata.json"), None)
         file_metadata = {
-            "name": metadata_file_name.replace("metadata/", ""),
+            "name": "metadata.json",
             "mimeType": "application/json",
-            "parents": [os.getenv("DRIVE_METADATA")],
+            "parents": [os.getenv("LIBDRIVE_CLOUD")],
         }
         media = googleapiclient.http.MediaFileUpload(
-            metadata_file_name, mimetype="application/json", resumable=True
+            "./metadata/metadata.json", mimetype="application/json", resumable=True
         )
-        drive.files().create(body=file_metadata, media_body=media).execute()
-
+        if metadata_file:
+            params = {"fileId": metadata_file["id"], "media_body": media}
+            drive.files().update(**params).execute()
+        else:
+            drive.files().create(body=file_metadata, media_body=media).execute()
     return metadata
 
 

@@ -300,6 +300,12 @@ def environmentAPI():
                     "category_list": category_list,
                 }
                 return flask.jsonify(tmp_environment)
+            else:
+                tmp_environment = {
+                    "account_list": account,
+                    "category_list": config["category_list"],
+                }
+                return flask.jsonify(tmp_environment)
         else:
             tmp_environment = {
                 "account_list": {"pic": "k"},

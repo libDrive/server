@@ -169,25 +169,48 @@ def authAPI():
     u = flask.request.args.get("u")  # USERNAME
     p = flask.request.args.get("p")  # PASSWORD
     a = flask.request.args.get("a")  # AUTH
-    if any(u == account["username"] for account in config["account_list"]) and any(
+    rules = flask.request.args.get("rules") # RULES
+    if config.get("auth") == False:
+        return (
+            flask.jsonify(
+                {
+                    "success": {
+                        "code": 200,
+                        "content": "/browse",
+                        "message": "Authentication completed successfully!",
+                    }
+                }
+            ),
+            200,
+        )
+    elif rules == "signup":
+        return (
+            flask.jsonify(
+                {
+                    "success": {
+                        "code": 202,
+                        "conntent": config.get("signup"),
+                        "message": "Signup is available on this server.",
+                    }
+                }
+            ),
+            202,
+        )
+    elif any(u == account["username"] for account in config["account_list"]) and any(
         p == account["password"] for account in config["account_list"]
     ):
-        account = next((i for i in config["account_list"] if i["username"] == u), None)
+        account = next(
+            (
+                i
+                for i in config["account_list"]
+                if i["username"] == u and i["password"] == p
+            ),
+            None,
+        )
         return flask.jsonify(account)
     elif any(a == account["auth"] for account in config["account_list"]):
         account = next((i for i in config["account_list"] if i["auth"] == a), None)
         return flask.jsonify(account)
-    elif len(config["account_list"]) == 0:
-        config["account_list"] = [
-            {
-                "username": "",
-                "password": "",
-                "pic": "",
-                "auth": "0",
-            }
-        ]
-        src.config.updateConfig(config)
-        return flask.jsonify(config["account_list"][-1])
     else:
         return (
             flask.jsonify(
@@ -202,31 +225,87 @@ def authAPI():
         )
 
 
+@app.route("/api/v1/signup")
+def signupAPI():
+    config = src.config.readConfig()
+    u = flask.request.args.get("u")  # USERNAME
+    p = flask.request.args.get("p")  # PASSWORD
+    if config.get("singup"):
+        if any(u == account["username"] for account in config["account_list"]):
+            return (
+                flask.jsonify(
+                    {
+                        "error": {
+                            "code": 409,
+                            "message": "An account with this username already exists.",
+                        }
+                    }
+                ),
+                409,
+            )
+        else:
+            auth = "".join(
+                random.choices("abcdefghijklmnopqrstuvwxyz" + "0123456789", k=50)
+            )
+            account = {"username": u, "password": p, "pic": "", "auth": auth}
+            config["account_list"].append(account)
+            src.config.updateConfig(config)
+            return (
+                flask.jsonify(
+                    {
+                        "success": {
+                            "code": 200,
+                            "content": account,
+                            "message": "Registration successful!",
+                        }
+                    }
+                ),
+                200,
+            )
+    else:
+        return (
+            flask.jsonify(
+                {
+                    "error": {
+                        "code": 401,
+                        "message": "This server has disabled user sign up.",
+                    }
+                }
+            ),
+            401,
+        )
+
+
 @app.route("/api/v1/environment")
 def environmentAPI():
     config = src.config.readConfig()
     a = flask.request.args.get("a")  # AUTH
-    if any(a == account["auth"] for account in config["account_list"]):
+    if (
+        any(a == account["auth"] for account in config["account_list"])
+        or config.get("auth") == False
+    ):
         account = next((i for i in config["account_list"] if i["auth"] == a), None)
-        if account.get("whitelist"):
-            category_list = []
-            for category in config["category_list"]:
-                if any(
-                    category["id"] == whitelist for whitelist in account["whitelist"]
-                ):
-                    category_list.append(category)
-                else:
-                    pass
+        if account:
+            if account.get("whitelist"):
+                category_list = []
+                for category in config["category_list"]:
+                    if any(
+                        category["id"] == whitelist for whitelist in account["whitelist"]
+                    ):
+                        category_list.append(category)
+                    else:
+                        pass
+                tmp_environment = {
+                    "account_list": account,
+                    "category_list": category_list,
+                }
+                return flask.jsonify(tmp_environment)
+        else:
             tmp_environment = {
-                "account_list": account,
-                "category_list": category_list,
+                "account_list": {"pic": "k"},
+                "category_list": config["category_list"],
             }
             return flask.jsonify(tmp_environment)
-        tmp_environment = {
-            "account_list": account,
-            "category_list": config["category_list"],
-        }
-        return flask.jsonify(tmp_environment)
 
 
 @app.route("/api/v1/metadata")
@@ -239,7 +318,10 @@ def metadataAPI():
     s = flask.request.args.get("s")  # SORT-ORDER
     r = flask.request.args.get("r")  # RANGE
     id = flask.request.args.get("id")  # ID
-    if any(a == account["auth"] for account in config["account_list"]):
+    if (
+        any(a == account["auth"] for account in config["account_list"])
+        or config.get("auth") == False
+    ):
         account = next((i for i in config["account_list"] if i["auth"] == a), None)
         whitelisted_categories_metadata = []
         for category in tmp_metadata:
@@ -253,11 +335,12 @@ def metadataAPI():
                 whitelisted_categories_metadata.append(category)
         tmp_metadata = whitelisted_categories_metadata
         whitelisted_accounts_metadata = []
-        if account.get("whitelist"):
-            for x in tmp_metadata:
-                if any(x["id"] == whitelist for whitelist in account["whitelist"]):
-                    whitelisted_accounts_metadata.append(x)
-            tmp_metadata = whitelisted_accounts_metadata
+        if account:
+            if account.get("whitelist"):
+                for x in tmp_metadata:
+                    if any(x["id"] == whitelist for whitelist in account["whitelist"]):
+                        whitelisted_accounts_metadata.append(x)
+                tmp_metadata = whitelisted_accounts_metadata
         if c:
             tmp_metadata = [
                 next((i for i in tmp_metadata if i["categoryInfo"]["name"] == c), None)
@@ -458,7 +541,10 @@ def downloadAPI(name):
     a = flask.request.args.get("a")
     id = flask.request.args.get("id")
     quality = flask.request.args.get("quality")
-    if any(a == account["auth"] for account in config["account_list"]) and id:
+    if (
+        any(a == account["auth"] for account in config["account_list"])
+        or config.get("auth") == False
+    ) and id:
         headers = {
             key: value for (key, value) in flask.request.headers if key != "Host"
         }
@@ -688,7 +774,10 @@ def imageAPI(image_type):
 def rebuildAPI():
     config = src.config.readConfig()
     a = flask.request.args.get("a")
-    if any(a == account["auth"] for account in config["account_list"]):
+    if (
+        any(a == account["auth"] for account in config["account_list"])
+        or config.get("auth") == False
+    ):
         res, code = threaded_metadata()
         return flask.jsonify(res, code)
     else:

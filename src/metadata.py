@@ -151,12 +151,8 @@ def mediaIdentifier(
 
 
 def readMetadata(config):
-    if os.path.exists("metadata"):
-        pass
-    else:
-        os.mkdir("metadata")
-    if os.path.isfile("./metadata/metadata.json"):
-        with open("./metadata/metadata.json", "r") as r:
+    if os.path.exists("./metadata.json"):
+        with open("./metadata.json", "r") as r:
             metadata = json.load(r)
     else:
         metadata = []
@@ -311,7 +307,7 @@ def writeMetadata(config, drive):
             pass
         else:
             os.mkdir("./metadata")
-        with open("./metadata/metadata.json", "w+") as w:
+        with open("./metadata.json", "w+") as w:
             w.write(json.dumps(metadata))
 
     if os.getenv("LIBDRIVE_CLOUD"):
@@ -331,7 +327,7 @@ def writeMetadata(config, drive):
             "parents": [os.getenv("LIBDRIVE_CLOUD")],
         }
         media = googleapiclient.http.MediaFileUpload(
-            "./metadata/metadata.json", mimetype="application/json", resumable=True
+            "./metadata.json", mimetype="application/json", resumable=True
         )
         if metadata_file:
             params = {"fileId": metadata_file["id"], "media_body": media}

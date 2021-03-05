@@ -1,6 +1,6 @@
 # Credentials / secrets
 credentials.json
-metadata/
+metadata.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

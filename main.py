@@ -75,7 +75,7 @@ if os.getenv("LIBDRIVE_CLOUD"):
         while done is False:
             status, done = downloader.next_chunk()
         metadata = json.loads(fh.getvalue())
-        with open("metadata/%s" % (metadata_file["name"]), "w+") as w:
+        with open("metadata.json", "w+") as w:
             json.dump(metadata, w)
 global font_req
 font_req = requests.get(

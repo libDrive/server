@@ -496,7 +496,7 @@ def metadataAPI():
                 {
                     "error": {
                         "code": 401,
-                        "message": "The auth code provided was incorrect.",
+                        "message": "Your credentials are invalid!",
                     }
                 }
             ),
@@ -550,82 +550,95 @@ def downloadAPI(name):
     if (
         any(a == account["auth"] for account in config["account_list"])
         or config.get("auth") == False
-    ) and id:
-        headers = {
-            key: value for (key, value) in flask.request.headers if key != "Host"
-        }
-        headers["Authorization"] = "Bearer %s" % (config["access_token"])
-        if quality == "transcoded" and config.get("transcoded") == True:
-            req = requests.get(
-                "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
-                % (id, config["access_token"]),
-                headers={"Authorization": "Bearer %s" % config["access_token"]},
+    ):
+        if id:
+            headers = {
+                key: value for (key, value) in flask.request.headers if key != "Host"
+            }
+            headers["Authorization"] = "Bearer %s" % (config["access_token"])
+            if quality == "transcoded" and config.get("transcoded"):
+                req = requests.get(
+                    "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
+                    % (id, config["access_token"]),
+                    headers={"Authorization": "Bearer %s" % config["access_token"]},
+                )
+                parsed = urllib.parse.parse_qs(urllib.request.unquote(req.text))
+                if parsed["status"] == ["ok"]:
+                    if len(parsed["fmt_list"]) > 0:
+                        url = ""
+                        itag = re.search(r"^\d+[^\/]*", parsed["fmt_list"][0]).group(0)
+                        for stream in parsed["url"]:
+                            if ("itag=%s" % (itag)) in stream:
+                                url = stream
+                                break
+                        if url != "":
+                            resp = requests.request(
+                                method=flask.request.method,
+                                url=url,
+                                headers=headers,
+                                data=flask.request.get_data(),
+                                cookies=req.cookies,
+                                allow_redirects=True,
+                                stream=True,
+                            )
+                            excluded_headers = [
+                                "content-encoding",
+                                "content-length",
+                                "transfer-encoding",
+                                "connection",
+                            ]
+                            headers = [
+                                (name, value)
+                                for (name, value) in resp.raw.headers.items()
+                                if name.lower() not in excluded_headers
+                            ]
+                            return flask.Response(
+                                flask.stream_with_context(download_file(resp)),
+                                resp.status_code,
+                                headers,
+                            )
+            resp = requests.request(
+                method=flask.request.method,
+                url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
+                headers=headers,
+                data=flask.request.get_data(),
+                cookies=flask.request.cookies,
+                allow_redirects=False,
+                stream=True,
             )
-            parsed = urllib.parse.parse_qs(urllib.request.unquote(req.text))
-            if parsed["status"] == ["ok"]:
-                if len(parsed["fmt_list"]) > 0:
-                    url = ""
-                    itag = re.search(r"^\d+[^\/]*", parsed["fmt_list"][0]).group(0)
-                    for stream in parsed["url"]:
-                        if ("itag=%s" % (itag)) in stream:
-                            url = stream
-                            break
-                    if url != "":
-                        resp = requests.request(
-                            method=flask.request.method,
-                            url=url,
-                            headers=headers,
-                            data=flask.request.get_data(),
-                            cookies=req.cookies,
-                            allow_redirects=True,
-                            stream=True,
-                        )
-                        excluded_headers = [
-                            "content-encoding",
-                            "content-length",
-                            "transfer-encoding",
-                            "connection",
-                        ]
-                        headers = [
-                            (name, value)
-                            for (name, value) in resp.raw.headers.items()
-                            if name.lower() not in excluded_headers
-                        ]
-                        return flask.Response(
-                            flask.stream_with_context(download_file(resp)),
-                            resp.status_code,
-                            headers,
-                        )
-        resp = requests.request(
-            method=flask.request.method,
-            url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
-            headers=headers,
-            data=flask.request.get_data(),
-            cookies=flask.request.cookies,
-            allow_redirects=False,
-            stream=True,
-        )
-        excluded_headers = [
-            "content-encoding",
-            "content-length",
-            "transfer-encoding",
-            "connection",
-        ]
-        headers = [
-            (name, value)
-            for (name, value) in resp.raw.headers.items()
-            if name.lower() not in excluded_headers
-        ]
-        return flask.Response(
-            flask.stream_with_context(download_file(resp)), resp.status_code, headers
-        )
+            excluded_headers = [
+                "content-encoding",
+                "content-length",
+                "transfer-encoding",
+                "connection",
+            ]
+            headers = [
+                (name, value)
+                for (name, value) in resp.raw.headers.items()
+                if name.lower() not in excluded_headers
+            ]
+            return flask.Response(
+                flask.stream_with_context(download_file(resp)), resp.status_code, headers
+            )
+        else:
+            return (
+                flask.jsonify(
+                    {
+                        "error": {
+                            "code": 400,
+                            "message": "No Google Drive file/folder ID was provided!",
+                        }
+                    }
+                ),
+                401,
+            )
     else:
         return (
             flask.jsonify(
                 {
                     "error": {
                         "code": 401,
-                        "message": "The auth code or ID provided was incorrect.",
+                        "message": "Your credentials are invalid!",
                     }
                 }
             ),

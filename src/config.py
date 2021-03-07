@@ -41,7 +41,16 @@ def updateConfig(config):
             "config.json", mimetype="application/json", resumable=True
         )
         if config_file:
-            params = {"fileId": config_file["id"], "media_body": media}
+            params = {
+                "fileId": config_file["id"],
+                "media_body": media,
+                "supportsAllDrives": True,
+            }
             drive.files().update(**params).execute()
         else:
-            drive.files().create(body=file_metadata, media_body=media).execute()
+            params = {
+                "body": file_metadata,
+                "media_body": media,
+                "supportsAllDrives": True,
+            }
+            drive.files().create(**params).execute()

@@ -301,14 +301,10 @@ def writeMetadata(config, drive):
             placeholder_metadata.append(tmp_metadata)
         print("DONE IN %s.\n" % (str(datetime.datetime.utcnow() - start_time)))
 
-        metadata = placeholder_metadata
+    metadata = placeholder_metadata
 
-        if os.path.exists("./metadata"):
-            pass
-        else:
-            os.mkdir("./metadata")
-        with open("./metadata.json", "w+") as w:
-            w.write(json.dumps(metadata))
+    with open("./metadata.json", "w+") as w:
+        w.write(json.dumps(metadata))
 
     if os.getenv("LIBDRIVE_CLOUD"):
         config, drive = src.credentials.refreshCredentials(config)
@@ -330,10 +326,19 @@ def writeMetadata(config, drive):
             "./metadata.json", mimetype="application/json", resumable=True
         )
         if metadata_file:
-            params = {"fileId": metadata_file["id"], "media_body": media}
+            params = {
+                "fileId": metadata_file["id"],
+                "media_body": media,
+                "supportsAllDrives": True,
+            }
             drive.files().update(**params).execute()
         else:
-            drive.files().create(body=file_metadata, media_body=media).execute()
+            params = {
+                "body": file_metadata,
+                "media_body": media,
+                "supportsAllDrives": True,
+            }
+            drive.files().create(**params).execute()
     return metadata
 
 

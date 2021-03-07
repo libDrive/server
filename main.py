@@ -230,7 +230,7 @@ def signupAPI():
     config = src.config.readConfig()
     u = flask.request.args.get("u")  # USERNAME
     p = flask.request.args.get("p")  # PASSWORD
-    if config.get("singup"):
+    if config.get("signup"):
         if any(u == account["username"] for account in config["account_list"]):
             return (
                 flask.jsonify(

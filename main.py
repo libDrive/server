@@ -324,6 +324,7 @@ def metadataAPI():
     s = flask.request.args.get("s")  # SORT-ORDER
     r = flask.request.args.get("r")  # RANGE
     id = flask.request.args.get("id")  # ID
+    transcoded = flask.request.args.get("transcoded")
     if (
         any(a == account["auth"] for account in config["account_list"])
         or config.get("auth") == False
@@ -461,6 +462,23 @@ def metadataAPI():
                 if item["id"] == id:
                     tmp_metadata = item
                     tmp_metadata["children"] = []
+                    if tmp_metadata["type"] == "file" and config.get("transcoded") == True and transcoded == "true":
+                        req = requests.get(
+                            "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
+                            % (id, config["access_token"]),
+                            headers={"Authorization": "Bearer %s" % config["access_token"]},
+                        )
+                        parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
+                        qualities = [4320, 2880, 2160, 1440, 1080, 720, 576, 480, 360, 240]
+                        if parsed.get("status") == ["ok"]:
+                            stream_list = []
+                            for fmt in parsed["fmt_list"][0].split(","):
+                                fmt_data = fmt.split("/")
+                                fmt_resoltion = [int(x) for x in fmt_data[1].split("x")]
+                                quality = min(qualities, key=lambda x: abs(x - min(fmt_resoltion)))
+                                stream_list.append({"itag": fmt_data[0], "resolution": fmt_resoltion, "quality": quality})
+                            tmp_metadata["stream_list"] = stream_list
+                            return flask.jsonify(tmp_metadata)
                     if (
                         tmp_metadata.get("title")
                         and tmp_metadata["type"] == "directory"
@@ -547,6 +565,7 @@ def downloadAPI(name):
     a = flask.request.args.get("a")
     id = flask.request.args.get("id")
     quality = flask.request.args.get("quality")
+    itag = flask.request.args.get("itag")
     if (
         any(a == account["auth"] for account in config["account_list"])
         or config.get("auth") == False
@@ -562,11 +581,12 @@ def downloadAPI(name):
                     % (id, config["access_token"]),
                     headers={"Authorization": "Bearer %s" % config["access_token"]},
                 )
-                parsed = urllib.parse.parse_qs(urllib.request.unquote(req.text))
+                parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
                 if parsed["status"] == ["ok"]:
                     if len(parsed["fmt_list"]) > 0:
                         url = ""
-                        itag = re.search(r"^\d+[^\/]*", parsed["fmt_list"][0]).group(0)
+                        if not itag or itag == "":
+                            itag = re.search(r"^\d+[^\/]*", parsed["fmt_list"][0]).group(0)
                         for stream in parsed["url"]:
                             if ("itag=%s" % (itag)) in stream:
                                 url = stream

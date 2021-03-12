@@ -207,10 +207,10 @@ def authAPI():
             ),
             None,
         )
-        return flask.jsonify(account)
+        return flask.jsonify(account), 200
     elif any(a == account["auth"] for account in config["account_list"]):
         account = next((i for i in config["account_list"] if i["auth"] == a), None)
-        return flask.jsonify(account)
+        return flask.jsonify(account), 200
     else:
         return (
             flask.jsonify(
@@ -299,19 +299,19 @@ def environmentAPI():
                     "account_list": account,
                     "category_list": category_list,
                 }
-                return flask.jsonify(tmp_environment)
+                return flask.jsonify(tmp_environment), 200
             else:
                 tmp_environment = {
                     "account_list": account,
                     "category_list": config["category_list"],
                 }
-                return flask.jsonify(tmp_environment)
+                return flask.jsonify(tmp_environment), 200
         else:
             tmp_environment = {
                 "account_list": {"pic": "k"},
                 "category_list": config["category_list"],
             }
-            return flask.jsonify(tmp_environment)
+            return flask.jsonify(tmp_environment), 200
 
 
 @app.route("/api/v1/metadata")
@@ -478,7 +478,7 @@ def metadataAPI():
                                 quality = min(qualities, key=lambda x: abs(x - min(fmt_resoltion)))
                                 stream_list.append({"itag": fmt_data[0], "resolution": fmt_resoltion, "quality": quality})
                             tmp_metadata["stream_list"] = stream_list
-                            return flask.jsonify(tmp_metadata)
+                            return flask.jsonify(tmp_metadata), 200
                     if (
                         tmp_metadata.get("title")
                         and tmp_metadata["type"] == "directory"
@@ -492,7 +492,7 @@ def metadataAPI():
                             else:
                                 item["type"] = "file"
                                 tmp_metadata["children"].append(item)
-                    return flask.jsonify(tmp_metadata)
+                    return flask.jsonify(tmp_metadata), 200
             tmp_metadata = (
                 drive.files().get(fileId=id, supportsAllDrives=True).execute()
             )
@@ -507,7 +507,7 @@ def metadataAPI():
                         tmp_metadata["type"] = "file"
                         tmp_metadata["children"].append(item)
 
-        return flask.jsonify(tmp_metadata)
+        return flask.jsonify(tmp_metadata), 200
     else:
         return (
             flask.jsonify(
@@ -540,10 +540,10 @@ def downloadRedirectAPI(name):
 
     if config.get("cloudflare") != ("" and None):
         return flask.redirect(
-            config["cloudflare"] + "/api/v1/download/%s%s" % (name, args)
+            config["cloudflare"] + "/api/v1/download/%s%s" % (name, args), code=302
         )
     else:
-        return flask.redirect("/api/v1/download/%s%s" % (name, args))
+        return flask.redirect("/api/v1/download/%s%s" % (name, args), code=302)
 
 
 @app.route("/api/v1/download/<name>")
@@ -672,7 +672,7 @@ def configAPI():
     if flask.request.method == "GET":
         secret = flask.request.args.get("secret")
         if secret == config["secret_key"]:
-            return flask.jsonify(config)
+            return flask.jsonify(config), 200
         else:
             return (
                 flask.jsonify(
@@ -818,7 +818,7 @@ def rebuildAPI():
         or config.get("auth") == False
     ):
         res, code = threaded_metadata()
-        return flask.jsonify(res, code)
+        return flask.jsonify(res), code
     else:
         return (
             flask.jsonify(
@@ -855,7 +855,15 @@ def restartAPI():
 
 @app.route("/api/v1/ping")
 def pingAPI():
-    return flask.Response("Pong")
+    return (
+        {
+            "success": {
+                "code": 200,
+                "message": "Pong",
+            }
+        },
+        200,
+    )
 
 
 if __name__ == "__main__":

@@ -169,7 +169,7 @@ def authAPI():
     u = flask.request.args.get("u")  # USERNAME
     p = flask.request.args.get("p")  # PASSWORD
     a = flask.request.args.get("a")  # AUTH
-    rules = flask.request.args.get("rules") # RULES
+    rules = flask.request.args.get("rules")  # RULES
     if config.get("auth") == False:
         return (
             flask.jsonify(
@@ -290,7 +290,8 @@ def environmentAPI():
                 category_list = []
                 for category in config["category_list"]:
                     if any(
-                        category["id"] == whitelist for whitelist in account["whitelist"]
+                        category["id"] == whitelist
+                        for whitelist in account["whitelist"]
                     ):
                         category_list.append(category)
                     else:
@@ -324,7 +325,6 @@ def metadataAPI():
     s = flask.request.args.get("s")  # SORT-ORDER
     r = flask.request.args.get("r")  # RANGE
     id = flask.request.args.get("id")  # ID
-    transcoded = flask.request.args.get("transcoded")
     if (
         any(a == account["auth"] for account in config["account_list"])
         or config.get("auth") == False
@@ -462,23 +462,6 @@ def metadataAPI():
                 if item["id"] == id:
                     tmp_metadata = item
                     tmp_metadata["children"] = []
-                    if tmp_metadata["type"] == "file" and config.get("transcoded") == True and transcoded == "true":
-                        req = requests.get(
-                            "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
-                            % (id, config["access_token"]),
-                            headers={"Authorization": "Bearer %s" % config["access_token"]},
-                        )
-                        parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
-                        qualities = [4320, 2880, 2160, 1440, 1080, 720, 576, 480, 360, 240]
-                        if parsed.get("status") == ["ok"]:
-                            stream_list = []
-                            for fmt in parsed["fmt_list"][0].split(","):
-                                fmt_data = fmt.split("/")
-                                fmt_resoltion = [int(x) for x in fmt_data[1].split("x")]
-                                quality = min(qualities, key=lambda x: abs(x - min(fmt_resoltion)))
-                                stream_list.append({"itag": fmt_data[0], "resolution": fmt_resoltion, "quality": quality})
-                            tmp_metadata["stream_list"] = stream_list
-                            return flask.jsonify(tmp_metadata), 200
                     if (
                         tmp_metadata.get("title")
                         and tmp_metadata["type"] == "directory"
@@ -564,7 +547,6 @@ def downloadAPI(name):
 
     a = flask.request.args.get("a")
     id = flask.request.args.get("id")
-    quality = flask.request.args.get("quality")
     itag = flask.request.args.get("itag")
     if (
         any(a == account["auth"] for account in config["account_list"])
@@ -575,7 +557,7 @@ def downloadAPI(name):
                 key: value for (key, value) in flask.request.headers if key != "Host"
             }
             headers["Authorization"] = "Bearer %s" % (config["access_token"])
-            if quality == "transcoded" and config.get("transcoded"):
+            if itag != "" and itag and config.get("transcoded") == True:
                 req = requests.get(
                     "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
                     % (id, config["access_token"]),
@@ -583,40 +565,37 @@ def downloadAPI(name):
                 )
                 parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
                 if parsed["status"] == ["ok"]:
-                    if len(parsed["fmt_list"]) > 0:
-                        url = ""
-                        if not itag or itag == "":
-                            itag = re.search(r"^\d+[^\/]*", parsed["fmt_list"][0]).group(0)
-                        for stream in parsed["url"]:
-                            if ("itag=%s" % (itag)) in stream:
-                                url = stream
-                                break
-                        if url != "":
-                            resp = requests.request(
-                                method=flask.request.method,
-                                url=url,
-                                headers=headers,
-                                data=flask.request.get_data(),
-                                cookies=req.cookies,
-                                allow_redirects=True,
-                                stream=True,
-                            )
-                            excluded_headers = [
-                                "content-encoding",
-                                "content-length",
-                                "transfer-encoding",
-                                "connection",
-                            ]
-                            headers = [
-                                (name, value)
-                                for (name, value) in resp.raw.headers.items()
-                                if name.lower() not in excluded_headers
-                            ]
-                            return flask.Response(
-                                flask.stream_with_context(download_file(resp)),
-                                resp.status_code,
-                                headers,
-                            )
+                    url = ""
+                    for stream in parsed["url"]:
+                        if ("itag=%s" % (itag)) in stream:
+                            url = stream
+                            break
+                    if url != "":
+                        resp = requests.request(
+                            method=flask.request.method,
+                            url=url,
+                            headers=headers,
+                            data=flask.request.get_data(),
+                            cookies=req.cookies,
+                            allow_redirects=True,
+                            stream=True,
+                        )
+                        excluded_headers = [
+                            "content-encoding",
+                            "content-length",
+                            "transfer-encoding",
+                            "connection",
+                        ]
+                        headers = [
+                            (name, value)
+                            for (name, value) in resp.raw.headers.items()
+                            if name.lower() not in excluded_headers
+                        ]
+                        return flask.Response(
+                            flask.stream_with_context(download_file(resp)),
+                            resp.status_code,
+                            headers,
+                        )
             resp = requests.request(
                 method=flask.request.method,
                 url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
@@ -638,7 +617,9 @@ def downloadAPI(name):
                 if name.lower() not in excluded_headers
             ]
             return flask.Response(
-                flask.stream_with_context(download_file(resp)), resp.status_code, headers
+                flask.stream_with_context(download_file(resp)),
+                resp.status_code,
+                headers,
             )
         else:
             return (
@@ -652,6 +633,77 @@ def downloadAPI(name):
                 ),
                 401,
             )
+    else:
+        return (
+            flask.jsonify(
+                {
+                    "error": {
+                        "code": 401,
+                        "message": "Your credentials are invalid!",
+                    }
+                }
+            ),
+            401,
+        )
+
+
+@app.route("/api/v1/stream_map")
+def stream_mapAPI():
+    a = flask.request.args.get("a")
+    id = flask.request.args.get("id")
+    name = flask.request.args.get("name")
+    server = flask.request.args.get("server")
+
+    config = src.config.readConfig()
+    if (
+        any(a == account["auth"] for account in config["account_list"])
+        or config.get("auth") == False
+    ):
+        stream_list = [
+            {
+                "size": 4320,
+                "src": "%s/api/v1/redirectdownload/%s?a=%s&id=%s"
+                % (server, name, a, id),
+            }
+        ]
+        if config.get("transcoded") == True:
+            req = requests.get(
+                "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
+                % (id, config["access_token"]),
+                headers={"Authorization": "Bearer %s" % config["access_token"]},
+            )
+            parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
+            qualities = [4320, 2880, 2160, 1440, 1080, 720, 576, 480, 360, 240]
+            if parsed.get("status") == ["ok"]:
+                for fmt in parsed["fmt_list"][0].split(","):
+                    fmt_data = fmt.split("/")
+                    fmt_resoltion = [int(x) for x in fmt_data[1].split("x")]
+                    quality = min(qualities, key=lambda x: abs(x - min(fmt_resoltion)))
+                    stream_list.append(
+                        {
+                            "size": quality,
+                            "src": "%s/api/v1/redirectdownload/%s?a=%s&id=%s&itag=%s"
+                            % (server, name, a, id, fmt_data[0]),
+                        }
+                    )
+                return flask.jsonify(
+                    {
+                        "success": {
+                            "code": 200,
+                            "content": stream_list,
+                            "message": "Stream list generated successfully!",
+                        }
+                    }
+                )
+        return flask.jsonify(
+            {
+                "success": {
+                    "code": 200,
+                    "content": stream_list,
+                    "message": "Stream list generated successfully!",
+                }
+            }
+        )
     else:
         return (
             flask.jsonify(

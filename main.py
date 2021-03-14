@@ -507,6 +507,7 @@ def metadataAPI():
 
 @app.route("/api/v1/redirectdownload/<name>")
 def downloadRedirectAPI(name):
+    config = src.config.readConfig()
     tmp_metadata = src.metadata.readMetadata(config)
     id = flask.request.args.get("id")
     ids = src.metadata.jsonExtract(obj=tmp_metadata, key="id", getObj=True)
@@ -522,8 +523,14 @@ def downloadRedirectAPI(name):
     args = args[:-1]
 
     if config.get("cloudflare") != ("" and None):
+        if (
+            datetime.datetime.strptime(config["token_expiry"], "%Y-%m-%d %H:%M:%S.%f")
+            <= datetime.datetime.utcnow()
+        ):
+            config, drive = src.credentials.refreshCredentials(config)
+        config_args = "&access_token=%s&transcoded=%s" % (config["access_token"], config["transcoded"])
         return flask.redirect(
-            config["cloudflare"] + "/api/v1/download/%s%s" % (name, args), code=302
+            config["cloudflare"] + "/api/v1/download/%s%s%s" % (name, args, config_args), code=302
         )
     else:
         return flask.redirect("/api/v1/download/%s%s" % (name, args), code=302)

@@ -20,7 +20,7 @@ def readConfig():
 
 def updateConfig(config):
     with open("config.json", "w+") as w:
-        json.dump(config, w)
+        json.dump(obj=config, fp=w, sort_keys=True, indent=4)
     if os.getenv("LIBDRIVE_CLOUD"):
         config, drive = src.credentials.refreshCredentials(config)
         params = {

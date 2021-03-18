@@ -30,7 +30,7 @@ print("\033[91mREADING CONFIG...\033[0m")
 if os.getenv("LIBDRIVE_CONFIG"):
     config_str = os.getenv("LIBDRIVE_CONFIG")
     with open("config.json", "w+") as w:
-        json.dump(json.loads(config_str), w)
+        json.dump(obj=json.loads(config_str), fp=w, sort_keys=True, indent=4)
     config = src.config.readConfig()
 elif os.path.exists("config.json"):
     config = src.config.readConfig()

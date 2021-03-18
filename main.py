@@ -457,25 +457,21 @@ def metadataAPI():
                 )
                 index += 1
         if id:
-            ids = src.metadata.jsonExtract(obj=tmp_metadata, key="id", getObj=True)
-            for item in ids:
-                if item["id"] == id:
-                    tmp_metadata = item
-                    tmp_metadata["children"] = []
-                    if (
-                        tmp_metadata.get("title")
-                        and tmp_metadata["type"] == "directory"
-                    ):
-                        for item in src.drivetools.driveIter(
-                            tmp_metadata, drive, "video"
-                        ):
-                            if item["mimeType"] == "application/vnd.google-apps.folder":
-                                item["type"] = "directory"
-                                tmp_metadata["children"].append(item)
-                            else:
-                                item["type"] = "file"
-                                tmp_metadata["children"].append(item)
-                    return flask.jsonify(tmp_metadata), 200
+            tmp_metadata = src.metadata.jsonExtract(tmp_metadata, "id", id, False)
+            if tmp_metadata:
+                tmp_metadata["children"] = []
+                if (
+                    tmp_metadata.get("title")
+                    and tmp_metadata.get("type") == "directory"
+                ):
+                    for item in src.drivetools.driveIter(tmp_metadata, drive, "video"):
+                        if item["mimeType"] == "application/vnd.google-apps.folder":
+                            item["type"] = "directory"
+                            tmp_metadata["children"].append(item)
+                        else:
+                            item["type"] = "file"
+                            tmp_metadata["children"].append(item)
+                return flask.jsonify(tmp_metadata), 200
             tmp_metadata = (
                 drive.files().get(fileId=id, supportsAllDrives=True).execute()
             )
@@ -510,13 +506,23 @@ def downloadRedirectAPI(name):
     config = src.config.readConfig()
     tmp_metadata = src.metadata.readMetadata(config)
     id = flask.request.args.get("id")
-    ids = src.metadata.jsonExtract(obj=tmp_metadata, key="id", getObj=True)
-    for item in ids:
-        if item["id"] == id:
-            name = item["name"]
-    keys = [i for i in flask.request.args.keys()]
-    values = [i for i in flask.request.args.values()]
+    itag = flask.request.args.get("itag")
 
+    config = src.config.readConfig()
+    if (
+        datetime.datetime.strptime(
+            config.get("token_expiry", datetime.datetime.utcnow()),
+            "%Y-%m-%d %H:%M:%S.%f",
+        )
+        <= datetime.datetime.utcnow()
+    ):
+        config, drive = src.credentials.refreshCredentials(config)
+
+    tmp_metadata = src.metadata.jsonExtract(
+        src.metadata.readMetadata(config), "id", id, False
+    )
+    if tmp_metadata:
+        name = tmp_metadata.get("name", name)
     args = "?"
     for i in range(len(keys)):
         args += "%s=%s&" % (keys[i], values[i])

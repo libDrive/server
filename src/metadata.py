@@ -342,25 +342,27 @@ def writeMetadata(config, drive):
     return metadata
 
 
-def jsonExtract(obj=list(), key="", getObj=True):
+def jsonExtract(obj, key, val, multi=False):
     arr = []
-    arr2 = []
-
-    def extract(obj, arr, key):
+    def extract(obj, arr, key, val):
         if isinstance(obj, dict):
             for k, v in obj.items():
                 if isinstance(v, (dict, list)):
-                    extract(v, arr, key)
-                elif k == key:
-                    arr.append(v)
-                    arr2.append(obj)
+                    extract(v, arr, key, val)
+                elif key and val:
+                    if k == key and v == val:
+                        arr.append(obj)
+                elif key or val:
+                    if k == key or v == val:
+                        arr.append(obj)
         elif isinstance(obj, list):
             for item in obj:
-                extract(item, arr, key)
-        return arr, arr2
-
-    values, values2 = extract(obj, arr, key)
-    if getObj == True:
-        return values2
+                extract(item, arr, key, val)
+        return arr
+    results = extract(obj, arr, key, val)
+    if multi == False and len(results) > 0:
+        return results[0]
+    elif multi == True and len(results) > 0:
+        return results
     else:
-        return values
+        return None

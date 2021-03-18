@@ -1,3 +1,4 @@
+import base64
 import datetime
 import io
 import json
@@ -479,7 +480,10 @@ def metadataAPI():
                 tmp_metadata["type"] = "directory"
                 tmp_metadata["children"] = []
                 for item in src.drivetools.driveIter(tmp_metadata, drive, "video"):
-                    if tmp_metadata["mimeType"] == "application/vnd.google-apps.folder":
+                    if (
+                        tmp_metadata.get("mimeType")
+                        == "application/vnd.google-apps.folder"
+                    ):
                         tmp_metadata["type"] = "directory"
                         tmp_metadata["children"].append(item)
                     else:
@@ -503,8 +507,6 @@ def metadataAPI():
 
 @app.route("/api/v1/redirectdownload/<name>")
 def downloadRedirectAPI(name):
-    config = src.config.readConfig()
-    tmp_metadata = src.metadata.readMetadata(config)
     id = flask.request.args.get("id")
     itag = flask.request.args.get("itag")
 
@@ -524,22 +526,42 @@ def downloadRedirectAPI(name):
     if tmp_metadata:
         name = tmp_metadata.get("name", name)
     args = "?"
-    for i in range(len(keys)):
-        args += "%s=%s&" % (keys[i], values[i])
-    args = args[:-1]
+    for arg in flask.request.args:
+        args += "%s=%s&" % (arg, flask.request.args[arg])
+    session = {"access_token": config.get("access_token")}
 
-    if config.get("cloudflare") != ("" and None):
-        if (
-            datetime.datetime.strptime(config["token_expiry"], "%Y-%m-%d %H:%M:%S.%f")
-            <= datetime.datetime.utcnow()
-        ):
-            config, drive = src.credentials.refreshCredentials(config)
-        config_args = "&access_token=%s&transcoded=%s" % (config["access_token"], config["transcoded"])
+    session["url"] = "https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id)
+    if itag and itag != "" and config.get("transcoded") == True:
+        req = requests.get(
+            "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
+            % (id, config.get("access_token")),
+            headers={"Authorization": "Bearer %s" % config.get("access_token")},
+        )
+        parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
+        if parsed.get("status") == ["ok"]:
+            for stream in parsed["url"]:
+                if ("itag=%s" % (itag)) in stream:
+                    url = stream
+                    break
+            cookie_string = "; ".join(
+                [str(x) + "=" + str(y) for x, y in req.cookies.items()]
+            )
+            session["cookie"] = cookie_string
+            session["transcoded"] = config.get("transcoded")
+            session["url"] = url
+
+    sessionB64 = base64.b64encode(json.dumps(session).encode("ascii")).decode("ascii")
+
+    if config.get("cloudflare") and config.get("cloudflare") != "":
         return flask.redirect(
-            config["cloudflare"] + "/api/v1/download/%s%s%s" % (name, args, config_args), code=302
+            config.get("cloudflare")
+            + "/api/v1/download/%s%ssession=%s&" % (name, args, sessionB64),
+            code=302,
         )
     else:
-        return flask.redirect("/api/v1/download/%s%s" % (name, args), code=302)
+        return flask.redirect(
+            "/api/v1/download/%s%ssession=%s&" % (name, args, sessionB64), code=302
+        )
 
 
 @app.route("/api/v1/download/<name>")
@@ -550,65 +572,49 @@ def downloadAPI(name):
             for chunk in stream.iter_content(chunk_size=4096):
                 yield chunk
 
-    config = src.config.readConfig()
-
-    if (
-        datetime.datetime.strptime(config["token_expiry"], "%Y-%m-%d %H:%M:%S.%f")
-        <= datetime.datetime.utcnow()
-    ):
-        config, drive = src.credentials.refreshCredentials(config)
-
     a = flask.request.args.get("a")
     id = flask.request.args.get("id")
-    itag = flask.request.args.get("itag")
+    session = json.loads(
+        base64.b64decode(flask.request.args.get("session").encode("ascii")).decode(
+            "ascii"
+        )
+    )
+
     if (
         any(a == account["auth"] for account in config["account_list"])
         or config.get("auth") == False
     ):
-        if id:
-            headers = {
-                key: value for (key, value) in flask.request.headers if key != "Host"
-            }
-            headers["Authorization"] = "Bearer %s" % (config["access_token"])
-            if itag != "" and itag and config.get("transcoded") == True:
-                req = requests.get(
-                    "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
-                    % (id, config["access_token"]),
-                    headers={"Authorization": "Bearer %s" % config["access_token"]},
-                )
-                parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
-                if parsed["status"] == ["ok"]:
-                    url = ""
-                    for stream in parsed["url"]:
-                        if ("itag=%s" % (itag)) in stream:
-                            url = stream
-                            break
-                    if url != "":
-                        resp = requests.request(
-                            method=flask.request.method,
-                            url=url,
-                            headers=headers,
-                            data=flask.request.get_data(),
-                            cookies=req.cookies,
-                            allow_redirects=True,
-                            stream=True,
-                        )
-                        excluded_headers = [
-                            "content-encoding",
-                            "content-length",
-                            "transfer-encoding",
-                            "connection",
-                        ]
-                        headers = [
-                            (name, value)
-                            for (name, value) in resp.raw.headers.items()
-                            if name.lower() not in excluded_headers
-                        ]
-                        return flask.Response(
-                            flask.stream_with_context(download_file(resp)),
-                            resp.status_code,
-                            headers,
-                        )
+        headers = {
+            key: value for (key, value) in flask.request.headers if key != "Host"
+        }
+        headers["Authorization"] = "Bearer %s" % (session.get("access_token"))
+        if session.get("transcoded") == True and session.get("cookie"):
+            headers.update({"cookie": session.get("cookie")})
+            resp = requests.request(
+                method=flask.request.method,
+                url=session.get("url"),
+                headers=headers,
+                data=flask.request.get_data(),
+                allow_redirects=True,
+                stream=True,
+            )
+            excluded_headers = [
+                "content-encoding",
+                "content-length",
+                "transfer-encoding",
+                "connection",
+            ]
+            headers = [
+                (name, value)
+                for (name, value) in resp.raw.headers.items()
+                if name.lower() not in excluded_headers
+            ]
+            return flask.Response(
+                flask.stream_with_context(download_file(resp)),
+                resp.status_code,
+                headers,
+            )
+        else:
             resp = requests.request(
                 method=flask.request.method,
                 url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
@@ -633,18 +639,6 @@ def downloadAPI(name):
                 flask.stream_with_context(download_file(resp)),
                 resp.status_code,
                 headers,
-            )
-        else:
-            return (
-                flask.jsonify(
-                    {
-                        "error": {
-                            "code": 400,
-                            "message": "No Google Drive file/folder ID was provided!",
-                        }
-                    }
-                ),
-                401,
             )
     else:
         return (

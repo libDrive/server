@@ -36,7 +36,7 @@ elif os.path.exists("config.json"):
     config = src.config.readConfig()
 else:
     print(
-        "\033[91m\nThe \033[4mconfig.env\033[0m \033[91mfile or \033[91m\033[4mLIBDRIVE_CONFIG\033[0m \033[91menvironment variable is required for libDrive to function! Please create one at the following URL: https://libdrive-config.netlify.app/\n"
+        "\033[91m\nThe \033[4mconfig.env\033[0m \033[91mfile or \033[91m\033[4mLIBDRIVE_CONFIG\033[0m \033[91menvironment variable is required for libDrive to function! Please create one at the following URL:\nhttps://libdrive-config.netlify.app/\n"
         + "\033[0m"
     )
     sys.exit()

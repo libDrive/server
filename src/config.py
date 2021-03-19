@@ -17,9 +17,12 @@ def readConfig():
     elif os.path.exists("./config.json"):
         path = os.path.join(os.getcwd(), "config.json")
     else:
+        dir_path = os.path.join(os.path.expanduser("~"), ".config", "libdrive")
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
         with open(home_path, "w+") as w:
             json.dump(
-                {
+                obj={
                     "access_token": "",
                     "account_list": [],
                     "auth": False,
@@ -35,13 +38,15 @@ def readConfig():
                     "token_expiry": "",
                     "transcoded": False,
                 },
-                w,
+                fp=w,
+                sort_keys=True,
+                indent=4,
             )
         path = home_path
     with open(path) as r:
         config = json.load(r)
     try:
-        datetime.datetime.strptime(config["token_expiry"], "%Y-%m-%d %H:%M:%S.%f")
+        datetime.datetime.strptime(config.get("token_expiry"), "%Y-%m-%d %H:%M:%S.%f")
     except:
         config["token_expiry"] = str(datetime.datetime.utcnow())
     return config

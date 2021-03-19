@@ -30,23 +30,18 @@ print(
 print("\033[91mREADING CONFIG...\033[0m")
 if os.getenv("LIBDRIVE_CONFIG"):
     config_str = os.getenv("LIBDRIVE_CONFIG")
-    with open("config.json", "w+") as w:
+    with open(
+        os.path.join(os.path.expanduser("~"), ".config", "libdrive", "config.json"),
+        "w+",
+    ) as w:
         json.dump(obj=json.loads(config_str), fp=w, sort_keys=True, indent=4)
-    config = src.config.readConfig()
-elif os.path.exists("config.json"):
-    config = src.config.readConfig()
-else:
-    print(
-        "\033[91m\nThe \033[4mconfig.env\033[0m \033[91mfile or \033[91m\033[4mLIBDRIVE_CONFIG\033[0m \033[91menvironment variable is required for libDrive to function! Please create one at the following URL:\nhttps://libdrive-config.netlify.app/\n"
-        + "\033[0m"
-    )
-    sys.exit()
-config, drive = src.credentials.refreshCredentials(config)
+config = src.config.readConfig()
 print("DONE.\n")
 
 print("\033[91mREADING METADATA...\033[0m")
 metadata = src.metadata.readMetadata(config)
 if os.getenv("LIBDRIVE_CLOUD"):
+    config, drive = src.credentials.refreshCredentials(config)
     params = {
         "supportsAllDrives": True,
         "includeItemsFromAllDrives": True,
@@ -100,14 +95,17 @@ def threaded_metadata():
                 500,
             )
     config = src.config.readConfig()
-    config, drive = src.credentials.refreshCredentials(config)
-    metadata_thread = threading.Thread(
-        target=src.metadata.writeMetadata,
-        args=(config, drive),
-        daemon=True,
-        name="metadata_thread",
-    )
-    metadata_thread.start()
+    if len(config.get("category_list")) > 0:
+        metadata_thread = threading.Thread(
+            target=src.metadata.writeMetadata,
+            args=(config),
+            daemon=True,
+            name="metadata_thread",
+        )
+        metadata_thread.start()
+    else:
+        with open("./metadata.json", "w+") as w:
+            w.write(json.dumps([]))
     return (
         {
             "success": {

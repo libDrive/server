@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import sys
 
 import googleapiclient
 
@@ -8,7 +9,36 @@ import src.credentials
 
 
 def readConfig():
-    with open("config.json") as r:
+    home_path = os.path.join(
+        os.path.expanduser("~"), ".config", "libdrive", "config.json"
+    )
+    if os.path.exists(home_path):
+        path = home_path
+    elif os.path.exists("./config.json"):
+        path = os.path.join(os.getcwd(), "config.json")
+    else:
+        with open(home_path, "w+") as w:
+            json.dump(
+                {
+                    "access_token": "",
+                    "account_list": [],
+                    "auth": False,
+                    "build_interval": 360,
+                    "category_list": [],
+                    "client_id": "",
+                    "client_secret": "",
+                    "cloudflare": "",
+                    "refresh_token": "",
+                    "secret_key": "",
+                    "signup": False,
+                    "tmdb_api_key": "",
+                    "token_expiry": "",
+                    "transcoded": False,
+                },
+                w,
+            )
+        path = home_path
+    with open(path) as r:
         config = json.load(r)
     try:
         datetime.datetime.strptime(config["token_expiry"], "%Y-%m-%d %H:%M:%S.%f")
@@ -18,7 +48,16 @@ def readConfig():
 
 
 def updateConfig(config):
-    with open("config.json", "w+") as w:
+    home_path = os.path.join(
+        os.path.expanduser("~"), ".config", "libdrive", "config.json"
+    )
+    if os.path.exists(home_path):
+        path = home_path
+    elif os.path.exists("./config.json"):
+        path = os.path.join(os.getcwd(), "config.json")
+    else:
+        path = home_path
+    with open(path, "w+") as w:
         json.dump(obj=config, fp=w, sort_keys=True, indent=4)
     if os.getenv("LIBDRIVE_CLOUD"):
         config, drive = src.credentials.refreshCredentials(config)
@@ -37,7 +76,7 @@ def updateConfig(config):
             "parents": [os.getenv("LIBDRIVE_CLOUD")],
         }
         media = googleapiclient.http.MediaFileUpload(
-            "config.json", mimetype="application/json", resumable=True
+            path, mimetype="application/json", resumable=True
         )
         if config_file:
             params = {

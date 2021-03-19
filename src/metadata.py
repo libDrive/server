@@ -177,7 +177,7 @@ def readMetadata(config):
     return metadata
 
 
-def writeMetadata(config, drive):
+def writeMetadata(config):
     configuration_url = "https://api.themoviedb.org/3/configuration?api_key=%s" % (
         config["tmdb_api_key"]
     )
@@ -196,6 +196,7 @@ def writeMetadata(config, drive):
     for category in config["category_list"]:
         count += 1
         start_time = datetime.datetime.utcnow()
+        config, drive = src.credentials.refreshCredentials(config)
         print(
             "\033[91mBUILDING METADATA FOR CATEGORY %s/%s (%s)...\033[0m"
             % (count, len(config["category_list"]), category["name"])

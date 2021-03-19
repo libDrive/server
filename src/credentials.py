@@ -7,10 +7,10 @@ import oauth2client
 
 def refreshCredentials(config):
     credentials = oauth2client.client.GoogleCredentials(
-        config["access_token"],
-        config["client_id"],
-        config["client_secret"],
-        config["refresh_token"],
+        config.get("access_token"),
+        config.get("client_id"),
+        config.get("client_secret"),
+        config.get("refresh_token"),
         None,
         "https://accounts.google.com/o/oauth2/token",
         None,

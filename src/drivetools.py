@@ -19,10 +19,10 @@ def driveIter(root, drive, mimeType):
 
 
 def driveWalk(root, drive, walk, mimeType):
-    if root["mimeType"] == "application/vnd.google-apps.folder":
+    if root.get("mimeType") == "application/vnd.google-apps.folder":
         for item in driveIter(root, drive, mimeType):
             driveWalk(item, drive, walk, mimeType)
-    elif mimeType in root["mimeType"]:
+    elif mimeType in root.get("mimeType"):
         root["type"] = "file"
         walk["children"].append(root)
     else:
@@ -31,11 +31,11 @@ def driveWalk(root, drive, walk, mimeType):
 
 
 def driveTree(root, drive, mimeType):
-    if root["mimeType"] == "application/vnd.google-apps.folder":
+    if root.get("mimeType") == "application/vnd.google-apps.folder":
         tree = root
         tree["type"] = "directory"
         tree["children"] = [driveTree(item, drive, mimeType) for item in driveIter(root, drive, mimeType)]
-    elif mimeType in root["mimeType"]:
+    elif mimeType in root.get("mimeType"):
         tree = root
         tree["type"] = "file"
     else:

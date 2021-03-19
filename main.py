@@ -98,7 +98,7 @@ def threaded_metadata():
     if len(config.get("category_list")) > 0:
         metadata_thread = threading.Thread(
             target=src.metadata.writeMetadata,
-            args=(config),
+            args=(config,),
             daemon=True,
             name="metadata_thread",
         )

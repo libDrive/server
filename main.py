@@ -533,8 +533,7 @@ def downloadRedirectAPI(name):
     session["url"] = "https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id)
     if itag and itag != "" and config.get("transcoded") == True:
         req = requests.get(
-            "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
-            % (id, config.get("access_token")),
+            "https://docs.google.com/get_video_info?docid=%s" % (id),
             headers={"Authorization": "Bearer %s" % config.get("access_token")},
         )
         parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))

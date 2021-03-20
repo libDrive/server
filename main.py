@@ -43,7 +43,7 @@ print("DONE.\n")
 
 print("\033[91mREADING METADATA...\033[0m")
 metadata = src.metadata.readMetadata(config)
-if os.getenv("LIBDRIVE_CLOUD"):
+if os.getenv("LIBDRIVE_CLOUD") and config.get("refresh_token"):
     config, drive = src.credentials.refreshCredentials(config)
     params = {
         "supportsAllDrives": True,
@@ -64,8 +64,7 @@ if os.getenv("LIBDRIVE_CLOUD"):
             status, done = downloader.next_chunk()
         config = json.loads(fh.getvalue())
         config, drive = src.credentials.refreshCredentials(config)
-        with open(config_file["name"], "w+") as w:
-            json.dump(config, w)
+        src.config.updateConfig(config)
     if metadata_file:
         request = drive.files().get_media(fileId=metadata_file["id"])
         fh = io.BytesIO()

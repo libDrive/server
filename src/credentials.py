@@ -20,7 +20,5 @@ def refreshCredentials(config):
     config["access_token"] = credentials.access_token
     config["token_expiry"] = str(credentials.token_expiry)
     drive = googleapiclient.discovery.build("drive", "v3", credentials=credentials)
-    with open("config.json", "w+") as w:
-        json.dump(obj=config, fp=w, sort_keys=True, indent=4)
 
     return config, drive

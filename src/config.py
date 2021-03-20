@@ -22,15 +22,15 @@ def readConfig():
         with open(home_path, "w+") as w:
             json.dump(
                 obj={
-                    "access_token": "",
+                    "access_token": None,
                     "account_list": [],
                     "auth": False,
                     "build_interval": 360,
                     "category_list": [],
-                    "client_id": "",
-                    "client_secret": "",
+                    "client_id": None,
+                    "client_secret": None,
                     "cloudflare": "",
-                    "refresh_token": "",
+                    "refresh_token": None,
                     "secret_key": "",
                     "signup": False,
                     "tmdb_api_key": "",
@@ -42,7 +42,7 @@ def readConfig():
                 indent=4,
             )
         path = home_path
-    with open(path) as r:
+    with open(path, "r") as r:
         config = json.load(r)
     try:
         datetime.datetime.strptime(config.get("token_expiry"), "%Y-%m-%d %H:%M:%S.%f")

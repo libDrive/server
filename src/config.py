@@ -8,15 +8,15 @@ import src.credentials
 
 
 def readConfig():
+    dir_path = os.path.join(os.path.expanduser("~"), ".config", "libdrive")
     home_path = os.path.join(
-        os.path.expanduser("~"), ".config", "libdrive", "config.json"
+        dir_path, "config.json"
     )
     if os.path.exists(home_path):
         path = home_path
     elif os.path.exists("./config.json"):
         path = os.path.join(os.getcwd(), "config.json")
     else:
-        dir_path = os.path.join(os.path.expanduser("~"), ".config", "libdrive")
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         with open(home_path, "w+") as w:

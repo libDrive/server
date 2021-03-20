@@ -30,8 +30,11 @@ print(
 print("\033[91mREADING CONFIG...\033[0m")
 if os.getenv("LIBDRIVE_CONFIG"):
     config_str = os.getenv("LIBDRIVE_CONFIG")
+    dir_path = os.path.join(os.path.expanduser("~"), ".config", "libdrive")
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
     with open(
-        os.path.join(os.path.expanduser("~"), ".config", "libdrive", "config.json"),
+        os.path.join(dir_path, "config.json"),
         "w+",
     ) as w:
         json.dump(obj=json.loads(config_str), fp=w, sort_keys=True, indent=4)

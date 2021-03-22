@@ -459,6 +459,7 @@ def metadataAPI():
                 index += 1
         if id:
             tmp_metadata = src.metadata.jsonExtract(tmp_metadata, "id", id, False)
+            config, drive = src.credentials.refreshCredentials(config)
             if tmp_metadata:
                 tmp_metadata["children"] = []
                 if (
@@ -667,29 +668,28 @@ def stream_mapAPI():
     ):
         stream_list = [
             {
-                "size": 4320,
-                "src": "%s/api/v1/redirectdownload/%s?a=%s&id=%s"
+                "name": "Original",
+                "url": "%s/api/v1/redirectdownload/%s?a=%s&id=%s"
                 % (server, name, a, id),
+                "type": "normal",
             }
         ]
         if config.get("transcoded") == True:
             req = requests.get(
-                "https://docs.google.com/get_video_info?authuser=&docid=%s&access_token=%s"
-                % (id, config["access_token"]),
-                headers={"Authorization": "Bearer %s" % config["access_token"]},
+                "https://docs.google.com/get_video_info?docid=%s"
+                % (id),
+                headers={"Authorization": "Bearer %s" % config.get("access_token")},
             )
             parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
-            qualities = [4320, 2880, 2160, 1440, 1080, 720, 576, 480, 360, 240]
             if parsed.get("status") == ["ok"]:
                 for fmt in parsed["fmt_list"][0].split(","):
                     fmt_data = fmt.split("/")
-                    fmt_resoltion = [int(x) for x in fmt_data[1].split("x")]
-                    quality = min(qualities, key=lambda x: abs(x - min(fmt_resoltion)))
                     stream_list.append(
                         {
-                            "size": quality,
-                            "src": "%s/api/v1/redirectdownload/%s?a=%s&id=%s&itag=%s"
+                            "name": fmt_data[1],
+                            "url": "%s/api/v1/redirectdownload/%s?a=%s&id=%s&itag=%s"
                             % (server, name, a, id, fmt_data[0]),
+                            "type": "auto",
                         }
                     )
                 return flask.jsonify(
@@ -844,6 +844,7 @@ def imageAPI(image_type):
         )
     elif image_type == "thumbnail":
         id = flask.request.args.get("id")
+        config, drive = src.credentials.refreshCredentials(src.config.readConfig())
         params = {
             "fileId": id,
             "fields": "thumbnailLink",

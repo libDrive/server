@@ -1,5 +1,3 @@
-import json
-
 import googleapiclient.discovery
 import httplib2
 import oauth2client

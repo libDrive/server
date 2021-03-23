@@ -535,7 +535,9 @@ def downloadRedirectAPI(name):
     if itag and itag != "" and config.get("transcoded") == True:
         req = requests.get(
             "https://drive.google.com/get_video_info?docid=%s" % (id),
-            headers={"authorization": "bearer %s" % config.get("access_token"), "cookie": os.getenv("LIBDRIVE_COOKIE")},
+            headers={
+                "authorization": "bearer %s" % config.get("access_token"),
+            },
         )
         parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
         if parsed.get("status") == ["ok"]:
@@ -675,9 +677,14 @@ def stream_mapAPI():
             }
         ]
         if config.get("transcoded") == True:
-            req = requests.get(
-                "https://drive.google.com/get_video_info?docid=%s" % (id),
-                headers={"authorization": "bearer %s" % (config.get("access_token"))}),
+            req = (
+                requests.get(
+                    "https://drive.google.com/get_video_info?docid=%s" % (id),
+                    headers={
+                        "authorization": "bearer %s" % (config.get("access_token"))
+                    },
+                ),
+            )
             parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
             if parsed.get("status") == ["ok"]:
                 for fmt in parsed["fmt_list"][0].split(","):

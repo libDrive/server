@@ -728,7 +728,7 @@ def configAPI():
     config = src.config.readConfig()
     if flask.request.method == "GET":
         secret = flask.request.args.get("secret")
-        if secret == config["secret_key"]:
+        if secret == config.get("secret_key"):
             return flask.jsonify(config), 200
         else:
             return (
@@ -746,10 +746,14 @@ def configAPI():
         secret = flask.request.args.get("secret")
         if secret == None:
             secret = ""
-        if secret == config["secret_key"]:
+        if secret == config.get("secret_key"):
             data = flask.request.json
             data["token_expiry"] = str(datetime.datetime.utcnow())
-            src.config.updateConfig(data)
+            if data.get("category_list") != config.get("category_list"):
+                src.config.updateConfig(data)
+                threaded_metadata()
+            else:
+                src.config.updateConfig(data)
             return (
                 flask.jsonify(
                     {

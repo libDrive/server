@@ -529,7 +529,7 @@ def downloadRedirectAPI(name):
     if itag and itag != "" and config.get("transcoded") == True:
         req = requests.get(
             "https://drive.google.com/get_video_info?docid=%s" % (id),
-            headers={"authorization": "bearer %s" % (config.get("access_token"))},
+            headers={"Authorization": "Bearer %s" % (config.get("access_token"))},
         )
         parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
         if parsed.get("status") == ["ok"]:
@@ -567,7 +567,6 @@ def downloadAPI(name):
                 yield chunk
 
     a = flask.request.args.get("a")
-    id = flask.request.args.get("id")
     session = json.loads(
         base64.b64decode(flask.request.args.get("session").encode("ascii")).decode(
             "ascii"
@@ -581,7 +580,7 @@ def downloadAPI(name):
         headers = {
             key: value for (key, value) in flask.request.headers if key != "Host"
         }
-        headers["authorization"] = "bearer %s" % (session.get("access_token"))
+        headers["Authorization"] = "Bearer %s" % (session.get("access_token"))
         if session.get("transcoded") == True and session.get("cookie"):
             headers.update({"cookie": session.get("cookie")})
             resp = requests.request(
@@ -611,7 +610,7 @@ def downloadAPI(name):
         else:
             resp = requests.request(
                 method=flask.request.method,
-                url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
+                url=session.get("url"),
                 headers=headers,
                 data=flask.request.get_data(),
                 cookies=flask.request.cookies,
@@ -671,7 +670,7 @@ def stream_mapAPI():
         if config.get("transcoded") == True:
             req = requests.get(
                 "https://drive.google.com/get_video_info?docid=%s" % (id),
-                headers={"authorization": "bearer %s" % (config.get("access_token"))},
+                headers={"Authorization": "Bearer %s" % (config.get("access_token"))},
             )
             parsed = urllib.parse.parse_qs(urllib.parse.unquote(req.text))
             if parsed.get("status") == ["ok"]:

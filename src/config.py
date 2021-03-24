@@ -8,18 +8,8 @@ import src.credentials
 
 
 def readConfig():
-    dir_path = os.path.join(os.path.expanduser("~"), ".config", "libdrive")
-    home_path = os.path.join(
-        dir_path, "config.json"
-    )
-    if os.path.exists(home_path):
-        path = home_path
-    elif os.path.exists("./config.json"):
-        path = os.path.join(os.getcwd(), "config.json")
-    else:
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
-        with open(home_path, "w+") as w:
+    if not os.path.exists("./config.json"):
+        with open("config.json", "w+") as w:
             json.dump(
                 obj={
                     "access_token": None,
@@ -41,8 +31,7 @@ def readConfig():
                 sort_keys=True,
                 indent=4,
             )
-        path = home_path
-    with open(path, "r") as r:
+    with open("config.json", "r") as r:
         config = json.load(r)
     try:
         datetime.datetime.strptime(config.get("token_expiry"), "%Y-%m-%d %H:%M:%S.%f")
@@ -52,16 +41,7 @@ def readConfig():
 
 
 def updateConfig(config):
-    home_path = os.path.join(
-        os.path.expanduser("~"), ".config", "libdrive", "config.json"
-    )
-    if os.path.exists(home_path):
-        path = home_path
-    elif os.path.exists("./config.json"):
-        path = os.path.join(os.getcwd(), "config.json")
-    else:
-        path = home_path
-    with open(path, "w+") as w:
+    with open("config.json", "w+") as w:
         json.dump(obj=config, fp=w, sort_keys=True, indent=4)
     if os.getenv("LIBDRIVE_CLOUD"):
         config, drive = src.credentials.refreshCredentials(config)
@@ -80,7 +60,7 @@ def updateConfig(config):
             "parents": [os.getenv("LIBDRIVE_CLOUD")],
         }
         media = googleapiclient.http.MediaFileUpload(
-            path, mimetype="application/json", resumable=True
+            "config.json", mimetype="application/json", resumable=True
         )
         if config_file:
             params = {

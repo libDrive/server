@@ -152,7 +152,7 @@ def create_app():
 
 app = create_app()
 flask_cors.CORS(app)
-app.secret_key = config["secret_key"]
+app.secret_key = config.get("secret_key")
 
 
 @app.route("/", defaults={"path": ""})

@@ -305,7 +305,7 @@ def writeMetadata(config):
     metadata = placeholder_metadata
 
     with open("./metadata.json", "w+") as w:
-        w.write(json.dumps(metadata))
+        json.dump(obj=metadata, fp=w, sort_keys=True, indent=4)
 
     if os.getenv("LIBDRIVE_CLOUD"):
         config, drive = src.credentials.refreshCredentials(config)

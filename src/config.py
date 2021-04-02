@@ -19,7 +19,7 @@ def readConfig():
                     "category_list": [],
                     "client_id": None,
                     "client_secret": None,
-                    "cloudflare": "",
+                    "cloudflare": None,
                     "refresh_token": None,
                     "secret_key": "",
                     "signup": False,

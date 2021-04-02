@@ -170,7 +170,7 @@ def readMetadata(config):
                 "length": 0,
                 "buildTime": str(
                     datetime.datetime.utcnow()
-                    - datetime.timedelta(minutes=config["build_interval"] + 1)
+                    - datetime.timedelta(minutes=config.get("build_interval") + 1)
                 ),
             }
             metadata.append(tmp)
@@ -179,7 +179,7 @@ def readMetadata(config):
 
 def writeMetadata(config):
     configuration_url = "https://api.themoviedb.org/3/configuration?api_key=%s" % (
-        config["tmdb_api_key"]
+        config.get("tmdb_api_key")
     )
     configuration_content = json.loads(requests.get(configuration_url).content)
     backdrop_base_url = (
@@ -227,7 +227,7 @@ def writeMetadata(config):
                             item["popularity"],
                             item["voteAverage"],
                         ) = mediaIdentifier(
-                            config["tmdb_api_key"],
+                            config.get("tmdb_api_key"),
                             title,
                             year,
                             backdrop_base_url,
@@ -280,7 +280,7 @@ def writeMetadata(config):
                             item["popularity"],
                             item["voteAverage"],
                         ) = mediaIdentifier(
-                            config["tmdb_api_key"],
+                            config.get("tmdb_api_key"),
                             title,
                             year,
                             backdrop_base_url,
@@ -345,6 +345,7 @@ def writeMetadata(config):
 
 def jsonExtract(obj, key, val, multi=False):
     arr = []
+
     def extract(obj, arr, key, val):
         if isinstance(obj, dict):
             for k, v in obj.items():
@@ -360,6 +361,7 @@ def jsonExtract(obj, key, val, multi=False):
             for item in obj:
                 extract(item, arr, key, val)
         return arr
+
     results = extract(obj, arr, key, val)
     if multi == False and len(results) > 0:
         return results[0]

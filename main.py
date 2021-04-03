@@ -494,7 +494,8 @@ def metadataAPI():
                             {
                                 "code": 400,
                                 "content": None,
-                                "message": "Bad request! Sorting parameter '%s' does not exist." % (s),
+                                "message": "Bad request! Sorting parameter '%s' does not exist."
+                                % (s),
                                 "success": False,
                             }
                         ),
@@ -591,6 +592,8 @@ def downloadRedirectAPI(name):
         <= datetime.datetime.utcnow()
     ):
         config, drive = src.credentials.refreshCredentials(config)
+        with open("config.json", "w+") as w:
+            json.dump(obj=config, fp=w, sort_keys=True, indent=4)
 
     tmp_metadata = src.metadata.jsonExtract(
         src.metadata.readMetadata(config), "id", id, False

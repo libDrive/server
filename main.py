@@ -1012,5 +1012,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=31145,
         threaded=True,
-        debug=os.getenv("LIBDRIVE_DEBUG"),
+        debug=(os.getenv("LIBDRIVE_DEBUG").lower() == "true"),
     )

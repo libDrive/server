@@ -35,4 +35,4 @@
 
 libDrive is a media library manager, similar to [Plex](https://www.plex.tv), that organizes Google Drive folders and offers an intuitive interface to explore them
 
-This repository (<https://github.com/libDrive/heroku>) contains the libDrive backend source code
+This repository (<https://github.com/libDrive/server>) contains the libDrive server source code

@@ -377,8 +377,11 @@ def metadataAPI():
             category_config = next(
                 (i for i in config["category_list"] if i["id"] == category["id"]), None
             )
-            if category_config.get("whitelist"):
-                if account["auth"] in category_config.get("whitelist"):
+            if category_config:
+                if category_config.get("whitelist"):
+                    if account["auth"] in category_config.get("whitelist"):
+                        whitelisted_categories_metadata.append(category)
+                else:
                     whitelisted_categories_metadata.append(category)
             else:
                 whitelisted_categories_metadata.append(category)
@@ -997,15 +1000,30 @@ def restartAPI():
 
 @app.route("/api/v1/ping")
 def pingAPI():
-    return (
-        {
+    date = flask.request.args.get("date")
+    if date:
+        send = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+        receive = datetime.datetime.utcnow()
+        diff = receive - send
+        return {
             "code": 200,
-            "content": "Pong",
-            "message": "Ping received.",
-            "success": True,
-        },
-        200,
-    )
+            "content": {
+                "ping": diff.total_seconds(),
+                "send_time": send.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                "receive_time": receive.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            },
+            "message": "You have a one way ping of %s seconds" % (diff.total_seconds()),
+        }
+    else:
+        return (
+            {
+                "code": 200,
+                "content": "Pong",
+                "message": "Ping received.",
+                "success": True,
+            },
+            200,
+        )
 
 
 if __name__ == "__main__":

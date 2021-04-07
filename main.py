@@ -746,7 +746,7 @@ def stream_mapAPI():
             {
                 "name": "Original",
                 "url": "%s/api/v1/redirectdownload/%s?a=%s&id=%s"
-                % (server, name, a, id),
+                % (server, urllib.parse.quote(name), a, id),
                 "type": "normal",
             }
         ]
@@ -763,7 +763,7 @@ def stream_mapAPI():
                         {
                             "name": fmt_data[1],
                             "url": "%s/api/v1/redirectdownload/%s?a=%s&id=%s&itag=%s"
-                            % (server, name, a, id, fmt_data[0]),
+                            % (server, urllib.parse.quote(name), a, id, fmt_data[0]),
                             "type": "auto",
                         }
                     )

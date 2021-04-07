@@ -1029,9 +1029,17 @@ def pingAPI():
 if __name__ == "__main__":
     print("\033[91mSERVING SERVER...\033[0m")
     print("DONE.\n")
+    LIBDRIVE_DEBUG = os.getenv("LIBDRIVE_DEBUG")
+    if LIBDRIVE_DEBUG:
+        if LIBDRIVE_DEBUG.lower() == "true":
+            LIBDRIVE_DEBUG = True
+        else:
+            LIBDRIVE_DEBUG = False
+    else:
+        LIBDRIVE_DEBUG = False
     app.run(
         host="0.0.0.0",
         port=31145,
         threaded=True,
-        debug=(os.getenv("LIBDRIVE_DEBUG").lower() == "true"),
+        debug=LIBDRIVE_DEBUG,
     )

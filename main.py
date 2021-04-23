@@ -511,7 +511,9 @@ async def metadataAPI():
             tmp_metadata = src.metadata.jsonExtract(tmp_metadata, "id", id, False)
             config, drive = src.credentials.refreshCredentials(config)
             if tmp_metadata:
-                if config.get("build_type") == "hybrid":
+                if config.get("build_type") == "full":
+                    pass
+                else:
                     tmp_metadata["children"] = []
                     if (
                         tmp_metadata.get("title")
@@ -524,8 +526,6 @@ async def metadataAPI():
                             else:
                                 item["type"] = "file"
                                 tmp_metadata["children"].append(item)
-                elif config.get("build_type") == "full":
-                    pass
                 return (
                     flask.jsonify(
                         {

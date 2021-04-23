@@ -69,11 +69,6 @@ if os.getenv("LIBDRIVE_CLOUD") and config.get("refresh_token"):
         metadata = json.loads(fh.getvalue())
         with open("metadata.json", "w+") as w:
             json.dump(metadata, w)
-global font_req
-font_req = requests.get(
-    "https://raw.githack.com/googlefonts/roboto/master/src/hinted/Roboto-Regular.ttf",
-    "rb",
-)
 print("DONE.\n")
 
 
@@ -900,8 +895,7 @@ async def imageAPI(image_type):
         draw = ImageDraw.Draw(img)
 
         font_size = 1
-        font_bytes = io.BytesIO(font_req.content)
-        font = ImageFont.truetype(font_bytes, font_size)
+        font = ImageFont.truetype(font="./build/fonts/Roboto-Regular.ttf", size=font_size, encoding="unic")
         img_fraction = 0.9
         breakpoint = img_fraction * img.size[0]
         jumpsize = 75
@@ -911,8 +905,7 @@ async def imageAPI(image_type):
             else:
                 jumpsize = jumpsize // 2
                 font_size -= jumpsize
-            font_bytes = io.BytesIO(font_req.content)
-            font = ImageFont.truetype(font_bytes, font_size)
+            font = ImageFont.truetype(font="./build/fonts/Roboto-Regular.ttf", size=font_size, encoding="unic")
             if jumpsize <= 1:
                 break
 

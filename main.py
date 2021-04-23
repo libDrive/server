@@ -511,18 +511,21 @@ async def metadataAPI():
             tmp_metadata = src.metadata.jsonExtract(tmp_metadata, "id", id, False)
             config, drive = src.credentials.refreshCredentials(config)
             if tmp_metadata:
-                tmp_metadata["children"] = []
-                if (
-                    tmp_metadata.get("title")
-                    and tmp_metadata.get("type") == "directory"
-                ):
-                    for item in src.drivetools.driveIter(tmp_metadata, drive, "video"):
-                        if item["mimeType"] == "application/vnd.google-apps.folder":
-                            item["type"] = "directory"
-                            tmp_metadata["children"].append(item)
-                        else:
-                            item["type"] = "file"
-                            tmp_metadata["children"].append(item)
+                if config.get("build_type") == "hybrid":
+                    tmp_metadata["children"] = []
+                    if (
+                        tmp_metadata.get("title")
+                        and tmp_metadata.get("type") == "directory"
+                    ):
+                        for item in src.drivetools.driveIter(tmp_metadata, drive, "video"):
+                            if item["mimeType"] == "application/vnd.google-apps.folder":
+                                item["type"] = "directory"
+                                tmp_metadata["children"].append(item)
+                            else:
+                                item["type"] = "file"
+                                tmp_metadata["children"].append(item)
+                elif config.get("build_type") == "full":
+                    pass
                 return (
                     flask.jsonify(
                         {

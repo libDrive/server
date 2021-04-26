@@ -71,6 +71,23 @@ if os.getenv("LIBDRIVE_CLOUD") and config.get("refresh_token"):
             json.dump(metadata, w)
 print("DONE.\n")
 
+if not config.get("account_list"):
+    config["account_list"] = []
+if not config.get("auth"):
+    config["auth"] = False
+if not config.get("build_interval"):
+    config["build_interval"] = 360
+if not config.get("category_list"):
+    config["category_list"] = []
+if not config.get("cloudflare"):
+    config["cloudflare"] = ""
+if not config.get("transcoded"):
+    config["transcoded"] = False
+if not config.get("signup"):
+    config["signup"] = False
+
+with open("config.json", "w+") as w:
+    json.dump(obj=config, fp=w, sort_keys=True, indent=4)
 
 def threaded_metadata():
     for thread in threading.enumerate():
@@ -111,13 +128,16 @@ def threaded_metadata():
 def create_app():
     app = flask.Flask(__name__, static_folder="build")
 
-    if config.get("build_interval") != 0:
+    build_interval = config.get("build_interval")
+    if not build_interval:
+        build_interval = 360
+    if build_interval != 0:
         print("\033[91mCREATING CRON JOB...\033[0m")
         sched = apscheduler.schedulers.background.BackgroundScheduler(daemon=True)
         sched.add_job(
             threaded_metadata,
             "interval",
-            minutes=config.get("build_interval"),
+            minutes=build_interval,
         )
         sched.start()
         print("DONE.\n")
@@ -125,11 +145,11 @@ def create_app():
     config_categories = [d["id"] for d in config["category_list"]]
     metadata_categories = [d["id"] for d in metadata]
     if len(metadata) > 0 and sorted(config_categories) == sorted(metadata_categories):
-        if config.get("build_interval") == 0:
+        if build_interval == 0:
             return app
         elif datetime.datetime.utcnow() <= datetime.datetime.strptime(
             metadata[-1]["buildTime"], "%Y-%m-%d %H:%M:%S.%f"
-        ) + datetime.timedelta(minutes=config.get("build_interval")):
+        ) + datetime.timedelta(minutes=build_interval):
             return app
         else:
             threaded_metadata()
@@ -173,17 +193,30 @@ async def authAPI():
             200,
         )
     elif rules == "signup":
-        return (
-            flask.jsonify(
-                {
-                    "code": 202,
-                    "conntent": config.get("signup"),
-                    "message": "Signup is available on this server.",
-                    "success": True,
-                }
-            ),
-            202,
-        )
+        if config.get("signup") == True:
+            return (
+                flask.jsonify(
+                    {
+                        "code": 202,
+                        "conntent": True,
+                        "message": "Signup is available on this server.",
+                        "success": True,
+                    }
+                ),
+                202,
+            )
+        else:
+            return (
+                flask.jsonify(
+                    {
+                        "code": 202,
+                        "conntent": False,
+                        "message": "Signup is not available on this server.",
+                        "success": True,
+                    }
+                ),
+                202,
+            )
     elif any(u == account["username"] for account in config["account_list"]) and any(
         p == account["password"] for account in config["account_list"]
     ):

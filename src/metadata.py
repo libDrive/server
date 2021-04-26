@@ -156,6 +156,9 @@ def readMetadata(config):
             metadata = json.load(r)
     else:
         metadata = []
+        build_interval = config.get("build_interval")
+        if not build_interval:
+            build_interval = 0
         for category in config["category_list"]:
             tmp = {
                 "kind": "drive#file",
@@ -170,7 +173,7 @@ def readMetadata(config):
                 "length": 0,
                 "buildTime": str(
                     datetime.datetime.utcnow()
-                    - datetime.timedelta(minutes=config.get("build_interval") + 1)
+                    - datetime.timedelta(minutes=build_interval + 1)
                 ),
             }
             metadata.append(tmp)

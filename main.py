@@ -198,7 +198,7 @@ async def authAPI():
                 flask.jsonify(
                     {
                         "code": 202,
-                        "conntent": True,
+                        "content": True,
                         "message": "Signup is available on this server.",
                         "success": True,
                     }
@@ -210,7 +210,7 @@ async def authAPI():
                 flask.jsonify(
                     {
                         "code": 202,
-                        "conntent": False,
+                        "content": False,
                         "message": "Signup is not available on this server.",
                         "success": True,
                     }

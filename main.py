@@ -77,6 +77,8 @@ if not config.get("auth"):
     config["auth"] = False
 if not config.get("build_interval"):
     config["build_interval"] = 360
+if not config.get("build_type"):
+    config["build_type"] = "hybrid"
 if not config.get("category_list"):
     config["category_list"] = []
 if not config.get("cloudflare"):

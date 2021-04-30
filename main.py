@@ -91,6 +91,7 @@ if not config.get("signup"):
 with open("config.json", "w+") as w:
     json.dump(obj=config, fp=w, sort_keys=True, indent=4)
 
+
 def threaded_metadata():
     for thread in threading.enumerate():
         if thread.name == "metadata_thread":
@@ -128,6 +129,38 @@ def threaded_metadata():
 
 
 def create_app():
+    if not os.getenv("LIBDRIVE_ARCIO"):
+        arcio_env = False
+    else:
+        arcio_env = True
+    if arcio_env == True or config.get("arcio") == True:
+        req = requests.get("https://arc.io/arc-sw.js")
+        with open("./build/arc-sw.js", "wb") as wb:
+            wb.write(req.content)
+        with open("./build/index.html", "r+") as r:
+            old_html = r.read()
+            new_html = old_html.replace(
+                "<head>",
+                "<head><script async src='https://arc.io/widget.min.js#1Z9SAB5S'></script>",
+                1,
+            )
+            r.seek(0)
+            r.write(new_html)
+            r.truncate
+    else:
+        if os.path.exists("./build/arc-sw.js"):
+            os.remove("./build/arc-sw.js")
+        with open("./build/index.html", "r+") as r:
+            old_html = r.read()
+            new_html = old_html.replace(
+                "<head><script async src='https://arc.io/widget.min.js#1Z9SAB5S'></script>",
+                "<head>",
+                1,
+            )
+            r.seek(0)
+            r.write(new_html)
+            r.truncate
+
     app = flask.Flask(__name__, static_folder="build")
 
     build_interval = config.get("build_interval")
@@ -554,7 +587,9 @@ async def metadataAPI():
                         tmp_metadata.get("title")
                         and tmp_metadata.get("type") == "directory"
                     ):
-                        for item in src.drivetools.driveIter(tmp_metadata, drive, "video"):
+                        for item in src.drivetools.driveIter(
+                            tmp_metadata, drive, "video"
+                        ):
                             if item["mimeType"] == "application/vnd.google-apps.folder":
                                 item["type"] = "directory"
                                 tmp_metadata["children"].append(item)

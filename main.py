@@ -129,37 +129,35 @@ def threaded_metadata():
 
 
 def create_app():
-    if not os.getenv("LIBDRIVE_ARCIO"):
-        arcio_env = False
-    elif os.getenv("LIBDRIVE_ARCIO").lower() == "true":
-        arcio_env = True
-    if arcio_env == True or config.get("arcio") == True:
+    if config.get("arcio") and config.get("arcio") != "":
         req = requests.get("https://arc.io/arc-sw.js")
         with open("./build/arc-sw.js", "wb") as wb:
             wb.write(req.content)
         with open("./build/index.html", "r+") as r:
-            old_html = r.read()
+            old_html = re.sub(
+                r"<script async src='https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{3,}'><\/script>)",
+                "",
+                r.read(),
+            )
             new_html = old_html.replace(
                 "<head>",
-                "<head><script async src='https://arc.io/widget.min.js#1Z9SAB5S'></script>",
-                1,
+                "<head><script async src='https://arc.io/widget.min.js#%s'></script>"
+                % (config.get("arcio")),
             )
             r.seek(0)
             r.write(new_html)
-            r.truncate
     else:
         if os.path.exists("./build/arc-sw.js"):
             os.remove("./build/arc-sw.js")
         with open("./build/index.html", "r+") as r:
             old_html = r.read()
-            new_html = old_html.replace(
-                "<head><script async src='https://arc.io/widget.min.js#1Z9SAB5S'></script>",
-                "<head>",
-                1,
+            new_html = new_html = re.sub(
+                r"<script async src='https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{3,}'><\/script>)",
+                "",
+                old_html,
             )
             r.seek(0)
             r.write(new_html)
-            r.truncate
 
     app = flask.Flask(__name__, static_folder="build")
 

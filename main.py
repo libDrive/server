@@ -131,7 +131,7 @@ def threaded_metadata():
 def create_app():
     if not os.getenv("LIBDRIVE_ARCIO"):
         arcio_env = False
-    else:
+    elif os.getenv("LIBDRIVE_ARCIO").lower() == "true":
         arcio_env = True
     if arcio_env == True or config.get("arcio") == True:
         req = requests.get("https://arc.io/arc-sw.js")

@@ -653,6 +653,9 @@ async def downloadRedirectAPI(name):
     itag = flask.request.args.get("itag")
 
     config = src.config.readConfig()
+    if config.get("kill_switch") == True:
+        return
+
     if (
         datetime.datetime.strptime(
             config.get("token_expiry", datetime.datetime.utcnow()),
@@ -804,6 +807,16 @@ async def stream_mapAPI():
     server = flask.request.args.get("server")
 
     config = src.config.readConfig()
+    if config.get("kill_switch") == True:
+        return flask.jsonify(
+            {
+                "code": 200,
+                "content": [{"name": "UNAVAILABLE", "url": "", "type": "normal"}],
+                "message": "Stream list generated successfully.",
+                "success": True,
+            }
+        )
+
     if (
         any(a == account["auth"] for account in config["account_list"])
         or config.get("auth") == False

@@ -141,7 +141,7 @@ def create_app():
             )
             code = config.get("arcio")
             if code == "dev":
-                code = "1Z9SAB5S"
+                code = "tUUqUjhw"
             new_html = old_html.replace(
                 "<head>",
                 "<head><script async src='https://arc.io/widget.min.js#%s'></script>"

@@ -953,7 +953,7 @@ async def imageAPI(image_type):
         draw = ImageDraw.Draw(img)
 
         font_size = 1
-        font = ImageFont.truetype(font="arial.ttf", size=font_size)
+        font = ImageFont.truetype(font="./build/fonts/Roboto-Regular.ttf", size=font_size)
         img_fraction = 0.9
         breakpoint = img_fraction * img.size[0]
         jumpsize = 75

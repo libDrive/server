@@ -55,51 +55,72 @@ def parseTV(name):
 
 
 def mediaIdentifier(
-    tmdb_api_key, title, year, backdrop_base_url, poster_base_url, movie=False, tv=False
+    tmdb_api_key,
+    title,
+    year,
+    backdrop_base_url,
+    poster_base_url,
+    movie_genre_ids,
+    tv_genre_ids,
+    movie=False,
+    tv=False,
 ):
     if movie:
         search_url = (
             "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s"
             % (tmdb_api_key, title, year)
         )
-        search_content = json.loads((requests.get(search_url)).content)
         try:
-            title = search_content["results"][0]["title"]
+            search_content = json.loads((requests.get(search_url)).content)
         except:
-            pass
-        try:
-            posterPath = poster_base_url + search_content["results"][0]["poster_path"]
-        except:
-            posterPath = None
-        try:
-            backdropPath = (
-                backdrop_base_url + search_content["results"][0]["backdrop_path"]
+            search_content = {"total_results": 0}
+        if search_content.get("total_results") > 0:
+            data = search_content["results"][0]
+            data["backdrop_path"] = backdrop_base_url + data.get("backdrop_path")
+            data["poster_path"] = poster_base_url + data.get("poster_path")
+        else:
+            data = dict(
+                {
+                    "adult": False,
+                    "backdrop_path": None,
+                    "genre_ids": [],
+                    "original_language": None,
+                    "overview": None,
+                    "popularity": 70.412,
+                    "poster_path": None,
+                    "release_date": "%s-01-01" % (year),
+                    "title": title,
+                    "vote_average": 0.0,
+                },
             )
-        except:
-            backdropPath = None
-        try:
-            releaseDate = search_content["results"][0]["release_date"]
-        except:
-            releaseDate = "%s-01-01" % (year)
-        try:
-            overview = search_content["results"][0]["overview"]
-        except:
-            overview = None
-        try:
-            popularity = search_content["results"][0]["popularity"]
-        except:
-            popularity = 0.0
-        try:
-            voteAverage = search_content["results"][0]["vote_average"]
-        except:
-            voteAverage = 0.0
+
+        adult = data.get("adult", False)
+        backdropPath = data.get("backdrop_path", None)
+        genres = data.get("genre_ids", [])
+        tmp_genres = []
+        for genre in genres:
+            for item in movie_genre_ids["genres"]:
+                if item["id"] == genre:
+                    tmp_genres.append(item)
+                    break
+        genres = tmp_genres
+        language = data.get("original_language", None)
+        overview = data.get("overview", None)
+        popularity = data.get("popularity", 0.0)
+        posterPath = data.get("poster_path", None)
+        releaseDate = data.get("release_date", "%s-01-01" % (year))
+        title = data.get("title", title)
+        voteAverage = data.get("vote_average", 0.0)
         return (
-            title,
-            posterPath,
+            adult,
             backdropPath,
-            releaseDate,
+            genres,
+            language,
             overview,
             popularity,
+            posterPath,
+            releaseDate,
+            title,
             voteAverage,
         )
     elif tv:
@@ -107,45 +128,53 @@ def mediaIdentifier(
             "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&first_air_date_year=%s"
             % (tmdb_api_key, title, year)
         )
-        search_content = json.loads((requests.get(search_url)).content)
         try:
-            title = search_content["results"][0]["name"]
+            search_content = json.loads((requests.get(search_url)).content)
         except:
-            pass
-        try:
-            posterPath = poster_base_url + search_content["results"][0]["poster_path"]
-        except:
-            posterPath = None
-        try:
-            backdropPath = (
-                backdrop_base_url + search_content["results"][0]["backdrop_path"]
+            search_content = {"total_results": 0}
+        if search_content.get("total_results") > 0:
+            data = search_content["results"][0]
+            data["backdrop_path"] = backdrop_base_url + data.get("backdrop_path")
+            data["poster_path"] = poster_base_url + data.get("poster_path")
+        else:
+            data = dict(
+                {
+                    "backdrop_path": None,
+                    "first_air_date": "%s-01-01" % (year),
+                    "genre_ids": [],
+                    "name": title,
+                    "original_language": None,
+                    "overview": None,
+                    "popularity": 0.0,
+                    "poster_path": None,
+                    "vote_average": 0.0,
+                },
             )
-        except:
-            backdropPath = None
-        try:
-            releaseDate = search_content["results"][0]["first_air_date"]
-        except:
-            releaseDate = "%s-01-01" % (year)
-        try:
-            overview = search_content["results"][0]["overview"]
-        except:
-            overview = None
-        try:
-            popularity = search_content["results"][0]["popularity"]
-        except:
-            popularity = 0.0
-        try:
-            voteAverage = search_content["results"][0]["vote_average"]
-        except:
-            voteAverage = 0.0
-
+        backdropPath = data.get("backdrop_path", None)
+        genres = data.get("genre_ids", [])
+        tmp_genres = []
+        for genre in genres:
+            for item in tv_genre_ids["genres"]:
+                if item["id"] == genre:
+                    tmp_genres.append(item)
+                    break
+        genres = tmp_genres
+        language = data.get("original_language", None)
+        overview = data.get("overview", None)
+        popularity = data.get("popularity", 0.0)
+        posterPath = data.get("poster_path", None)
+        releaseDate = data.get("first_air_date", "%s-01-01" % (year))
+        title = data.get("name", title)
+        voteAverage = data.get("vote_average", 0.0)
         return (
-            title,
-            posterPath,
             backdropPath,
-            releaseDate,
+            genres,
+            language,
             overview,
             popularity,
+            posterPath,
+            releaseDate,
+            title,
             voteAverage,
         )
 
@@ -181,10 +210,12 @@ def readMetadata(config):
 
 
 def writeMetadata(config):
-    configuration_url = "https://api.themoviedb.org/3/configuration?api_key=%s" % (
-        config.get("tmdb_api_key")
+    configuration_content = json.loads(
+        requests.get(
+            "https://api.themoviedb.org/3/configuration?api_key=%s"
+            % (config.get("tmdb_api_key"))
+        ).content
     )
-    configuration_content = json.loads(requests.get(configuration_url).content)
     backdrop_base_url = (
         configuration_content["images"]["secure_base_url"]
         + configuration_content["images"]["backdrop_sizes"][3]
@@ -192,6 +223,19 @@ def writeMetadata(config):
     poster_base_url = (
         configuration_content["images"]["secure_base_url"]
         + configuration_content["images"]["poster_sizes"][3]
+    )
+
+    movie_genre_ids = json.loads(
+        requests.get(
+            "https://api.themoviedb.org/3/genre/movie/list?api_key=%s"
+            % (config.get("tmdb_api_key"))
+        ).content
+    )
+    tv_genre_ids = json.loads(
+        requests.get(
+            "https://api.themoviedb.org/3/genre/tv/list?api_key=%s"
+            % (config.get("tmdb_api_key"))
+        ).content
     )
 
     placeholder_metadata = []
@@ -219,35 +263,29 @@ def writeMetadata(config):
             tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
             for item in tmp_metadata["children"]:
                 if item["type"] == "file":
-                    try:
-                        title, year = parseMovie(item["name"])
-                        (
-                            item["title"],
-                            item["posterPath"],
-                            item["backdropPath"],
-                            item["releaseDate"],
-                            item["overview"],
-                            item["popularity"],
-                            item["voteAverage"],
-                        ) = mediaIdentifier(
-                            config.get("tmdb_api_key"),
-                            title,
-                            year,
-                            backdrop_base_url,
-                            poster_base_url,
-                            True,
-                            False,
-                        )
-                    except:
-                        (
-                            item["title"],
-                            item["posterPath"],
-                            item["backdropPath"],
-                            item["releaseDate"],
-                            item["overview"],
-                            item["popularity"],
-                            item["voteAverage"],
-                        ) = (item["name"], None, None, "1900-01-01", None, 0.0, 0.0)
+                    title, year = parseMovie(item["name"])
+                    (
+                        item["adult"],
+                        item["backdropPath"],
+                        item["genres"],
+                        item["language"],
+                        item["overview"],
+                        item["popularity"],
+                        item["posterPath"],
+                        item["releaseDate"],
+                        item["title"],
+                        item["voteAverage"],
+                    ) = mediaIdentifier(
+                        config.get("tmdb_api_key"),
+                        title,
+                        year,
+                        backdrop_base_url,
+                        poster_base_url,
+                        movie_genre_ids,
+                        tv_genre_ids,
+                        True,
+                        False,
+                    )
 
             placeholder_metadata.append(tmp_metadata)
         elif category["type"] == "TV Shows":
@@ -278,35 +316,28 @@ def writeMetadata(config):
             tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
             for item in tmp_metadata["children"]:
                 if item["type"] == "directory":
-                    try:
-                        title, year = parseTV(item["name"])
-                        (
-                            item["title"],
-                            item["posterPath"],
-                            item["backdropPath"],
-                            item["releaseDate"],
-                            item["overview"],
-                            item["popularity"],
-                            item["voteAverage"],
-                        ) = mediaIdentifier(
-                            config.get("tmdb_api_key"),
-                            title,
-                            year,
-                            backdrop_base_url,
-                            poster_base_url,
-                            False,
-                            True,
-                        )
-                    except:
-                        (
-                            item["title"],
-                            item["posterPath"],
-                            item["backdropPath"],
-                            item["releaseDate"],
-                            item["overview"],
-                            item["popularity"],
-                            item["voteAverage"],
-                        ) = (item["name"], None, None, "1900-01-01", None, 0.0, 0.0)
+                    title, year = parseTV(item["name"])
+                    (
+                        item["backdropPath"],
+                        item["genres"],
+                        item["language"],
+                        item["overview"],
+                        item["popularity"],
+                        item["posterPath"],
+                        item["releaseDate"],
+                        item["title"],
+                        item["voteAverage"],
+                    ) = mediaIdentifier(
+                        config.get("tmdb_api_key"),
+                        title,
+                        year,
+                        backdrop_base_url,
+                        poster_base_url,
+                        movie_genre_ids,
+                        tv_genre_ids,
+                        False,
+                        True,
+                    )
 
             placeholder_metadata.append(tmp_metadata)
         print("DONE IN %s.\n" % (str(datetime.datetime.utcnow() - start_time)))

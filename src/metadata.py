@@ -276,6 +276,10 @@ def writeMetadata(config):
             for item in tmp_metadata["children"]:
                 if item["type"] == "file":
                     title, year = parseMovie(item["name"])
+                    if title == None:
+                        title = item["name"]
+                    if year == None:
+                        year = ""
                     (
                         item["adult"],
                         item["backdropPath"],
@@ -329,6 +333,10 @@ def writeMetadata(config):
             for item in tmp_metadata["children"]:
                 if item["type"] == "directory":
                     title, year = parseTV(item["name"])
+                    if title == None:
+                        title = item["name"]
+                    if year == None:
+                        year = ""
                     (
                         item["backdropPath"],
                         item["genres"],

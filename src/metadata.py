@@ -76,8 +76,14 @@ def mediaIdentifier(
             search_content = {"total_results": 0}
         if search_content.get("total_results") > 0:
             data = search_content["results"][0]
-            data["backdrop_path"] = backdrop_base_url + data.get("backdrop_path")
-            data["poster_path"] = poster_base_url + data.get("poster_path")
+            if data.get("backdrop_path"):
+                data["backdrop_path"] = backdrop_base_url + data.get("backdrop_path")
+            else:
+                data["backdrop_path"] = None
+            if data.get("poster_path"):
+                data["poster_path"] = poster_base_url + data.get("poster_path")
+            else:
+                data["poster_path"] = None
         else:
             data = dict(
                 {

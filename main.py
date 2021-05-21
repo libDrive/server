@@ -135,7 +135,7 @@ def create_app():
             wb.write(req.content)
         with open("./build/index.html", "r+") as r:
             old_html = re.sub(
-                r"<script async src='https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{3,}'><\/script>)",
+                r"<script async src=[\"\']https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{1,15})[\"\']><\/script>",
                 "",
                 r.read(),
             )
@@ -144,7 +144,7 @@ def create_app():
                 code = "tUUqUjhw"
             new_html = old_html.replace(
                 "<head>",
-                "<head><script async src='https://arc.io/widget.min.js#%s'></script>"
+                '<head><script async src="https://arc.io/widget.min.js#%s"></script>'
                 % (code),
             )
             r.seek(0)
@@ -155,7 +155,7 @@ def create_app():
         with open("./build/index.html", "r+") as r:
             old_html = r.read()
             new_html = new_html = re.sub(
-                r"<script async src='https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{3,}'><\/script>)",
+                r"<script async src=[\"\']https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{5,15})[\"\']><\/script>",
                 "",
                 old_html,
             )

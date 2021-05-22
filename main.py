@@ -760,6 +760,8 @@ def downloadAPI(name):
                 if name.lower() not in excluded_headers
             ]
             headers.append(("content-disposition", "inline"))
+            headers.append(("cache-control", "no-cache, no-store, must-revalidate"))
+            headers.append(("pragma", "no-cache"))
             return flask.Response(
                 flask.stream_with_context(download_file(resp)),
                 resp.status_code,
@@ -786,6 +788,8 @@ def downloadAPI(name):
                 for (name, value) in resp.raw.headers.items()
                 if name.lower() not in excluded_headers
             ]
+            headers.append(("cache-control", "no-cache, no-store, must-revalidate"))
+            headers.append(("pragma", "no-cache"))
             return flask.Response(
                 flask.stream_with_context(download_file(resp)),
                 resp.status_code,

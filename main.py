@@ -16,6 +16,7 @@ import flask_cors
 import googleapiclient
 import requests
 from PIL import Image, ImageDraw, ImageFont
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 import src.config
 import src.credentials
@@ -197,6 +198,7 @@ def create_app():
 
 app = create_app()
 flask_cors.CORS(app)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.secret_key = config.get("secret_key")
 
 

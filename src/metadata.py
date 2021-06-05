@@ -321,9 +321,6 @@ def writeMetadata(config):
                         if root["mimeType"] == "application/vnd.google-apps.folder":
                             item["type"] = "directory"
                             root["children"].append(item)
-                        else:
-                            root["type"] = "file"
-                            root["children"].append(item)
             tmp_metadata = root
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])

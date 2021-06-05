@@ -314,9 +314,6 @@ def writeMetadata(config):
             if root["mimeType"] == "application/vnd.google-apps.folder":
                 if config.get("build_type") == "full":
                     root = src.drivetools.driveTree(root, drive, "video")
-                elif config.get("build_type") == "live":
-                    root["children"] = []
-                    pass
                 else:
                     root["type"] = "directory"
                     root["children"] = []

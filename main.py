@@ -907,14 +907,6 @@ async def stream_mapAPI():
                             "type": "auto",
                         }
                     )
-                return flask.jsonify(
-                    {
-                        "code": 200,
-                        "content": stream_list,
-                        "message": "Stream list generated successfully.",
-                        "success": True,
-                    }
-                )
 
         subtitle = {"url": ""}
         if config.get("subtitles") == True:

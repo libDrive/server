@@ -810,6 +810,56 @@ def downloadAPI(name):
         )
 
 
+@app.route("/api/v1/subtitledownload/<name>")
+async def subtitledownloadAPI(name):
+    def download_file(streamable):
+        with streamable as stream:
+            stream.raise_for_status()
+            for chunk in stream.iter_content(chunk_size=4096):
+                yield chunk
+
+    a = flask.request.args.get("a")
+    id = flask.request.args.get("id")
+
+    config = src.config.readConfig()
+    config, drive = src.credentials.refreshCredentials(src.config.readConfig())
+    if (
+        any(a == account["auth"] for account in config["account_list"])
+        or config.get("auth") == False
+    ):
+        headers = {
+            key: value for (key, value) in flask.request.headers if key != "Host"
+        }
+        headers["Authorization"] = "Bearer %s" % (config.get("access_token"))
+        resp = requests.request(
+            method=flask.request.method,
+            url="https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id),
+            headers=headers,
+            data=flask.request.get_data(),
+            cookies=flask.request.cookies,
+            allow_redirects=False,
+            stream=True,
+        )
+        excluded_headers = [
+            "content-encoding",
+            "content-length",
+            "transfer-encoding",
+            "connection",
+        ]
+        headers = [
+            (name, value)
+            for (name, value) in resp.raw.headers.items()
+            if name.lower() not in excluded_headers
+        ]
+        headers.append(("cache-control", "no-cache, no-store, must-revalidate"))
+        headers.append(("pragma", "no-cache"))
+        return flask.Response(
+            flask.stream_with_context(download_file(resp)),
+            resp.status_code,
+            headers,
+        )
+
+
 @app.route("/api/v1/stream_map")
 async def stream_mapAPI():
     a = flask.request.args.get("a")
@@ -865,10 +915,40 @@ async def stream_mapAPI():
                         "success": True,
                     }
                 )
+
+        subtitle = {"url": ""}
+        if config.get("subtitles") == True:
+            config, drive = src.credentials.refreshCredentials(src.config.readConfig())
+            params = {
+                "supportsAllDrives": True,
+                "fields": "parents",
+                "fileId": id,
+            }
+            parent = drive.files().get(**params).execute()["parents"][0]
+            params = {
+                "pageToken": None,
+                "supportsAllDrives": True,
+                "includeItemsFromAllDrives": True,
+                "fields": "files(id,name,mimeType), incompleteSearch, nextPageToken",
+                "q": "'%s' in parents and trashed = false and (mimeType = 'text/vtt' or mimeType = 'text/plain' or mimeType = 'application/octet-stream')"
+                % (parent),
+                "orderBy": "name",
+            }
+            while True:
+                response = drive.files().list(**params).execute()
+                for file in response["files"]:
+                    file_name = os.path.splitext(file["name"])[0]
+                    if file_name in name:
+                        subtitle = {"url": "%s/api/v1/subtitledownload/%s?a=%s&id=%s" % (server, file["name"], a, file["id"])}
+                try:
+                    params["pageToken"] = response["nextPageToken"]
+                except KeyError:
+                    break
+
         return flask.jsonify(
             {
                 "code": 200,
-                "content": stream_list,
+                "content": {"sources": stream_list, "subtitle": subtitle},
                 "message": "Stream list generated successfully!",
                 "success": True,
             }

@@ -61,13 +61,14 @@ def mediaIdentifier(
     poster_base_url,
     movie_genre_ids,
     tv_genre_ids,
+    language,
     movie=False,
     tv=False,
 ):
     if movie:
         search_url = (
-            "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s"
-            % (tmdb_api_key, title, year)
+            "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s&language=%s"
+            % (tmdb_api_key, title, year, language)
         )
         try:
             search_content = json.loads((requests.get(search_url)).content)
@@ -130,8 +131,8 @@ def mediaIdentifier(
         )
     elif tv:
         search_url = (
-            "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&first_air_date_year=%s"
-            % (tmdb_api_key, title, year)
+            "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&first_air_date_year=%s&language=%s"
+            % (tmdb_api_key, title, year, language)
         )
         try:
             search_content = json.loads((requests.get(search_url)).content)
@@ -298,6 +299,7 @@ def writeMetadata(config):
                         poster_base_url,
                         movie_genre_ids,
                         tv_genre_ids,
+                        category.get("language"),
                         True,
                         False,
                     )
@@ -354,6 +356,7 @@ def writeMetadata(config):
                         poster_base_url,
                         movie_genre_ids,
                         tv_genre_ids,
+                        category.get("language"),
                         False,
                         True,
                     )

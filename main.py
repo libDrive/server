@@ -129,38 +129,39 @@ def threaded_metadata():
 
 
 def create_app():
-    if config.get("arcio") and config.get("arcio") != "":
-        req = requests.get("https://arc.io/arc-sw.js")
-        with open("./build/arc-sw.js", "wb") as wb:
-            wb.write(req.content)
-        with open("./build/index.html", "r+") as r:
-            old_html = re.sub(
-                r"<script async src=[\"\']https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{1,15})[\"\']><\/script>",
-                "",
-                r.read(),
-            )
-            code = config.get("arcio")
-            if code == "dev":
-                code = "tUUqUjhw"
-            new_html = old_html.replace(
-                "<head>",
-                '<head><script async src="https://arc.io/widget.min.js#%s"></script>'
-                % (code),
-            )
-            r.seek(0)
-            r.write(new_html)
-    else:
-        if os.path.exists("./build/arc-sw.js"):
-            os.remove("./build/arc-sw.js")
-        with open("./build/index.html", "r+") as r:
-            old_html = r.read()
-            new_html = new_html = re.sub(
-                r"<script async src=[\"\']https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{5,15})[\"\']><\/script>",
-                "",
-                old_html,
-            )
-            r.seek(0)
-            r.write(new_html)
+    if os.path.exists("./build"):
+        if config.get("arcio") and config.get("arcio") != "":
+            req = requests.get("https://arc.io/arc-sw.js")
+            with open("./build/arc-sw.js", "wb") as wb:
+                wb.write(req.content)
+            with open("./build/index.html", "r+") as r:
+                old_html = re.sub(
+                    r"<script async src=[\"\']https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{1,15})[\"\']><\/script>",
+                    "",
+                    r.read(),
+                )
+                code = config.get("arcio")
+                if code == "dev":
+                    code = "tUUqUjhw"
+                new_html = old_html.replace(
+                    "<head>",
+                    '<head><script async src="https://arc.io/widget.min.js#%s"></script>'
+                    % (code),
+                )
+                r.seek(0)
+                r.write(new_html)
+        else:
+            if os.path.exists("./build/arc-sw.js"):
+                os.remove("./build/arc-sw.js")
+            with open("./build/index.html", "r+") as r:
+                old_html = r.read()
+                new_html = new_html = re.sub(
+                    r"<script async src=[\"\']https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{5,15})[\"\']><\/script>",
+                    "",
+                    old_html,
+                )
+                r.seek(0)
+                r.write(new_html)
 
     app = flask.Flask(__name__, static_folder="build")
 

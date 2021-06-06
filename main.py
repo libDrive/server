@@ -922,7 +922,7 @@ async def stream_mapAPI():
                 "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,
                 "fields": "files(id,name,mimeType), incompleteSearch, nextPageToken",
-                "q": "'%s' in parents and trashed = false and (mimeType = 'text/vtt' or mimeType = 'text/plain' or mimeType = 'application/octet-stream')"
+                "q": "'%s' in parents and trashed = false and (name contains '.srt' or name contains '.vtt')"
                 % (parent),
                 "orderBy": "name",
             }
@@ -930,8 +930,11 @@ async def stream_mapAPI():
                 response = drive.files().list(**params).execute()
                 for file in response["files"]:
                     file_name = os.path.splitext(file["name"])[0]
-                    if file_name in name:
-                        subtitle = {"url": "%s/api/v1/subtitledownload/%s?a=%s&id=%s" % (server, file["name"], a, file["id"])}
+                    if name in file_name:
+                        subtitle = {
+                            "url": "%s/api/v1/subtitledownload/%s?a=%s&id=%s"
+                            % (server, file["name"], a, file["id"])
+                        }
                 try:
                     params["pageToken"] = response["nextPageToken"]
                 except KeyError:

@@ -85,8 +85,12 @@ if not config.get("cloudflare"):
     config["cloudflare"] = ""
 if not config.get("transcoded"):
     config["transcoded"] = False
+if not config.get("service_accounts"):
+    config["service_accounts"] = []
 if not config.get("signup"):
     config["signup"] = False
+if not config.get("subtitles"):
+    config["subtitles"] = False
 
 with open("config.json", "w+") as w:
     json.dump(obj=config, fp=w, sort_keys=True, indent=4)

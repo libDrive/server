@@ -1126,11 +1126,8 @@ async def imageAPI(image_type):
 @app.route("/api/v1/rebuild")
 def rebuildAPI():
     config = src.config.readConfig()
-    a = flask.request.args.get("a")
-    if (
-        any(a == account["auth"] for account in config["account_list"])
-        or config.get("auth") == False
-    ):
+    secret = flask.request.args.get("secret")
+    if secret == config.get("secret_key"):
         res, code = threaded_metadata()
         return flask.jsonify(res), code
     else:
@@ -1145,6 +1142,7 @@ def rebuildAPI():
             ),
             401,
         )
+
 
 
 @app.route("/api/v1/restart")

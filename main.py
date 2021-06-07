@@ -5,9 +5,11 @@ import json
 import os
 import random
 import re
+import shutil
 import sys
 import threading
 import urllib
+import zipfile
 
 import apscheduler.schedulers.background
 import chardet
@@ -44,12 +46,12 @@ if os.getenv("LIBDRIVE_CLOUD") and config.get("refresh_token"):
         "supportsAllDrives": True,
         "includeItemsFromAllDrives": True,
         "fields": "files(id,name)",
-        "q": "'%s' in parents and trashed = false and mimeType = 'application/json'"
-        % (os.getenv("LIBDRIVE_CLOUD")),
+        "q": "'%s' in parents and trashed = false" % (os.getenv("LIBDRIVE_CLOUD")),
     }
     files = drive.files().list(**params).execute()["files"]
     config_file = next((i for i in files if i["name"] == "config.json"), None)
     metadata_file = next((i for i in files if i["name"] == "metadata.json"), None)
+    sa_file = next((i for i in files if i["name"] == "service_accounts.zip"), None)
     if config_file:
         request = drive.files().get_media(fileId=config_file["id"])
         fh = io.BytesIO()
@@ -70,6 +72,28 @@ if os.getenv("LIBDRIVE_CLOUD") and config.get("refresh_token"):
         metadata = json.loads(fh.getvalue())
         with open("metadata.json", "w+") as w:
             json.dump(metadata, w)
+    if sa_file and (config.get("service_accounts") == None or config.get("service_accounts") == []):
+        shutil.rmtree("./tmp", ignore_errors=True)
+        request = drive.files().get_media(fileId=sa_file["id"])
+        fh = io.BytesIO()
+        downloader = googleapiclient.http.MediaIoBaseDownload(fh, request)
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+        zip_file = zipfile.ZipFile(fh)
+        zip_file.extractall("./tmp")
+        sa_list = []
+        for path, dirs, files in os.walk("./tmp"):
+            for file in [f for f in files if f.endswith(".json")]:
+                file_path = os.path.join(path, file)
+                with open(file_path, "r") as r:
+                    sa_list.append(json.load(r))
+        config["service_accounts"] = sa_list
+        with open("config.json", "w+") as w:
+            json.dump(config, w)
+        src.config.updateConfig(config)
+        shutil.rmtree("./tmp", ignore_errors=True)
+
 print("DONE.\n")
 
 if not config.get("account_list"):

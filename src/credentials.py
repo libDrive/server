@@ -7,13 +7,25 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 
 def refreshCredentials(config):
-    if len(config.get("service_accounts")) > 0:
-        random_sa = random.choice(config.get("service_accounts"))
-        credentials = ServiceAccountCredentials.from_json_keyfile_dict(
-            random_sa,
-            "https://www.googleapis.com/auth/drive",
-            "https://accounts.google.com/o/oauth2/token",
-        )
+    service_acconts = config.get("service_accounts")
+    if type(service_acconts) == list:
+        if len(service_acconts) > 0:
+            random_sa = random.choice(service_acconts)
+            credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+                random_sa,
+                "https://www.googleapis.com/auth/drive",
+                "https://accounts.google.com/o/oauth2/token",
+            )
+        else:
+            credentials = oauth2client.client.GoogleCredentials(
+                config.get("access_token"),
+                config.get("client_id"),
+                config.get("client_secret"),
+                config.get("refresh_token"),
+                None,
+                "https://accounts.google.com/o/oauth2/token",
+                None,
+            )
     else:
         credentials = oauth2client.client.GoogleCredentials(
             config.get("access_token"),

@@ -8,9 +8,9 @@ import re
 import sys
 import threading
 import urllib
-import chardet
 
 import apscheduler.schedulers.background
+import chardet
 import colorama
 import flask
 import flask_cors

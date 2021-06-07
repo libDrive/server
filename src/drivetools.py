@@ -34,7 +34,10 @@ def driveTree(root, drive, mimeType):
     if root.get("mimeType") == "application/vnd.google-apps.folder":
         tree = root
         tree["type"] = "directory"
-        tree["children"] = [driveTree(item, drive, mimeType) for item in driveIter(root, drive, mimeType)]
+        tree["children"] = [
+            driveTree(item, drive, mimeType)
+            for item in driveIter(root, drive, mimeType)
+        ]
     elif mimeType in root.get("mimeType"):
         tree = root
         tree["type"] = "file"

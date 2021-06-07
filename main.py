@@ -8,6 +8,7 @@ import re
 import sys
 import threading
 import urllib
+import chardet
 
 import apscheduler.schedulers.background
 import colorama
@@ -820,6 +821,24 @@ async def subtitledownloadAPI(name):
         with streamable as stream:
             stream.raise_for_status()
             for chunk in stream.iter_content(chunk_size=4096):
+                if name.endswith("srt"):
+                    encoding = chardet.detect(chunk).get("encoding")
+                    replacement = "WEBVTT FILE\r\n\r\n" + str(chunk, encoding)
+                    replacement = re.sub(
+                        r"(\d\d:\d\d:\d\d),(\d\d\d)", r"\1.\2", replacement
+                    )
+                    lines = replacement.split("\n")
+                    i = 0
+                    output = ""
+                    for line in lines:
+                        if "-->" in line:
+                            lines[i - 1] = ""
+                        elif i == 0:
+                            pass
+                        else:
+                            output += lines[i - 1] + "\n"
+                        i += 1
+                    chunk = output.encode(encoding)
                 yield chunk
 
     a = flask.request.args.get("a")
@@ -933,8 +952,8 @@ async def stream_mapAPI():
             while True:
                 response = drive.files().list(**params).execute()
                 for file in response["files"]:
-                    file_name = os.path.splitext(file["name"])[0]
-                    if name in file_name:
+                    name_split = os.path.splitext(name)[0]
+                    if name_split in file["name"]:
                         subtitle = {
                             "url": "%s/api/v1/subtitledownload/%s?a=%s&id=%s"
                             % (server, file["name"], a, file["id"])
@@ -1146,7 +1165,6 @@ def rebuildAPI():
             ),
             401,
         )
-
 
 
 @app.route("/api/v1/restart")

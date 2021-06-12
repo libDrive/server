@@ -24,6 +24,8 @@ def readConfig():
                     "kill_switch": False,
                     "refresh_token": None,
                     "secret_key": "",
+                    "service_accounts": [],
+                    "subtitles": False,
                     "signup": False,
                     "tmdb_api_key": "",
                     "token_expiry": "",

@@ -1,9 +1,11 @@
 import datetime
 import io
 import json
+import logging
 import os
 import re
 import threading
+import time
 
 import apscheduler.schedulers.background
 import colorama
@@ -20,7 +22,6 @@ colorama.init()
 print(
     "====================================================\n\033[96m               libDrive - \033[92mv1.3.3\033[94m\n                   @eliasbenb\033[0m\n====================================================\n"
 )
-
 
 print("\033[91mREADING CONFIG...\033[0m")
 if os.getenv("LIBDRIVE_CONFIG"):
@@ -202,6 +203,7 @@ app.secret_key = config.get("secret_key")
 
 from src.routes.auth import authBP
 from src.routes.config import configBP
+from src.routes.debug import debugBP
 from src.routes.download import downloadBP
 from src.routes.environment import environmentBP
 from src.routes.image import imageBP
@@ -216,6 +218,7 @@ from src.routes.subtitledownload import subtitledownloadBP
 
 app.register_blueprint(authBP)
 app.register_blueprint(configBP)
+app.register_blueprint(debugBP)
 app.register_blueprint(downloadBP)
 app.register_blueprint(environmentBP)
 app.register_blueprint(imageBP)
@@ -240,7 +243,21 @@ async def serve(path):
 
 if __name__ == "__main__":
     print("\033[91mSERVING SERVER...\033[0m")
-    print("DONE.\n")
+    if not os.path.exists("./logs"):
+        os.mkdir("./logs")
+    now = time.time()
+    for f in os.listdir("./logs"):
+        if os.stat(os.path.join("./logs", f)).st_mtime < now - 86400:
+            if os.path.isfile(os.path.join("./logs", f)):
+                try:
+                    os.remove(os.path.join("./logs", f))
+                except OSError:
+                    pass
+    logging.basicConfig(
+        filename="./logs/%s.log"
+        % (datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S")),
+        level=logging.DEBUG,
+    )
     LIBDRIVE_DEBUG = os.getenv("LIBDRIVE_DEBUG")
     if LIBDRIVE_DEBUG:
         if LIBDRIVE_DEBUG.lower() == "true":
@@ -249,6 +266,7 @@ if __name__ == "__main__":
             LIBDRIVE_DEBUG = False
     else:
         LIBDRIVE_DEBUG = False
+    print("DONE.\n")
     app.run(
         host="0.0.0.0",
         port=31145,

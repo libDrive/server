@@ -89,6 +89,9 @@ if not config.get("signup"):
 if not config.get("subtitles"):
     config["subtitles"] = False
 
+if config.get("account_list") == []:
+    config["auth"] = False
+
 with open("config.json", "w+") as w:
     json.dump(obj=config, fp=w, sort_keys=True, indent=4)
 

@@ -10,6 +10,7 @@ metadataBP = flask.Blueprint("metadata", __name__)
 async def metadataFunction():
     a = flask.request.args.get("a")  # AUTH
     c = flask.request.args.get("c")  # CATEGORY
+    g = flask.request.args.get("g")  # GENRE
     id = flask.request.args.get("id")  # ID
     q = flask.request.args.get("q")  # QUERY
     r = flask.request.args.get("r")  # RANGE
@@ -61,6 +62,15 @@ async def metadataFunction():
                     ),
                     400,
                 )
+        if g:
+            index = 0
+            for category in tmp_metadata:
+                tmp_metadata[index]["children"] = [
+                    item
+                    for item in category["children"]
+                    if g in [x.get("name") for x in item["genres"]]
+                ]
+                index += 1
         if q:
             index = 0
             for category in tmp_metadata:

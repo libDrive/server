@@ -165,13 +165,6 @@ async def metadataFunction():
                         400,
                     )
                 index += 1
-        if r:
-            index = 0
-            for category in tmp_metadata:
-                tmp_metadata[index]["children"] = eval(
-                    "category['children']" + "[" + r + "]"
-                )
-                index += 1
         if id:
             tmp_metadata = src.metadata.jsonExtract(tmp_metadata, "id", id, False)
             config, drive = src.credentials.refreshCredentials(config)
@@ -220,7 +213,15 @@ async def metadataFunction():
                     else:
                         tmp_metadata["type"] = "file"
                         tmp_metadata["children"].append(item)
-
+        for x in tmp_metadata:
+            x["length"] = len(x["children"])
+        if r:
+            index = 0
+            for category in tmp_metadata:
+                tmp_metadata[index]["children"] = eval(
+                    "category['children']" + "[" + r + "]"
+                )
+                index += 1
         return (
             flask.jsonify(
                 {

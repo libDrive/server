@@ -3,11 +3,11 @@ import io
 import json
 import logging
 import os
-import re
 import threading
 import time
 
 import apscheduler.schedulers.background
+import bs4
 import colorama
 import flask
 import flask_cors
@@ -88,6 +88,8 @@ if not config.get("signup"):
     config["signup"] = False
 if not config.get("subtitles"):
     config["subtitles"] = False
+if not config.get("ui_config"):
+    config["ui_config"] = {}
 
 if config.get("account_list") == []:
     config["auth"] = False
@@ -142,39 +144,87 @@ def create_app():
                 LIBDRIVE_DEBUG = False
         else:
             LIBDRIVE_DEBUG = False
-        if config.get("arcio") and config.get("arcio") != "" and LIBDRIVE_DEBUG == False:
+        r = open("./build/index.html", "r")
+        soup = bs4.BeautifulSoup(r.read(), features="html.parser")
+        if config.get("ui_config", {}).get("icon"):
+            try:
+                soup.find("meta", {"id": "@ld-meta-og-image"})["content"] = config.get(
+                    "ui_config", {}
+                ).get("icon")
+            except:
+                pass
+            try:
+                soup.find("link", {"id": "@ld-link-icon"})["href"] = config.get(
+                    "ui_config", {}
+                ).get("icon")
+            except:
+                pass
+        else:
+            try:
+                soup.find("meta", {"id": "@ld-meta-og-image"})[
+                    "content"
+                ] = "/images/icons/icon-512x512.png"
+            except:
+                pass
+            try:
+                soup.find("link", {"id": "@ld-link-icon"})["href"] = "/favicon.ico"
+            except:
+                pass
+        if config.get("ui_config", {}).get("title"):
+            try:
+                soup.find("meta", {"id": "@ld-meta-og-title"})["content"] = config.get(
+                    "ui_config", {}
+                ).get("title")
+            except:
+                pass
+            try:
+                soup.find("meta", {"id": "@ld-meta-og-site_name"})[
+                    "content"
+                ] = config.get("ui_config", {}).get("title")
+            except:
+                pass
+            try:
+                soup.find("title", {"id": "@ld-title"}).string = config.get(
+                    "ui_config", {}
+                ).get("title")
+            except:
+                pass
+        else:
+            try:
+                soup.find("meta", {"id": "@ld-meta-og-title"})["content"] = "libDrive"
+            except:
+                pass
+            try:
+                soup.find("meta", {"id": "@ld-meta-og-site_name"})[
+                    "content"
+                ] = "libDrive"
+            except:
+                pass
+            try:
+                soup.find("title", {"id": "@ld-title"}).string = "libDrive"
+            except:
+                pass
+        if (
+            config.get("arcio")
+            and config.get("arcio") != ""
+            and LIBDRIVE_DEBUG == False
+        ):
             req = requests.get("https://arc.io/arc-sw.js")
             with open("./build/arc-sw.js", "wb") as wb:
                 wb.write(req.content)
-            with open("./build/index.html", "r+") as r:
-                old_html = re.sub(
-                    r"<script async src=[\"\']https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{1,15})[\"\']><\/script>",
-                    "",
-                    r.read(),
-                )
-                code = config.get("arcio")
-                if code == "dev":
-                    code = "tUUqUjhw"
-                new_html = old_html.replace(
-                    "<head>",
-                    '<head><script async src="https://arc.io/widget.min.js#%s"></script>'
-                    % (code),
-                )
-                r.seek(0)
-                r.write(new_html)
+            code = config.get("arcio")
+            if code == "dev":
+                code = "tUUqUjhw"
+            soup.find("script", {"id": "@ld-script-arcio"})[
+                "src"
+            ] = "https://arc.io/widget.min.js#%s" % (code)
         else:
-            print("test")
             if os.path.exists("./build/arc-sw.js"):
                 os.remove("./build/arc-sw.js")
-            with open("./build/index.html", "r") as r:
-                old_html = r.read()
-                new_html = re.sub(
-                    r"<script async src=[\"\']https:\/\/arc.io\/widget.min.js#(?P<arcio_id>.{5,15})[\"\']><\/script>",
-                    "",
-                    old_html,
-                )
-            with open("./build/index.html", "w+") as w:
-                w.write(new_html)
+            soup.find("script", {"id": "@ld-script-arcio"})["src"] = ""
+        with open("./build/index.html", "w+") as w:
+            w.write(str(soup))
+        r.close()
 
     app = flask.Flask(__name__, static_folder="build")
 

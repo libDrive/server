@@ -28,6 +28,7 @@ async def environmentFunction():
                 tmp_environment = {
                     "account_list": account,
                     "category_list": category_list,
+                    "ui_config": config.get("ui_config"),
                 }
                 return (
                     flask.jsonify(
@@ -44,6 +45,7 @@ async def environmentFunction():
                 tmp_environment = {
                     "account_list": account,
                     "category_list": config["category_list"],
+                    "ui_config": config.get("ui_config"),
                 }
                 return (
                     flask.jsonify(
@@ -60,6 +62,7 @@ async def environmentFunction():
             tmp_environment = {
                 "account_list": {"pic": "k"},
                 "category_list": config["category_list"],
+                "ui_config": config.get("ui_config"),
             }
             return (
                 flask.jsonify(

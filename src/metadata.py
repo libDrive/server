@@ -64,8 +64,9 @@ def mediaIdentifier(
     language,
     movie=False,
     tv=False,
+    anime=False,
 ):
-    if movie:
+    if movie and not anime:
         search_url = (
             "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s&language=%s"
             % (tmdb_api_key, title, year, language)
@@ -129,7 +130,7 @@ def mediaIdentifier(
             title,
             voteAverage,
         )
-    elif tv:
+    elif tv and not anime:
         search_url = (
             "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&first_air_date_year=%s&language=%s"
             % (tmdb_api_key, title, year, language)
@@ -188,6 +189,168 @@ def mediaIdentifier(
             releaseDate,
             title,
             voteAverage,
+        )
+    elif movie and anime:
+        query = """
+            query ($page: Int, $perPage: Int, $search: String, $seasonYear: Int) {
+                Page(page: $page, perPage: $perPage) {
+                    pageInfo {
+                    total
+                    perPage
+                    }
+                    media(search: $search, seasonYear: $seasonYear, type: ANIME, sort: FAVOURITES_DESC) {
+                    title {
+                        english
+                    }
+                    description
+                    genres
+                    isAdult
+                    averageScore
+                    popularity
+                    startDate {
+                        year
+                        month
+                        day
+                    }
+                    bannerImage
+                    coverImage {
+                        large
+                    }
+                    }
+                }
+            }
+        """
+        variables = {
+            "search": title,
+            "seasonYear": year,
+            "page": 1,
+            "perPage": 1,
+        }
+        response = requests.post(
+            "https://graphql.anilist.co", json={"query": query, "variables": variables}
+        ).json()
+
+        if (
+            response.get("data", {}).get("Page", {}).get("pageInfo", {}).get("total")
+            > 0
+        ):
+            data = response["data"]["Page"]["media"][0]
+        else:
+            data = dict(
+                {
+                    "isAdult": False,
+                    "title": {"english": title},
+                    "startDate": {"year": year, "month": "01", "day": "01"},
+                    "genres": [],
+                    "original_language": None,
+                    "description": None,
+                    "popularity": 0.0,
+                    "bannerImage": "",
+                    "coverImage": {"large": None},
+                    "averageScore": 0.0,
+                },
+            )
+        startDate = data.get("startDate", {})
+        releases_date = "%s-%s-%s" % (
+            startDate.get("year", year),
+            startDate.get("month", "01"),
+            startDate.get("day", "01"),
+        )
+        genres = []
+        for genre in data.get("genres", []):
+            genres.append({"id": 0, "name": genre})
+        return (
+            data.get("isAdult", False),
+            data.get("bannerImage", "").replace("/small/", "/large/"),
+            genres,
+            data.get("original_language"),
+            data.get("description"),
+            data.get("popularity", 0.0),
+            data.get("coverImage", {}).get("large"),
+            releases_date,
+            data.get("title", {}).get("english", title),
+            data.get("averageScore", 0.0),
+        )
+    elif tv and anime:
+        query = """
+            query ($page: Int, $perPage: Int, $search: String, $seasonYear: Int) {
+                Page(page: $page, perPage: $perPage) {
+                    pageInfo {
+                    total
+                    perPage
+                    }
+                    media(search: $search, seasonYear: $seasonYear, type: ANIME, sort: FAVOURITES_DESC) {
+                    title {
+                        english
+                    }
+                    description
+                    genres
+                    isAdult
+                    averageScore
+                    popularity
+                    startDate {
+                        year
+                        month
+                        day
+                    }
+                    bannerImage
+                    coverImage {
+                        large
+                    }
+                    }
+                }
+            }
+        """
+        variables = {
+            "search": title,
+            "seasonYear": year,
+            "page": 1,
+            "perPage": 1,
+        }
+        response = requests.post(
+            "https://graphql.anilist.co", json={"query": query, "variables": variables}
+        ).json()
+
+        if (
+            response.get("data", {}).get("Page", {}).get("pageInfo", {}).get("total")
+            > 0
+        ):
+            data = response["data"]["Page"]["media"][0]
+        else:
+            data = dict(
+                {
+                    "isAdult": False,
+                    "title": {"english": title},
+                    "startDate": {"year": year, "month": "01", "day": "01"},
+                    "genres": [],
+                    "original_language": None,
+                    "description": None,
+                    "popularity": 0.0,
+                    "bannerImage": "",
+                    "coverImage": {"large": None},
+                    "averageScore": 0.0,
+                },
+            )
+        startDate = data.get("startDate", {})
+        releases_date = "%s-%s-%s" % (
+            startDate.get("year", year),
+            startDate.get("month", "01"),
+            startDate.get("day", "01"),
+        )
+        genres = []
+        for genre in data.get("genres", []):
+            genres.append({"id": 0, "name": genre})
+        return (
+            data.get("isAdult", False),
+            data.get("bannerImage", "").replace("/small/", "/large/"),
+            genres,
+            data.get("original_language"),
+            data.get("description"),
+            data.get("popularity", 0.0),
+            data.get("coverImage", {}).get("large"),
+            releases_date,
+            data.get("title", {}).get("english", title),
+            data.get("averageScore", 0.0),
         )
 
 
@@ -273,36 +436,70 @@ def writeMetadata(config):
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])
             tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
-            for item in tmp_metadata["children"]:
-                if item["type"] == "file":
-                    title, year = parseMovie(item["name"])
-                    if title == None:
-                        title = item["name"]
-                    if year == None:
-                        year = ""
-                    (
-                        item["adult"],
-                        item["backdropPath"],
-                        item["genres"],
-                        item["language"],
-                        item["overview"],
-                        item["popularity"],
-                        item["posterPath"],
-                        item["releaseDate"],
-                        item["title"],
-                        item["voteAverage"],
-                    ) = mediaIdentifier(
-                        config.get("tmdb_api_key"),
-                        title,
-                        year,
-                        backdrop_base_url,
-                        poster_base_url,
-                        movie_genre_ids,
-                        tv_genre_ids,
-                        category.get("language"),
-                        True,
-                        False,
-                    )
+            if category.get("anilist") == True:
+                for item in tmp_metadata["children"]:
+                    if item["type"] == "file":
+                        title, year = parseMovie(item["name"])
+                        if title == None:
+                            title = item["name"]
+                        if year == None:
+                            year = ""
+                        (
+                            item["adult"],
+                            item["backdropPath"],
+                            item["genres"],
+                            item["language"],
+                            item["overview"],
+                            item["popularity"],
+                            item["posterPath"],
+                            item["releaseDate"],
+                            item["title"],
+                            item["voteAverage"],
+                        ) = mediaIdentifier(
+                            config.get("tmdb_api_key"),
+                            title,
+                            year,
+                            backdrop_base_url,
+                            poster_base_url,
+                            movie_genre_ids,
+                            tv_genre_ids,
+                            category.get("language"),
+                            True,
+                            False,
+                            False,
+                        )
+            else:
+                for item in tmp_metadata["children"]:
+                    if item["type"] == "file":
+                        title, year = parseMovie(item["name"])
+                        if title == None:
+                            title = item["name"]
+                        if year == None:
+                            year = ""
+                        (
+                            item["adult"],
+                            item["backdropPath"],
+                            item["genres"],
+                            item["language"],
+                            item["overview"],
+                            item["popularity"],
+                            item["posterPath"],
+                            item["releaseDate"],
+                            item["title"],
+                            item["voteAverage"],
+                        ) = mediaIdentifier(
+                            config.get("tmdb_api_key"),
+                            title,
+                            year,
+                            backdrop_base_url,
+                            poster_base_url,
+                            movie_genre_ids,
+                            tv_genre_ids,
+                            category.get("language"),
+                            True,
+                            False,
+                            True,
+                        )
 
             placeholder_metadata.append(tmp_metadata)
         elif category["type"] == "TV Shows":
@@ -325,35 +522,69 @@ def writeMetadata(config):
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])
             tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
-            for item in tmp_metadata["children"]:
-                if item["type"] == "directory":
-                    title, year = parseTV(item["name"])
-                    if title == None:
-                        title = item["name"]
-                    if year == None:
-                        year = ""
-                    (
-                        item["backdropPath"],
-                        item["genres"],
-                        item["language"],
-                        item["overview"],
-                        item["popularity"],
-                        item["posterPath"],
-                        item["releaseDate"],
-                        item["title"],
-                        item["voteAverage"],
-                    ) = mediaIdentifier(
-                        config.get("tmdb_api_key"),
-                        title,
-                        year,
-                        backdrop_base_url,
-                        poster_base_url,
-                        movie_genre_ids,
-                        tv_genre_ids,
-                        category.get("language"),
-                        False,
-                        True,
-                    )
+            if category.get("anilist") == True:
+                for item in tmp_metadata["children"]:
+                    if item["type"] == "directory":
+                        title, year = parseTV(item["name"])
+                        if title == None:
+                            title = item["name"]
+                        if year == None:
+                            year = ""
+                        (
+                            item["adult"],
+                            item["backdropPath"],
+                            item["genres"],
+                            item["language"],
+                            item["overview"],
+                            item["popularity"],
+                            item["posterPath"],
+                            item["releaseDate"],
+                            item["title"],
+                            item["voteAverage"],
+                        ) = mediaIdentifier(
+                            config.get("tmdb_api_key"),
+                            title,
+                            year,
+                            backdrop_base_url,
+                            poster_base_url,
+                            movie_genre_ids,
+                            tv_genre_ids,
+                            category.get("language"),
+                            False,
+                            True,
+                            True,
+                        )
+            else:
+                for item in tmp_metadata["children"]:
+                    if item["type"] == "directory":
+                        title, year = parseTV(item["name"])
+                        if title == None:
+                            title = item["name"]
+                        if year == None:
+                            year = ""
+                        (
+                            item["backdropPath"],
+                            item["genres"],
+                            item["language"],
+                            item["overview"],
+                            item["popularity"],
+                            item["posterPath"],
+                            item["releaseDate"],
+                            item["title"],
+                            item["voteAverage"],
+                        ) = mediaIdentifier(
+                            config.get("tmdb_api_key"),
+                            title,
+                            year,
+                            backdrop_base_url,
+                            poster_base_url,
+                            movie_genre_ids,
+                            tv_genre_ids,
+                            category.get("language"),
+                            False,
+                            True,
+                            False,
+                        )
 
             placeholder_metadata.append(tmp_metadata)
         print("DONE IN %s.\n" % (str(datetime.datetime.utcnow() - start_time)))

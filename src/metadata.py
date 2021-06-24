@@ -66,7 +66,7 @@ def mediaIdentifier(
     tv=False,
     anime=False,
 ):
-    if movie and not anime:
+    if movie == True and anime == False:
         search_url = (
             "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s&language=%s"
             % (tmdb_api_key, title, year, language)
@@ -130,7 +130,7 @@ def mediaIdentifier(
             title,
             voteAverage,
         )
-    elif tv and not anime:
+    elif tv == True and anime == False:
         search_url = (
             "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&first_air_date_year=%s&language=%s"
             % (tmdb_api_key, title, year, language)
@@ -190,7 +190,7 @@ def mediaIdentifier(
             title,
             voteAverage,
         )
-    elif movie and anime:
+    elif movie == True and anime == True:
         query = """
             query ($page: Int, $perPage: Int, $search: String, $seasonYear: Int) {
                 Page(page: $page, perPage: $perPage) {
@@ -245,7 +245,7 @@ def mediaIdentifier(
                     "original_language": None,
                     "description": None,
                     "popularity": 0.0,
-                    "bannerImage": "",
+                    "bannerImage": str(None),
                     "coverImage": {"large": None},
                     "averageScore": 0.0,
                 },
@@ -271,7 +271,7 @@ def mediaIdentifier(
             data.get("title", {}).get("english", title),
             data.get("averageScore", 0.0),
         )
-    elif tv and anime:
+    elif tv == True and anime == True:
         query = """
             query ($page: Int, $perPage: Int, $search: String, $seasonYear: Int) {
                 Page(page: $page, perPage: $perPage) {
@@ -436,6 +436,7 @@ def writeMetadata(config):
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])
             tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
+            print(category.get("anilist") == True)
             if category.get("anilist") == True:
                 for item in tmp_metadata["children"]:
                     if item["type"] == "file":
@@ -466,7 +467,7 @@ def writeMetadata(config):
                             category.get("language"),
                             True,
                             False,
-                            False,
+                            True,
                         )
             else:
                 for item in tmp_metadata["children"]:
@@ -498,7 +499,7 @@ def writeMetadata(config):
                             category.get("language"),
                             True,
                             False,
-                            True,
+                            False,
                         )
 
             placeholder_metadata.append(tmp_metadata)

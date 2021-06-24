@@ -201,6 +201,8 @@ def mediaIdentifier(
                     media(search: $search, seasonYear: $seasonYear, type: ANIME, sort: FAVOURITES_DESC) {
                     title {
                         english
+                        romaji
+                        native
                     }
                     description
                     genres
@@ -250,6 +252,16 @@ def mediaIdentifier(
                     "averageScore": 0.0,
                 },
             )
+        if data.get("title", {}).get("english") == None:
+            if data.get("title", {}).get("romaji") == None:
+                if data.get("title", {}).get("native") == None:
+                    data["title"] = title
+                else:
+                    data["title"] = data["title"]["native"]
+            else:
+                data["title"] = data["title"]["romaji"]
+        else:
+            data["title"] = data["title"]["english"]
         startDate = data.get("startDate", {})
         releases_date = "%s-%s-%s" % (
             startDate.get("year", year),
@@ -268,7 +280,7 @@ def mediaIdentifier(
             data.get("popularity", 0.0),
             data.get("coverImage", {}).get("large"),
             releases_date,
-            data.get("title", {}).get("english", title),
+            data.get("title", title),
             data.get("averageScore", 0.0),
         )
     elif tv == True and anime == True:
@@ -282,6 +294,8 @@ def mediaIdentifier(
                     media(search: $search, seasonYear: $seasonYear, type: ANIME, sort: FAVOURITES_DESC) {
                     title {
                         english
+                        romaji
+                        native
                     }
                     description
                     genres
@@ -331,6 +345,16 @@ def mediaIdentifier(
                     "averageScore": 0.0,
                 },
             )
+        if data.get("title", {}).get("english") == None:
+            if data.get("title", {}).get("romaji") == None:
+                if data.get("title", {}).get("native") == None:
+                    data["title"] = title
+                else:
+                    data["title"] = data["title"]["native"]
+            else:
+                data["title"] = data["title"]["romaji"]
+        else:
+            data["title"] = data["title"]["english"]
         startDate = data.get("startDate", {})
         releases_date = "%s-%s-%s" % (
             startDate.get("year", year),
@@ -349,7 +373,7 @@ def mediaIdentifier(
             data.get("popularity", 0.0),
             data.get("coverImage", {}).get("large"),
             releases_date,
-            data.get("title", {}).get("english", title),
+            data.get("title", title),
             data.get("averageScore", 0.0),
         )
 

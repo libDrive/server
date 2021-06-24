@@ -108,7 +108,7 @@ def mediaIdentifier(
         for genre in genres:
             for item in movie_genre_ids["genres"]:
                 if item["id"] == genre:
-                    tmp_genres.append(item)
+                    tmp_genres.append(item["name"])
                     break
         genres = tmp_genres
         language = data.get("original_language", None)
@@ -169,7 +169,7 @@ def mediaIdentifier(
         for genre in genres:
             for item in tv_genre_ids["genres"]:
                 if item["id"] == genre:
-                    tmp_genres.append(item)
+                    tmp_genres.append(item["name"])
                     break
         genres = tmp_genres
         language = data.get("original_language", None)
@@ -258,7 +258,7 @@ def mediaIdentifier(
         )
         genres = []
         for genre in data.get("genres", []):
-            genres.append({"id": 0, "name": genre})
+            genres.append(genre)
         return (
             data.get("isAdult", False),
             data.get("bannerImage", "").replace("/small/", "/large/"),
@@ -339,7 +339,7 @@ def mediaIdentifier(
         )
         genres = []
         for genre in data.get("genres", []):
-            genres.append({"id": 0, "name": genre})
+            genres.append(genre)
         return (
             data.get("isAdult", False),
             data.get("bannerImage", "").replace("/small/", "/large/"),

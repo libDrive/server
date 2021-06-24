@@ -436,7 +436,6 @@ def writeMetadata(config):
             tmp_metadata["categoryInfo"] = category
             tmp_metadata["length"] = len(tmp_metadata["children"])
             tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
-            print(category.get("anilist") == True)
             if category.get("anilist") == True:
                 for item in tmp_metadata["children"]:
                     if item["type"] == "file":

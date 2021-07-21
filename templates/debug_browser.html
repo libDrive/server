@@ -1,0 +1,22 @@
+{% extends 'debug_base.html' %} {% block title %}— {{ path }}{% endblock %} {%
+block leftbar %} {% for folder in folder_directory %}
+<a
+  href="/api/v1/debug/{{ folder }}?secret={{ secret }}"
+  class="list-group-item list-group-item-action list-group-item-secondary"
+  ><i class="fas fa-folder"></i> {{ folder.name }}</a
+>
+{% endfor %} {% for file in files_directory %}
+<a
+  href="/api/v1/debug/{{ file }}?secret={{ secret }}"
+  class="list-group-item list-group-item-action list-group-item-secondary"
+  ><i class="fas fa-file"></i> {{ file.name }}</a
+>
+{% endfor %} {% endblock %} {% block center %} {% block content %}
+<h1>
+  {% for pathpart in path.parents|reverse() %}/
+  <a href="/api/v1/debug/{{ pathpart }}?secret={{ secret }}"
+    >{{ pathpart.stem }}</a
+  >
+  {% endfor %}/ {{ path.name }}
+</h1>
+{% endblock %} {% endblock %}

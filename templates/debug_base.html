@@ -1,0 +1,59 @@
+{% block head %}
+<head>
+  <link
+    rel="stylesheet"
+    href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+    integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay"
+    crossorigin="anonymous"
+  />
+  <link
+    rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+    crossorigin="anonymous"
+  />
+  <title>File Browser {% block title %}{% endblock %}</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+  </style>
+</head>
+{% endblock %} {% block body %}
+<nav
+  class="
+    navbar navbar-expand-lg navbar-dark
+    bg-dark
+    mb-
+    border-bottom border-light
+  "
+>
+  <a class="navbar-brand ml-4 h2" href="/api/v1/debug?secret={{ secret }}"
+    >File Browser</a
+  >
+  <div class="collapse navbar-collapse ml-3" id="navbarText"></div>
+</nav>
+<div class="container-fluid">
+  <div class="h-100 row">
+    <div
+      class="
+        d-inline-block
+        col-3
+        p-3
+        mb-2
+        bg-light
+        text-dark
+        border-right
+        list-group
+      "
+    >
+      {% block leftbar %}{% endblock %}
+    </div>
+    <div class="d-inline-block col-6">{% block center %}{% endblock %}</div>
+    <div
+      class="d-inline-block col-3 p-3 mb-2 bg-light text-dark border-left"
+    ></div>
+  </div>
+</div>
+{% endblock %}

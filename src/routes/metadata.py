@@ -66,9 +66,7 @@ async def metadataFunction():
             index = 0
             for category in tmp_metadata:
                 tmp_metadata[index]["children"] = [
-                    item
-                    for item in category["children"]
-                    if g in item["genres"]
+                    item for item in category["children"] if g in item["genres"]
                 ]
                 index += 1
         if q:

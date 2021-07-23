@@ -66,6 +66,10 @@ def mediaIdentifier(
     tv=False,
     anime=False,
 ):
+    if year == None or year == "":
+        tmp_year = "1900"
+    else:
+        tmp_year = year
     if movie == True and anime == False:
         search_url = (
             "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s&language=%s"
@@ -95,7 +99,7 @@ def mediaIdentifier(
                     "overview": None,
                     "popularity": 70.412,
                     "poster_path": None,
-                    "release_date": "%s-01-01" % (year),
+                    "release_date": "%s-01-01" % (tmp_year),
                     "title": title,
                     "vote_average": 0.0,
                 },
@@ -115,7 +119,7 @@ def mediaIdentifier(
         overview = data.get("overview", None)
         popularity = data.get("popularity", 0.0)
         posterPath = data.get("poster_path", None)
-        releaseDate = data.get("release_date", "%s-01-01" % (year))
+        releaseDate = data.get("release_date", "%s-01-01" % (tmp_year))
         title = data.get("title", title)
         voteAverage = data.get("vote_average", 0.0)
         return (
@@ -153,7 +157,7 @@ def mediaIdentifier(
             data = dict(
                 {
                     "backdrop_path": None,
-                    "first_air_date": "%s-01-01" % (year),
+                    "first_air_date": "%s-01-01" % (tmp_year),
                     "genre_ids": [],
                     "name": title,
                     "original_language": None,
@@ -176,7 +180,7 @@ def mediaIdentifier(
         overview = data.get("overview", None)
         popularity = data.get("popularity", 0.0)
         posterPath = data.get("poster_path", None)
-        releaseDate = data.get("first_air_date", "%s-01-01" % (year))
+        releaseDate = data.get("first_air_date", "%s-01-01" % (tmp_year))
         title = data.get("name", title)
         voteAverage = data.get("vote_average", 0.0)
         return (
@@ -224,10 +228,11 @@ def mediaIdentifier(
         """
         variables = {
             "search": title,
-            "seasonYear": year,
             "page": 1,
             "perPage": 1,
         }
+        if year != None and year != "":
+            variables["seasonYear"] = year
         response = requests.post(
             "https://graphql.anilist.co", json={"query": query, "variables": variables}
         ).json()
@@ -242,7 +247,7 @@ def mediaIdentifier(
                 {
                     "isAdult": False,
                     "title": {"english": title},
-                    "startDate": {"year": year, "month": "01", "day": "01"},
+                    "startDate": {"year": tmp_year, "month": "01", "day": "01"},
                     "genres": [],
                     "original_language": None,
                     "description": None,
@@ -264,7 +269,7 @@ def mediaIdentifier(
             data["title"] = data["title"]["english"]
         startDate = data.get("startDate", {})
         releases_date = "%s-%s-%s" % (
-            startDate.get("year", year),
+            startDate.get("year", tmp_year),
             startDate.get("month", "01"),
             startDate.get("day", "01"),
         )
@@ -317,10 +322,11 @@ def mediaIdentifier(
         """
         variables = {
             "search": title,
-            "seasonYear": year,
             "page": 1,
             "perPage": 1,
         }
+        if year != None and year != "":
+            variables["seasonYear"] = year
         response = requests.post(
             "https://graphql.anilist.co", json={"query": query, "variables": variables}
         ).json()
@@ -335,7 +341,7 @@ def mediaIdentifier(
                 {
                     "isAdult": False,
                     "title": {"english": title},
-                    "startDate": {"year": year, "month": "01", "day": "01"},
+                    "startDate": {"year": tmp_year, "month": "01", "day": "01"},
                     "genres": [],
                     "original_language": None,
                     "description": None,
@@ -357,7 +363,7 @@ def mediaIdentifier(
             data["title"] = data["title"]["english"]
         startDate = data.get("startDate", {})
         releases_date = "%s-%s-%s" % (
-            startDate.get("year", year),
+            startDate.get("year", tmp_year),
             startDate.get("month", "01"),
             startDate.get("day", "01"),
         )

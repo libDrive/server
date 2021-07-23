@@ -310,9 +310,11 @@ if __name__ == "__main__":
 
     logs_path = os.path.abspath("./logs")
     logs_max_files = 4
+
     def sorted_ls(path):
         mtime = lambda f: os.stat(os.path.join(path, f)).st_mtime
         return list(sorted(os.listdir(path), key=mtime))
+
     del_list = sorted_ls(logs_path)[0 : (len(sorted_ls(logs_path)) - logs_max_files)]
     for del_file in del_list:
         try:

@@ -228,10 +228,11 @@ def mediaIdentifier(
         """
         variables = {
             "search": title,
-            "seasonYear": year,
             "page": 1,
             "perPage": 1,
         }
+        if year != None and year != "":
+            variables["seasonYear"] = year
         response = requests.post(
             "https://graphql.anilist.co", json={"query": query, "variables": variables}
         ).json()
@@ -321,10 +322,11 @@ def mediaIdentifier(
         """
         variables = {
             "search": title,
-            "seasonYear": year,
             "page": 1,
             "perPage": 1,
         }
+        if year != None and year != "":
+            variables["seasonYear"] = year
         response = requests.post(
             "https://graphql.anilist.co", json={"query": query, "variables": variables}
         ).json()

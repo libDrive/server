@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import threading
-import time
+import sys
 
 import apscheduler.schedulers.background
 import bs4
@@ -325,6 +325,12 @@ if __name__ == "__main__":
         % (datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S")),
         level=logging.DEBUG,
     )
+
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_logger = logging.getLogger()
+    console_logger.setLevel(logging.INFO)
+    console_logger.addHandler(console_handler)
+
     LIBDRIVE_DEBUG = os.getenv("LIBDRIVE_DEBUG")
     if LIBDRIVE_DEBUG:
         if LIBDRIVE_DEBUG.lower() == "true":

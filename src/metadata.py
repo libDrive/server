@@ -276,9 +276,11 @@ def mediaIdentifier(
         genres = []
         for genre in data.get("genres", []):
             genres.append(genre)
+        if data.get("bannerImage") != None and data.get("bannerImage") != "":
+            data["bannerImage"] = data["bannerImage"].replace("/small/", "/large/")
         return (
             data.get("isAdult", False),
-            data.get("bannerImage", "").replace("/small/", "/large/"),
+            data.get("bannerImage"),
             genres,
             data.get("original_language"),
             data.get("description"),
@@ -370,9 +372,11 @@ def mediaIdentifier(
         genres = []
         for genre in data.get("genres", []):
             genres.append(genre)
+        if data.get("bannerImage") != None and data.get("bannerImage") != "":
+            data["bannerImage"] = data["bannerImage"].replace("/small/", "/large/")
         return (
             data.get("isAdult", False),
-            data.get("bannerImage", "").replace("/small/", "/large/"),
+            data.get("bannerImage", ""),
             genres,
             data.get("original_language"),
             data.get("description"),
@@ -450,7 +454,7 @@ def writeMetadata(config):
         start_time = datetime.datetime.utcnow()
         config, drive = src.credentials.refreshCredentials(config)
         print(
-            "\033[91mBUILDING METADATA FOR CATEGORY %s/%s (%s)...\033[0m"
+            "\033[91mBUILDING METADATA FOR CATEGORY %s/%s %s...\033[0m"
             % (count, len(config["category_list"]), category["name"])
         )
         if category["type"] == "Movies":
@@ -467,7 +471,16 @@ def writeMetadata(config):
             tmp_metadata["length"] = len(tmp_metadata["children"])
             tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
             if category.get("anilist") == True:
+                items_count = 0
+                items_length = len(tmp_metadata["children"])
                 for item in tmp_metadata["children"]:
+                    items_count += 1
+                    print(
+                        "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
+                        % (items_count, items_length, item["name"]),
+                        end="\r",
+                        flush=True,
+                    )
                     if item["type"] == "file":
                         title, year = parseMovie(item["name"])
                         if title == None:
@@ -499,7 +512,16 @@ def writeMetadata(config):
                             True,
                         )
             else:
+                items_count = 0
+                items_length = len(tmp_metadata["children"])
                 for item in tmp_metadata["children"]:
+                    items_count += 1
+                    print(
+                        "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
+                        % (items_count, items_length, item["name"]),
+                        end="\r",
+                        flush=True,
+                    )
                     if item["type"] == "file":
                         title, year = parseMovie(item["name"])
                         if title == None:
@@ -553,7 +575,16 @@ def writeMetadata(config):
             tmp_metadata["length"] = len(tmp_metadata["children"])
             tmp_metadata["buildTime"] = str(datetime.datetime.utcnow())
             if category.get("anilist") == True:
+                items_count = 0
+                items_length = len(tmp_metadata["children"])
                 for item in tmp_metadata["children"]:
+                    items_count += 1
+                    print(
+                        "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
+                        % (items_count, items_length, item["name"]),
+                        end="\r",
+                        flush=True,
+                    )
                     if item["type"] == "directory":
                         title, year = parseTV(item["name"])
                         if title == None:
@@ -585,7 +616,16 @@ def writeMetadata(config):
                             True,
                         )
             else:
+                items_count = 0
+                items_length = len(tmp_metadata["children"])
                 for item in tmp_metadata["children"]:
+                    items_count += 1
+                    print(
+                        "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
+                        % (items_count, items_length, item["name"]),
+                        end="\r",
+                        flush=True,
+                    )
                     if item["type"] == "directory":
                         title, year = parseTV(item["name"])
                         if title == None:
@@ -617,7 +657,7 @@ def writeMetadata(config):
                         )
 
             placeholder_metadata.append(tmp_metadata)
-        print("DONE IN %s.\n" % (str(datetime.datetime.utcnow() - start_time)))
+        print("\nDONE IN %s.\n" % (str(datetime.datetime.utcnow() - start_time)))
 
     metadata = placeholder_metadata
 

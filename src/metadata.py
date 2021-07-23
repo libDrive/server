@@ -276,9 +276,11 @@ def mediaIdentifier(
         genres = []
         for genre in data.get("genres", []):
             genres.append(genre)
+        if data.get("bannerImage") != None and data.get("bannerImage") != "":
+            data["bannerImage"] = data["bannerImage"].replace("/small/", "/large/")
         return (
             data.get("isAdult", False),
-            data.get("bannerImage", "").replace("/small/", "/large/"),
+            data.get("bannerImage"),
             genres,
             data.get("original_language"),
             data.get("description"),
@@ -370,9 +372,11 @@ def mediaIdentifier(
         genres = []
         for genre in data.get("genres", []):
             genres.append(genre)
+        if data.get("bannerImage") != None and data.get("bannerImage") != "":
+            data["bannerImage"] = data["bannerImage"].replace("/small/", "/large/")
         return (
             data.get("isAdult", False),
-            data.get("bannerImage", "").replace("/small/", "/large/"),
+            data.get("bannerImage", ""),
             genres,
             data.get("original_language"),
             data.get("description"),

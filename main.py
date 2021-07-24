@@ -1,10 +1,8 @@
 import datetime
 import io
 import json
-import logging
 import os
 import threading
-import sys
 
 import apscheduler.schedulers.background
 import bs4
@@ -305,33 +303,6 @@ async def serve(path):
 
 if __name__ == "__main__":
     print("\033[91mSERVING SERVER...\033[0m")
-    if not os.path.exists("./logs"):
-        os.mkdir("./logs")
-
-    logs_path = os.path.abspath("./logs")
-    logs_max_files = 4
-
-    def sorted_ls(path):
-        mtime = lambda f: os.stat(os.path.join(path, f)).st_mtime
-        return list(sorted(os.listdir(path), key=mtime))
-
-    del_list = sorted_ls(logs_path)[0 : (len(sorted_ls(logs_path)) - logs_max_files)]
-    for del_file in del_list:
-        try:
-            os.remove(os.path.join(logs_path, del_file))
-        except:
-            pass
-
-    logging.basicConfig(
-        filename="./logs/%s.log"
-        % (datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S")),
-        level=logging.DEBUG,
-    )
-
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_logger = logging.getLogger()
-    console_logger.setLevel(logging.INFO)
-    console_logger.addHandler(console_handler)
 
     LIBDRIVE_DEBUG = os.getenv("LIBDRIVE_DEBUG")
     if LIBDRIVE_DEBUG:

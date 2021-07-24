@@ -88,10 +88,29 @@ async def streammapFunction():
                 except KeyError:
                     break
 
+        if (
+            config.get("prefer_mkv") == False
+            and config.get("prefer_mp4") == False
+            and len(stream_list) > 1
+        ):
+            default_quality = 1
+        elif config.get("prefer_mp4", True) == True and name.endswith(".mp4"):
+            default_quality = 0
+        elif config.get("prefer_mkv", False) == True and name.endswith(".mkv"):
+            default_quality = 0
+        elif len(stream_list) > 1:
+            default_quality = 1
+        else:
+            default_quality = 0
+
         return flask.jsonify(
             {
                 "code": 200,
-                "content": {"sources": stream_list, "subtitle": subtitle},
+                "content": {
+                    "default_quality": default_quality,
+                    "sources": stream_list,
+                    "subtitle": subtitle,
+                },
                 "message": "Stream list generated successfully!",
                 "success": True,
             }

@@ -41,7 +41,7 @@ datatypes = {
     "image": "gif,ico,jpe,jpeg,jpg,png,svg,webp",
     "pdf": "pdf",
     "quicktime": "3g2,3gp,3gp2,3gpp,mov,qt",
-    "source": "atom,bat,bash,c,cmd,coffee,css,hml,js,json,java,less,markdown,md,php,pl,py,rb,rss,sass,scpt,swift,scss,sh,xml,yml,plist",
+    "source": "atom,bat,bash,c,cmd,coffee,css,hml,js,json,java,less,markdown,md,php,pl,py,rb,rss,sass,scpt,swift,scss,sh,xml,yml,plist,log,conf,env",
     "text": "txt",
     "video": "mp4,m4v,ogv,webm",
     "website": "htm,html,mhtm,mhtml,xhtm,xhtml",
@@ -166,9 +166,11 @@ class PathView(flask.views.MethodView):
                     if hide_dotfile == "yes" and filename[0] == ".":
                         continue
                     filepath = os.path.join(path, filename)
+                    relativepath = os.path.join(p, filename)
                     stat_res = os.stat(filepath)
                     info = {}
                     info["name"] = filename
+                    info["path"] = relativepath
                     info["mtime"] = stat_res.st_mtime
                     ft = get_type(stat_res.st_mode)
                     info["type"] = ft

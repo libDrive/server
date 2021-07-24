@@ -57,7 +57,7 @@
         <tbody>
           {% for entry in contents if entry.type == 'dir' %}
           <tr>
-              <td class="text-xs-left " data-sort-value="dir-{{entry.name | lower}}"><i class="fa fa-fw fa-folder " aria-hidden="true"></i>&nbsp;<a href="{{entry.name}}?secret={{secret}}" ><strong>{{entry.name}}</strong></a></td>
+              <td class="text-xs-left " data-sort-value="dir-{{entry.name | lower}}"><i class="fa fa-fw fa-folder " aria-hidden="true"></i>&nbsp;<a href="{{entry.path}}?secret={{secret}}" ><strong>{{entry.name}}</strong></a></td>
             <td class="text-xs-right " data-sort-value="-1">&mdash;</td>
             <td class="text-xs-right " data-sort-value="{{entry.mtime}}" title="{{entry.mtime | time_fmt}}">{{entry.mtime | humanize}}</td>
           </tr>
@@ -65,7 +65,7 @@
           {% for entry in contents if entry.type == 'file' %}
           <tr>
               <td class="text-xs-left " data-sort-value="file-{{entry.name | lower}}"><i class="fa fa-fw {{entry.name | icon_fmt}} " aria-hidden="true"></i>&nbsp;
-              <a {% if entry.name | data_fmt not in ['unknown', 'archive'] %} data-toggle="modal" data-target="#viewer-modal" data-type="{{entry.name | data_fmt}}" {% endif %} href="{{entry.name}}?secret={{secret}}" data-size="{{entry.size | size_fmt}}">{{entry.name}}</a>
+              <a {% if entry.name | data_fmt not in ['unknown', 'archive'] %} data-toggle="modal" data-target="#viewer-modal" data-type="{{entry.name | data_fmt}}" {% endif %} href="{{entry.path}}?secret={{secret}}" data-size="{{entry.size | size_fmt}}">{{entry.name}}</a>
               </td>
               <td class="text-xs-right " data-sort-value="{{entry.size}}" title="{{entry.size}} bytes">{{entry.size | size_fmt}}</td>
               <td class="text-xs-right " data-sort-value="{{entry.mtime}}" title="{{entry.mtime | time_fmt}}">{{entry.mtime | humanize}}</td>

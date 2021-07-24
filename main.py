@@ -226,7 +226,7 @@ def create_app():
             w.write(str(soup))
         r.close()
 
-    app = flask.Flask(__name__, static_folder="build", static_url_path="/static")
+    app = flask.Flask(__name__, static_folder="build")
 
     build_interval = config.get("build_interval")
     if not build_interval:

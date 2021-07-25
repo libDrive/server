@@ -342,7 +342,7 @@ else:
     logging.getLogger("oauth2client").setLevel(logging.WARNING)
     logging.getLogger('waitress').setLevel(logging.INFO)
 
-    logging.basicConfig(filename="./logs/%s.log" % (datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S")), encoding="utf-8", level=logging.INFO)
+    logging.basicConfig(filename="./logs/%s.log" % (datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S")), level=logging.INFO)
 
     console_handler = logging.StreamHandler(sys.stdout)
     console_logger = logging.getLogger()

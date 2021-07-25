@@ -476,7 +476,7 @@ def writeMetadata(config):
                 for item in tmp_metadata["children"]:
                     items_count += 1
                     print(
-                        "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
+                        "\033[93mSCRAPING %s/%s %s...\033[0m"
                         % (items_count, items_length, item["name"]),
                     )
                     if item["type"] == "file":
@@ -515,7 +515,7 @@ def writeMetadata(config):
                 for item in tmp_metadata["children"]:
                     items_count += 1
                     print(
-                        "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
+                        "\033[93mSCRAPING %s/%s %s...\033[0m"
                         % (items_count, items_length, item["name"])
                     )
                     if item["type"] == "file":
@@ -576,7 +576,7 @@ def writeMetadata(config):
                 for item in tmp_metadata["children"]:
                     items_count += 1
                     print(
-                        "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
+                        "\033[93mSCRAPING %s/%s %s...\033[0m"
                         % (items_count, items_length, item["name"]),
                     )
                     if item["type"] == "directory":
@@ -615,7 +615,7 @@ def writeMetadata(config):
                 for item in tmp_metadata["children"]:
                     items_count += 1
                     print(
-                        "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
+                        "\033[93mSCRAPING %s/%s %s...\033[0m"
                         % (items_count, items_length, item["name"]),
                     )
                     if item["type"] == "directory":

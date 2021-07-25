@@ -252,7 +252,7 @@ def mediaIdentifier(
                     "original_language": None,
                     "description": None,
                     "popularity": 0.0,
-                    "bannerImage": str(None),
+                    "bannerImage": "",
                     "coverImage": {"large": None},
                     "averageScore": 0.0,
                 },
@@ -376,7 +376,7 @@ def mediaIdentifier(
             data["bannerImage"] = data["bannerImage"].replace("/small/", "/large/")
         return (
             data.get("isAdult", False),
-            data.get("bannerImage", ""),
+            data.get("bannerImage"),
             genres,
             data.get("original_language"),
             data.get("description"),
@@ -454,7 +454,7 @@ def writeMetadata(config):
         start_time = datetime.datetime.utcnow()
         config, drive = src.credentials.refreshCredentials(config)
         print(
-            "\033[91mBUILDING METADATA FOR CATEGORY %s/%s %s...\033[0m"
+            "\033[91mBUILDING METADATA FOR CATEGORY %s/%s %s...\033[0m\n"
             % (count, len(config["category_list"]), category["name"])
         )
         if category["type"] == "Movies":
@@ -478,8 +478,6 @@ def writeMetadata(config):
                     print(
                         "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
                         % (items_count, items_length, item["name"]),
-                        end="\r",
-                        flush=True,
                     )
                     if item["type"] == "file":
                         title, year = parseMovie(item["name"])
@@ -518,9 +516,7 @@ def writeMetadata(config):
                     items_count += 1
                     print(
                         "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
-                        % (items_count, items_length, item["name"]),
-                        end="\r",
-                        flush=True,
+                        % (items_count, items_length, item["name"])
                     )
                     if item["type"] == "file":
                         title, year = parseMovie(item["name"])
@@ -582,8 +578,6 @@ def writeMetadata(config):
                     print(
                         "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
                         % (items_count, items_length, item["name"]),
-                        end="\r",
-                        flush=True,
                     )
                     if item["type"] == "directory":
                         title, year = parseTV(item["name"])
@@ -623,8 +617,6 @@ def writeMetadata(config):
                     print(
                         "\033[K\033[93mSCRAPING %s/%s %s...\033[0m"
                         % (items_count, items_length, item["name"]),
-                        end="\r",
-                        flush=True,
                     )
                     if item["type"] == "directory":
                         title, year = parseTV(item["name"])

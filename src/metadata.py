@@ -238,7 +238,7 @@ def mediaIdentifier(
         ).json()
 
         if (
-            response.get("data", {}).get("Page", {}).get("pageInfo", {}).get("total")
+            response.get("data", {}).get("Page", {}).get("pageInfo", {}).get("total", 0)
             > 0
         ):
             data = response["data"]["Page"]["media"][0]
@@ -334,7 +334,7 @@ def mediaIdentifier(
         ).json()
 
         if (
-            response.get("data", {}).get("Page", {}).get("pageInfo", {}).get("total")
+            response.get("data", {}).get("Page", {}).get("pageInfo", {}).get("total", 0)
             > 0
         ):
             data = response["data"]["Page"]["media"][0]

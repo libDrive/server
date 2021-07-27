@@ -11,6 +11,7 @@ def driveIter(root, drive, mimeType):
     while True:
         response = drive.files().list(**params).execute()
         for file in response["files"]:
+            file["type"] = "file"
             yield file
         try:
             params["pageToken"] = response["nextPageToken"]
@@ -23,7 +24,6 @@ def driveWalk(root, drive, walk, mimeType):
         for item in driveIter(root, drive, mimeType):
             driveWalk(item, drive, walk, mimeType)
     elif mimeType in root.get("mimeType"):
-        root["type"] = "file"
         walk["children"].append(root)
     else:
         return
@@ -40,7 +40,6 @@ def driveTree(root, drive, mimeType):
         ]
     elif mimeType in root.get("mimeType"):
         tree = root
-        tree["type"] = "file"
     else:
         return
     return tree

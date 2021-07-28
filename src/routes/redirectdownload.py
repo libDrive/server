@@ -37,7 +37,10 @@ async def redirectdownloadFunction(name):
         name = tmp_metadata.get("name", name)
     args = "?"
     for arg in flask.request.args:
-        args += "%s=%s&" % (arg, flask.request.args[arg])
+        args += "%s=%s&" % (
+            arg,
+            urllib.parse.quote(flask.request.args.get(arg, "").encode("utf-8")),
+        )
     session = {"access_token": config.get("access_token")}
 
     session["url"] = "https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id)
@@ -60,6 +63,10 @@ async def redirectdownloadFunction(name):
             session["url"] = url
 
     sessionB64 = base64.b64encode(json.dumps(session).encode("ascii")).decode("ascii")
+    print(
+        "/api/v1/download/%s%ssession=%s&"
+        % (urllib.parse.quote(name.encode("utf-8")), args, sessionB64)
+    )
 
     if config.get("cloudflare") and config.get("cloudflare") != "":
         return flask.redirect(
@@ -69,5 +76,7 @@ async def redirectdownloadFunction(name):
         )
     else:
         return flask.redirect(
-            "/api/v1/download/%s%ssession=%s&" % (name, args, sessionB64), code=302
+            "/api/v1/download/%s%ssession=%s&"
+            % (urllib.parse.quote(name.encode("utf-8")), args, sessionB64),
+            code=302,
         )

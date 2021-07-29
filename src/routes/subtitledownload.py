@@ -5,7 +5,9 @@ import flask
 import requests
 import src.config
 
-subtitledownloadBP = flask.Blueprint("subtitledownload", __name__, url_prefix="/api/v1/subtitledownload")
+subtitledownloadBP = flask.Blueprint(
+    "subtitledownload", __name__, url_prefix="/api/v1/subtitledownload"
+)
 
 
 @subtitledownloadBP.route("/<name>")

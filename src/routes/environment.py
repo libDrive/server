@@ -1,7 +1,9 @@
 import flask
 import src.config
 
-environmentBP = flask.Blueprint("environment", __name__, url_prefix="/api/v1/environment")
+environmentBP = flask.Blueprint(
+    "environment", __name__, url_prefix="/api/v1/environment"
+)
 
 
 @environmentBP.route("/")

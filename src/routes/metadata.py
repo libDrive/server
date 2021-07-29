@@ -3,10 +3,10 @@ import random
 import flask
 import src.config
 
-metadataBP = flask.Blueprint("metadata", __name__)
+metadataBP = flask.Blueprint("metadata", __name__, url_prefix="/api/v1/metadata")
 
 
-@metadataBP.route("/api/v1/metadata")
+@metadataBP.route("/")
 async def metadataFunction():
     a = flask.request.args.get("a")  # AUTH
     c = flask.request.args.get("c")  # CATEGORY

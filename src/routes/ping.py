@@ -2,10 +2,10 @@ import datetime
 
 import flask
 
-pingBP = flask.Blueprint("ping", __name__)
+pingBP = flask.Blueprint("ping", __name__, url_prefix="/api/v1/ping")
 
 
-@pingBP.route("/api/v1/ping")
+@pingBP.route("/")
 async def pingFunction():
     date = flask.request.args.get("date")
     if date:

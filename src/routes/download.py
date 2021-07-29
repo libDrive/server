@@ -5,10 +5,10 @@ import flask
 import requests
 import src.config
 
-downloadBP = flask.Blueprint("download", __name__)
+downloadBP = flask.Blueprint("download", __name__, url_prefix="/api/v1/download")
 
 
-@downloadBP.route("/api/v1/download/<name>")
+@downloadBP.route("/<name>")
 async def downloadFunction(name):
     a = flask.request.args.get("a")  # AUTH
     config = src.config.readConfig()

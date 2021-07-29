@@ -3,12 +3,12 @@ import datetime
 import flask
 import src.config
 
-configBP = flask.Blueprint("config", __name__)
+configBP = flask.Blueprint("config", __name__, url_prefix="/api/v1/config")
 
 import main
 
 
-@configBP.route("/api/v1/config", methods=["GET", "POST"])
+@configBP.route("/", methods=["GET", "POST"])
 async def configFunction():
     secret = flask.request.args.get("secret")  # SECRET
     config = src.config.readConfig()

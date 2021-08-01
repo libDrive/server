@@ -1,12 +1,12 @@
 import flask
 import src.config
 
-rebuildBP = flask.Blueprint("rebuild", __name__, url_prefix="/api/v1/rebuild")
+rebuildBP = flask.Blueprint("rebuild", __name__)
 
 import main
 
 
-@rebuildBP.route("/")
+@rebuildBP.route("/api/v1/rebuild")
 def rebuildFunction():
     secret = flask.request.args.get("secret")  # SECRET
     config = src.config.readConfig()

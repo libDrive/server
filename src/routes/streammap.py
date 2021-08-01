@@ -5,10 +5,10 @@ import flask
 import requests
 import src.config
 
-streammapBP = flask.Blueprint("streammap", __name__, url_prefix="/api/v1/streammap")
+streammapBP = flask.Blueprint("streammap", __name__)
 
 
-@streammapBP.route("/")
+@streammapBP.route("/api/v1/streammap")
 async def streammapFunction():
     a = flask.request.args.get("a")  # AUTH
     id = flask.request.args.get("id")  # ID

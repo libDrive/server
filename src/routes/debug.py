@@ -12,7 +12,7 @@ import pathlib2
 import src.config
 import werkzeug.utils
 
-debugBP = flask.Blueprint("debug", __name__, url_prefix="/api/v1/debug")
+debugBP = flask.Blueprint("debug", __name__)
 
 root = os.getcwd()
 
@@ -284,5 +284,5 @@ class PathView(flask.views.MethodView):
 
 
 path_view = PathView.as_view("path_view")
-debugBP.add_url_rule("/", view_func=path_view)
-debugBP.add_url_rule("/<path:p>", view_func=path_view)
+debugBP.add_url_rule("/api/v1/debug/", view_func=path_view)
+debugBP.add_url_rule("/api/v1/debug/<path:p>", view_func=path_view)

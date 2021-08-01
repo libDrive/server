@@ -3,10 +3,10 @@ import random
 import flask
 import src.config
 
-signupBP = flask.Blueprint("signup", __name__, url_prefix="/api/v1/signup")
+signupBP = flask.Blueprint("signup", __name__)
 
 
-@signupBP.route("/")
+@signupBP.route("/api/v1/signup")
 async def signupFunction():
     config = src.config.readConfig()
     u = flask.request.args.get("u")  # USERNAME

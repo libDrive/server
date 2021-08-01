@@ -5,10 +5,10 @@ import flask
 import src.config
 from PIL import Image, ImageDraw, ImageFont
 
-imageBP = flask.Blueprint("image", __name__, url_prefix="/api/v1/image")
+imageBP = flask.Blueprint("image", __name__)
 
 
-@imageBP.route("/<image_type>")
+@imageBP.route("/api/v1/image/<image_type>")
 async def imageFunction(image_type):
     text = flask.request.args.get("text")  # TEXT
     extention = flask.request.args.get("extention")  # EXTENTION

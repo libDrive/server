@@ -4,10 +4,10 @@ import sys
 import flask
 import src.config
 
-restartBP = flask.Blueprint("restart", __name__, url_prefix="/api/v1/restart")
+restartBP = flask.Blueprint("restart", __name__)
 
 
-@restartBP.route("/")
+@restartBP.route("/api/v1/restart")
 def restartFunction():
     config = src.config.readConfig()
     secret = flask.request.args.get("secret")

@@ -1,10 +1,10 @@
 import flask
 import src.config
 
-authBP = flask.Blueprint("auth", __name__, url_prefix="/api/v1/auth")
+authBP = flask.Blueprint("auth", __name__)
 
 
-@authBP.route("/")
+@authBP.route("/api/v1/auth")
 async def authFunction():
     a = flask.request.args.get("a")  # AUTH
     p = flask.request.args.get("p")  # PASSWORD

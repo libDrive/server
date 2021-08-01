@@ -5,12 +5,10 @@ import flask
 import requests
 import src.config
 
-subtitledownloadBP = flask.Blueprint(
-    "subtitledownload", __name__, url_prefix="/api/v1/subtitledownload"
-)
+subtitledownloadBP = flask.Blueprint("subtitledownload", __name__)
 
 
-@subtitledownloadBP.route("/<name>")
+@subtitledownloadBP.route("/api/v1/subtitledownload/<name>")
 async def subtitledownloadFunction(name):
     a = flask.request.args.get("a")  # AUTH
     id = flask.request.args.get("id")  # ID

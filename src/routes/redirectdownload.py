@@ -7,12 +7,10 @@ import flask
 import requests
 import src.config
 
-redirectdownloadBP = flask.Blueprint(
-    "redirectdownload", __name__, url_prefix="/api/v1/redirectdownload"
-)
+redirectdownloadBP = flask.Blueprint("redirectdownload", __name__)
 
 
-@redirectdownloadBP.route("/<name>")
+@redirectdownloadBP.route("/api/v1/redirectdownload/<name>")
 async def redirectdownloadFunction(name):
     id = flask.request.args.get("id")
     itag = flask.request.args.get("itag")

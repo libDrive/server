@@ -1,10 +1,8 @@
 import datetime
 
 import flask
-import flask_cors
 
 pingBP = flask.Blueprint("ping", __name__, url_prefix="/api/v1/ping")
-flask_cors.CORS(pingBP)
 
 
 @pingBP.route("/")

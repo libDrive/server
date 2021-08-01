@@ -2,12 +2,10 @@ import base64
 import json
 
 import flask
-import flask_cors
 import requests
 import src.config
 
 downloadBP = flask.Blueprint("download", __name__, url_prefix="/api/v1/download")
-flask_cors.CORS(downloadBP)
 
 
 @downloadBP.route("/<name>")

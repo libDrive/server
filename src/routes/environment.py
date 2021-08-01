@@ -1,11 +1,9 @@
 import flask
-import flask_cors
 import src.config
 
 environmentBP = flask.Blueprint(
     "environment", __name__, url_prefix="/api/v1/environment"
 )
-flask_cors.CORS(environmentBP)
 
 
 @environmentBP.route("/")

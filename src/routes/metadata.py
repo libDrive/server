@@ -1,11 +1,9 @@
 import random
 
 import flask
-import flask_cors
 import src.config
 
 metadataBP = flask.Blueprint("metadata", __name__, url_prefix="/api/v1/metadata")
-flask_cors.CORS(metadataBP)
 
 
 @metadataBP.route("/")

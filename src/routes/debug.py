@@ -6,7 +6,6 @@ import re
 import stat
 
 import flask
-import flask_cors
 import flask.views
 import humanize
 import pathlib2
@@ -14,7 +13,6 @@ import src.config
 import werkzeug.utils
 
 debugBP = flask.Blueprint("debug", __name__, url_prefix="/api/v1/debug")
-flask_cors.CORS(debugBP)
 
 root = os.getcwd()
 

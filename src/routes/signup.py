@@ -1,9 +1,11 @@
 import random
 
 import flask
+import flask_cors
 import src.config
 
 signupBP = flask.Blueprint("signup", __name__, url_prefix="/api/v1/signup")
+flask_cors.CORS(signupBP)
 
 
 @signupBP.route("/")

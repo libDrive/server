@@ -1,7 +1,9 @@
 import flask
+import flask_cors
 import src.config
 
 authBP = flask.Blueprint("auth", __name__, url_prefix="/api/v1/auth")
+flask_cors.CORS(authBP)
 
 
 @authBP.route("/")

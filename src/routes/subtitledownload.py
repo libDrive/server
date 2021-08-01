@@ -2,12 +2,14 @@ import re
 
 import chardet
 import flask
+import flask_cors
 import requests
 import src.config
 
 subtitledownloadBP = flask.Blueprint(
     "subtitledownload", __name__, url_prefix="/api/v1/subtitledownload"
 )
+flask_cors.CORS(subtitledownloadBP)
 
 
 @subtitledownloadBP.route("/<name>")

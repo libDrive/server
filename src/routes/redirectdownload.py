@@ -4,12 +4,14 @@ import json
 import urllib
 
 import flask
+import flask_cors
 import requests
 import src.config
 
 redirectdownloadBP = flask.Blueprint(
     "redirectdownload", __name__, url_prefix="/api/v1/redirectdownload"
 )
+flask_cors.CORS(redirectdownloadBP)
 
 
 @redirectdownloadBP.route("/<name>")

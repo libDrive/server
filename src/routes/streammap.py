@@ -2,10 +2,12 @@ import os
 import urllib
 
 import flask
+import flask_cors
 import requests
 import src.config
 
 streammapBP = flask.Blueprint("streammap", __name__, url_prefix="/api/v1/streammap")
+flask_cors.CORS(streammapBP)
 
 
 @streammapBP.route("/")

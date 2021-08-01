@@ -1,9 +1,11 @@
 import datetime
 
 import flask
+import flask_cors
 import src.config
 
 configBP = flask.Blueprint("config", __name__, url_prefix="/api/v1/config")
+flask_cors.CORS(configBP)
 
 import main
 

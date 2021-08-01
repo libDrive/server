@@ -1,7 +1,9 @@
 import flask
+import flask_cors
 import src.config
 
 rebuildBP = flask.Blueprint("rebuild", __name__, url_prefix="/api/v1/rebuild")
+flask_cors.CORS(rebuildBP)
 
 import main
 

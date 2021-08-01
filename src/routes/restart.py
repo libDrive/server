@@ -2,9 +2,11 @@ import os
 import sys
 
 import flask
+import flask_cors
 import src.config
 
 restartBP = flask.Blueprint("restart", __name__, url_prefix="/api/v1/restart")
+flask_cors.CORS(restartBP)
 
 
 @restartBP.route("/")

@@ -2,10 +2,12 @@ import io
 import re
 
 import flask
+import flask_cors
 import src.config
 from PIL import Image, ImageDraw, ImageFont
 
 imageBP = flask.Blueprint("image", __name__, url_prefix="/api/v1/image")
+flask_cors.CORS(imageBP)
 
 
 @imageBP.route("/<image_type>")

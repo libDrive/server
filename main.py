@@ -217,7 +217,7 @@ def create_app():
                 code = "tUUqUjhw"
             soup.find("script", {"id": "@ld-script-arcio"})[
                 "src"
-            ] = "https://arc.io/widget.min.js#%s" % (code)
+            ] = "//arc.io/widget.min.js#%s" % (code)
         else:
             if os.path.exists("./build/arc-sw.js"):
                 os.remove("./build/arc-sw.js")

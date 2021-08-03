@@ -42,6 +42,7 @@ async def redirectdownloadFunction(name):
             urllib.parse.quote(flask.request.args.get(arg, "").encode("utf-8")),
         )
     session = {
+        "access_token": config.get("access_token"),
         "client_id": config.get("client_id"),
         "client_secret": config.get("client_secret"),
         "refresh_token": config.get("refresh_token"),
@@ -68,10 +69,6 @@ async def redirectdownloadFunction(name):
             session["url"] = url
 
     sessionB64 = base64.b64encode(json.dumps(session).encode("ascii")).decode("ascii")
-    print(
-        "/api/v1/download/%s%ssession=%s&"
-        % (urllib.parse.quote(name.encode("utf-8")), args, sessionB64)
-    )
 
     if config.get("cloudflare") and config.get("cloudflare") != "":
         return flask.redirect(

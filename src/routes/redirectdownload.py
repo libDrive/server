@@ -41,7 +41,12 @@ async def redirectdownloadFunction(name):
             arg,
             urllib.parse.quote(flask.request.args.get(arg, "").encode("utf-8")),
         )
-    session = {"access_token": config.get("access_token")}
+    session = {
+        "client_id": config.get("client_id"),
+        "client_secret": config.get("client_secret"),
+        "refresh_token": config.get("refresh_token"),
+        "token_expiry": config.get("token_expiry"),
+    }
 
     session["url"] = "https://www.googleapis.com/drive/v3/files/%s?alt=media" % (id)
     if itag and itag != "" and config.get("transcoded") == True:

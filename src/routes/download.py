@@ -1,5 +1,6 @@
 import base64
 import json
+import datetime
 
 import flask
 import requests
@@ -29,7 +30,16 @@ async def downloadFunction(name):
         any(a == account["auth"] for account in config["account_list"])
         or config.get("auth") == False
     ):
-        config, drive = src.credentials.refreshCredentials(src.config.readConfig())
+        if (
+            datetime.datetime.strptime(
+                config.get("token_expiry", datetime.datetime.utcnow()),
+                "%Y-%m-%d %H:%M:%S.%f",
+            )
+            <= datetime.datetime.utcnow()
+        ):
+            config, drive = src.credentials.refreshCredentials(config)
+            with open("config.json", "w+") as w:
+                json.dump(obj=config, fp=w, sort_keys=True, indent=4)
         headers = {
             key: value for (key, value) in flask.request.headers if key != "Host"
         }

@@ -80,10 +80,10 @@ if not config.get("category_list"):
     config["category_list"] = []
 if not config.get("cloudflare"):
     config["cloudflare"] = ""
-if not config.get("prefre_mkv"):
-    config["prefre_mkv"] = False
-if not config.get("prefre_mp4"):
-    config["prefre_mp4"] = False
+if not config.get("prefer_mkv"):
+    config["prefer_mkv"] = False
+if not config.get("prefer_mp4"):
+    config["prefer_mp4"] = True
 if not config.get("service_accounts"):
     config["service_accounts"] = []
 if not config.get("signup"):

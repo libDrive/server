@@ -28,7 +28,7 @@ def parseMovie(name):
     elif re.match(reg_4, name):
         match = re.search(reg_4, name)
     else:
-        return
+        return None, None
     return match["title"], match["year"]
 
 
@@ -50,7 +50,7 @@ def parseTV(name):
     elif re.match(reg_4, name):
         match = re.search(reg_4, name)
     else:
-        return
+        return None, None
     return match["title"], match["year"]
 
 

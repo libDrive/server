@@ -238,26 +238,29 @@ def mediaIdentifier(
             "https://graphql.anilist.co", json={"query": query, "variables": variables}
         ).json()
 
-        if (
-            response.get("data", {}).get("Page", {}).get("pageInfo", {}).get("total", 0)
-            > 0
-        ):
-            data = response["data"]["Page"]["media"][0]
-        else:
-            data = dict(
-                {
-                    "isAdult": False,
-                    "title": {"english": title},
-                    "startDate": {"year": tmp_year, "month": "01", "day": "01"},
-                    "genres": [],
-                    "original_language": None,
-                    "description": None,
-                    "popularity": 0.0,
-                    "bannerImage": "",
-                    "coverImage": {"large": None},
-                    "averageScore": 0.0,
-                },
-            )
+        data = dict(
+            {
+                "isAdult": False,
+                "title": {"english": title},
+                "startDate": {"year": tmp_year, "month": "01", "day": "01"},
+                "genres": [],
+                "original_language": None,
+                "description": None,
+                "popularity": 0.0,
+                "bannerImage": "",
+                "coverImage": {"large": None},
+                "averageScore": 0.0,
+            },
+        )
+        if response != None:
+            if (
+                response.get("data", {})
+                .get("Page", {})
+                .get("pageInfo", {})
+                .get("total", 0)
+                > 0
+            ):
+                data = response["data"]["Page"]["media"][0]
         if data.get("title", {}).get("english") == None:
             if data.get("title", {}).get("romaji") == None:
                 if data.get("title", {}).get("native") == None:
@@ -334,26 +337,29 @@ def mediaIdentifier(
             "https://graphql.anilist.co", json={"query": query, "variables": variables}
         ).json()
 
-        if (
-            response.get("data", {}).get("Page", {}).get("pageInfo", {}).get("total", 0)
-            > 0
-        ):
-            data = response["data"]["Page"]["media"][0]
-        else:
-            data = dict(
-                {
-                    "isAdult": False,
-                    "title": {"english": title},
-                    "startDate": {"year": tmp_year, "month": "01", "day": "01"},
-                    "genres": [],
-                    "original_language": None,
-                    "description": None,
-                    "popularity": 0.0,
-                    "bannerImage": "",
-                    "coverImage": {"large": None},
-                    "averageScore": 0.0,
-                },
-            )
+        data = dict(
+            {
+                "isAdult": False,
+                "title": {"english": title},
+                "startDate": {"year": tmp_year, "month": "01", "day": "01"},
+                "genres": [],
+                "original_language": None,
+                "description": None,
+                "popularity": 0.0,
+                "bannerImage": "",
+                "coverImage": {"large": None},
+                "averageScore": 0.0,
+            },
+        )
+        if response != None:
+            if (
+                response.get("data", {})
+                .get("Page", {})
+                .get("pageInfo", {})
+                .get("total", 0)
+                > 0
+            ):
+                data = response["data"]["Page"]["media"][0]
         if data.get("title", {}).get("english") == None:
             if data.get("title", {}).get("romaji") == None:
                 if data.get("title", {}).get("native") == None:

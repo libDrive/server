@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import re
+import urllib
 
 import googleapiclient
 import requests
@@ -73,7 +74,7 @@ def mediaIdentifier(
     if movie == True and anime == False:
         search_url = (
             "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s&language=%s"
-            % (tmdb_api_key, title, year, language)
+            % (tmdb_api_key, urllib.parse.quote(title.encode("utf-8")), year, language)
         )
         try:
             search_content = json.loads((requests.get(search_url)).content)
@@ -137,7 +138,7 @@ def mediaIdentifier(
     elif tv == True and anime == False:
         search_url = (
             "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&first_air_date_year=%s&language=%s"
-            % (tmdb_api_key, title, year, language)
+            % (tmdb_api_key, urllib.parse.quote(title.encode("utf-8")), year, language)
         )
         try:
             search_content = json.loads((requests.get(search_url)).content)

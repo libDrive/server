@@ -73,7 +73,7 @@ def mediaIdentifier(
         tmp_year = year
     if movie == True and anime == False:
         search_url = (
-            "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s&language=%s"
+            "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&primary_release_year=%s&language=%s"
             % (tmdb_api_key, urllib.parse.quote(title.encode("utf-8")), year, language)
         )
         try:

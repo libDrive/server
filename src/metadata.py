@@ -197,13 +197,8 @@ def mediaIdentifier(
         )
     elif movie == True and anime == True:
         query = """
-            query ($page: Int, $perPage: Int, $search: String, $seasonYear: Int) {
-                Page(page: $page, perPage: $perPage) {
-                    pageInfo {
-                    total
-                    perPage
-                    }
-                    media(search: $search, seasonYear: $seasonYear, type: ANIME, sort: FAVOURITES_DESC) {
+            query ($search: String, $seasonYear: Int) {
+                Media(search: $search, seasonYear: $seasonYear, type: ANIME) {
                     title {
                         english
                         romaji
@@ -223,21 +218,17 @@ def mediaIdentifier(
                     coverImage {
                         large
                     }
-                    }
                 }
             }
         """
         variables = {
-            "search": title,
-            "page": 1,
-            "perPage": 1,
+            "search": title
         }
         if year != None and year != "":
             variables["seasonYear"] = year
         response = requests.post(
             "https://graphql.anilist.co", json={"query": query, "variables": variables}
         ).json()
-
         data = dict(
             {
                 "isAdult": False,
@@ -255,12 +246,9 @@ def mediaIdentifier(
         if response != None:
             if (
                 response.get("data", {})
-                .get("Page", {})
-                .get("pageInfo", {})
-                .get("total", 0)
-                > 0
+                .get("Media", None)
             ):
-                data = response["data"]["Page"]["media"][0]
+                data = response["data"]["Media"]
         if data.get("title", {}).get("english") == None:
             if data.get("title", {}).get("romaji") == None:
                 if data.get("title", {}).get("native") == None:
@@ -296,13 +284,8 @@ def mediaIdentifier(
         )
     elif tv == True and anime == True:
         query = """
-            query ($page: Int, $perPage: Int, $search: String, $seasonYear: Int) {
-                Page(page: $page, perPage: $perPage) {
-                    pageInfo {
-                    total
-                    perPage
-                    }
-                    media(search: $search, seasonYear: $seasonYear, type: ANIME, sort: FAVOURITES_DESC) {
+            query ($search: String, $seasonYear: Int) {
+                Media(search: $search, seasonYear: $seasonYear, type: ANIME) {
                     title {
                         english
                         romaji
@@ -322,14 +305,11 @@ def mediaIdentifier(
                     coverImage {
                         large
                     }
-                    }
                 }
             }
         """
         variables = {
-            "search": title,
-            "page": 1,
-            "perPage": 1,
+            "search": title
         }
         if year != None and year != "":
             variables["seasonYear"] = year
@@ -354,12 +334,9 @@ def mediaIdentifier(
         if response != None:
             if (
                 response.get("data", {})
-                .get("Page", {})
-                .get("pageInfo", {})
-                .get("total", 0)
-                > 0
+                .get("Media", None)
             ):
-                data = response["data"]["Page"]["media"][0]
+                data = response["data"]["Media"]
         if data.get("title", {}).get("english") == None:
             if data.get("title", {}).get("romaji") == None:
                 if data.get("title", {}).get("native") == None:

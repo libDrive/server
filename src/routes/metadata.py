@@ -169,7 +169,9 @@ async def metadataFunction():
         for x in tmp_metadata:
             x["length"] = len(x["children"])
         if id:
-            tmp_metadata = src.functions.metadata.jsonExtract(tmp_metadata, "id", id, False)
+            tmp_metadata = src.functions.metadata.jsonExtract(
+                tmp_metadata, "id", id, False
+            )
             config, drive = src.functions.credentials.refreshCredentials(config)
             if tmp_metadata:
                 if config.get("build_type") == "full":
@@ -206,7 +208,9 @@ async def metadataFunction():
             if tmp_metadata["mimeType"] == "application/vnd.google-apps.folder":
                 tmp_metadata["type"] = "directory"
                 tmp_metadata["children"] = []
-                for item in src.functions.drivetools.driveIter(tmp_metadata, drive, "video"):
+                for item in src.functions.drivetools.driveIter(
+                    tmp_metadata, drive, "video"
+                ):
                     if (
                         tmp_metadata.get("mimeType")
                         == "application/vnd.google-apps.folder"

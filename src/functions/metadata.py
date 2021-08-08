@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import os
 import re
 import time
@@ -8,6 +9,8 @@ import urllib
 import googleapiclient
 import requests
 import src.functions.drivetools
+
+LOGGER = logging.getLogger()
 
 
 def parseMovie(name):
@@ -83,11 +86,11 @@ def mediaIdentifier(
                 break
             except Exception as e:
                 n += 1
-                print(
+                LOGGER.error(
                     "\033[31mERROR RETRIEVING TMDB DATA FOR '%s'! RETRYING %s/%s...\033[0m"
                     % (title, n, 3),
                 )
-                print(str(e))
+                LOGGER.error(str(e))
                 time.sleep(0.5)
         if search_content.get("total_results") > 0:
             data = search_content["results"][0]
@@ -156,11 +159,11 @@ def mediaIdentifier(
                 break
             except Exception as e:
                 n += 1
-                print(
+                LOGGER.error(
                     "\033[31mERROR RETRIEVING TMDB DATA FOR '%s'! RETRYING %s/%s...\033[0m"
                     % (title, n, 3),
                 )
-                print(str(e))
+                LOGGER.error(str(e))
                 time.sleep(0.5)
         if search_content.get("total_results") > 0:
             data = search_content["results"][0]
@@ -251,11 +254,11 @@ def mediaIdentifier(
                 break
             except Exception as e:
                 n += 1
-                print(
+                LOGGER.error(
                     "\033[31mERROR RETRIEVING ANILIST DATA FOR '%s'! RETRYING %s/%s...\033[0m"
                     % (title, n, 3),
                 )
-                print(str(e))
+                LOGGER.error(str(e))
                 time.sleep(0.5)
         data = dict(
             {
@@ -347,11 +350,11 @@ def mediaIdentifier(
                 break
             except Exception as e:
                 n += 1
-                print(
+                LOGGER.error(
                     "\033[31mERROR RETRIEVING ANILIST DATA FOR '%s'! RETRYING %s/%s...\033[0m"
                     % (title, n, 3),
                 )
-                print(str(e))
+                LOGGER.error(str(e))
                 time.sleep(0.5)
         data = dict(
             {
@@ -472,7 +475,7 @@ def writeMetadata(config):
         count += 1
         start_time = datetime.datetime.utcnow()
         config, drive = src.functions.credentials.refreshCredentials(config)
-        print(
+        LOGGER.info(
             "\033[32mBUILDING METADATA FOR CATEGORY %s/%s %s...\033[0m\n"
             % (count, len(config["category_list"]), category["name"])
         )
@@ -486,11 +489,11 @@ def writeMetadata(config):
                 break
             except Exception as e:
                 n += 1
-                print(
+                LOGGER.error(
                     "\033[31mERROR RETRIEVING FOLDER '%s'! RETRYING %s/%s...\033[0m"
                     % (category["name"], n, 3),
                 )
-                print(str(e))
+                LOGGER.error(str(e))
                 time.sleep(0.5)
         if category["type"] == "Movies":
             tree = root
@@ -507,7 +510,7 @@ def writeMetadata(config):
                 items_length = len(tmp_metadata["children"])
                 for item in tmp_metadata["children"]:
                     items_count += 1
-                    print(
+                    LOGGER.info(
                         "\033[93mSCRAPING %s/%s %s...\033[0m"
                         % (items_count, items_length, item["name"]),
                     )
@@ -546,7 +549,7 @@ def writeMetadata(config):
                 items_length = len(tmp_metadata["children"])
                 for item in tmp_metadata["children"]:
                     items_count += 1
-                    print(
+                    LOGGER.info(
                         "\033[93mSCRAPING %s/%s %s...\033[0m"
                         % (items_count, items_length, item["name"])
                     )
@@ -604,7 +607,7 @@ def writeMetadata(config):
                 items_length = len(tmp_metadata["children"])
                 for item in tmp_metadata["children"]:
                     items_count += 1
-                    print(
+                    LOGGER.info(
                         "\033[93mSCRAPING %s/%s %s...\033[0m"
                         % (items_count, items_length, item["name"]),
                     )
@@ -643,7 +646,7 @@ def writeMetadata(config):
                 items_length = len(tmp_metadata["children"])
                 for item in tmp_metadata["children"]:
                     items_count += 1
-                    print(
+                    LOGGER.info(
                         "\033[93mSCRAPING %s/%s %s...\033[0m"
                         % (items_count, items_length, item["name"]),
                     )
@@ -678,7 +681,7 @@ def writeMetadata(config):
                         )
 
             placeholder_metadata.append(tmp_metadata)
-        print("\nDONE IN %s.\n" % (str(datetime.datetime.utcnow() - start_time)))
+        LOGGER.info("\nDONE IN %s.\n" % (str(datetime.datetime.utcnow() - start_time)))
 
     metadata = placeholder_metadata
 

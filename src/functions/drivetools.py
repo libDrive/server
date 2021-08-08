@@ -1,4 +1,8 @@
 import time
+import logging
+
+LOGGER = logging.getLogger()
+
 
 def driveIter(root, drive, mimeType):
     params = {
@@ -17,11 +21,11 @@ def driveIter(root, drive, mimeType):
                 break
             except Exception as e:
                 n += 1
-                print(
+                LOGGER.error(
                     "\033[31mERROR RETRIEVING FILE '%s'! RETRYING %s/%s...\033[0m"
                     % (root["id"], n, 3),
                 )
-                print(str(e))
+                LOGGER.error(str(e))
                 time.sleep(0.5)
         for file in response["files"]:
             file["type"] = "file"

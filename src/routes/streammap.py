@@ -58,7 +58,9 @@ async def streammapFunction():
 
         subtitle = {"url": ""}
         if config.get("subtitles") == True:
-            config, drive = src.functions.credentials.refreshCredentials(src.functions.config.readConfig())
+            config, drive = src.functions.credentials.refreshCredentials(
+                src.functions.config.readConfig()
+            )
             params = {
                 "supportsAllDrives": True,
                 "fields": "parents",

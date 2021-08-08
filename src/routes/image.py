@@ -80,7 +80,9 @@ async def imageFunction(image_type):
         )
     elif image_type == "thumbnail":
         id = flask.request.args.get("id")
-        config, drive = src.functions.credentials.refreshCredentials(src.functions.config.readConfig())
+        config, drive = src.functions.credentials.refreshCredentials(
+            src.functions.config.readConfig()
+        )
         params = {
             "fileId": id,
             "fields": "thumbnailLink",

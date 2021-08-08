@@ -3,8 +3,8 @@ import io
 import json
 import logging
 import os
-import threading
 import sys
+import threading
 
 import apscheduler.schedulers.background
 import bs4
@@ -315,7 +315,6 @@ async def serve(path):
 
 if __name__ == "__main__":
     print("\033[32mSERVING SERVER...\033[0m")
-
     LIBDRIVE_DEBUG = os.getenv("LIBDRIVE_DEBUG")
     if LIBDRIVE_DEBUG:
         if LIBDRIVE_DEBUG.lower() == "true":
@@ -332,6 +331,7 @@ if __name__ == "__main__":
         debug=LIBDRIVE_DEBUG,
     )
 else:
+    print("\033[32mINITIALIZING LOGGER...\033[0m")
     if not os.path.exists("./logs"):
         os.mkdir("./logs")
     logs_path = os.path.abspath("./logs")
@@ -347,19 +347,17 @@ else:
             os.remove(os.path.join(logs_path, del_file))
         except:
             pass
-
     logging.getLogger("googleapiclient").setLevel(logging.WARNING)
     logging.getLogger("oauth2client").setLevel(logging.WARNING)
     logging.getLogger("waitress").setLevel(logging.INFO)
-
     logging.basicConfig(
         filename="./logs/%s.log"
         % (datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S")),
         level=logging.INFO,
     )
-
     console_logger = logging.getLogger()
     console_logger.setLevel(logging.INFO)
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
     console_logger.addHandler(console_handler)
+    print("DONE.\n")

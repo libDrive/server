@@ -42,7 +42,9 @@ async def subtitledownloadFunction(name):
         any(a == account["auth"] for account in config["account_list"])
         or config.get("auth") == False
     ):
-        config, drive = src.functions.credentials.refreshCredentials(src.functions.config.readConfig())
+        config, drive = src.functions.credentials.refreshCredentials(
+            src.functions.config.readConfig()
+        )
         headers = {
             key: value for (key, value) in flask.request.headers if key != "Host"
         }

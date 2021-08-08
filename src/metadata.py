@@ -221,9 +221,7 @@ def mediaIdentifier(
                 }
             }
         """
-        variables = {
-            "search": title
-        }
+        variables = {"search": title}
         if year != None and year != "":
             variables["seasonYear"] = year
         response = requests.post(
@@ -244,10 +242,7 @@ def mediaIdentifier(
             },
         )
         if response != None:
-            if (
-                response.get("data", {})
-                .get("Media", None)
-            ):
+            if response.get("data", {}).get("Media", None):
                 data = response["data"]["Media"]
         if data.get("title", {}).get("english") == None:
             if data.get("title", {}).get("romaji") == None:
@@ -270,6 +265,8 @@ def mediaIdentifier(
             genres.append(genre)
         if data.get("bannerImage") != None and data.get("bannerImage") != "":
             data["bannerImage"] = data["bannerImage"].replace("/small/", "/large/")
+        if data.get("description") != None and data.get("description") != "":
+            data["description"] = re.sub(re.compile("<.*?>"), "", data["description"])
         return (
             data.get("isAdult", False),
             data.get("bannerImage"),
@@ -308,9 +305,7 @@ def mediaIdentifier(
                 }
             }
         """
-        variables = {
-            "search": title
-        }
+        variables = {"search": title}
         if year != None and year != "":
             variables["seasonYear"] = year
         response = requests.post(
@@ -332,10 +327,7 @@ def mediaIdentifier(
             },
         )
         if response != None:
-            if (
-                response.get("data", {})
-                .get("Media", None)
-            ):
+            if response.get("data", {}).get("Media", None):
                 data = response["data"]["Media"]
         if data.get("title", {}).get("english") == None:
             if data.get("title", {}).get("romaji") == None:
@@ -358,6 +350,8 @@ def mediaIdentifier(
             genres.append(genre)
         if data.get("bannerImage") != None and data.get("bannerImage") != "":
             data["bannerImage"] = data["bannerImage"].replace("/small/", "/large/")
+        if data.get("description") != None and data.get("description") != "":
+            data["description"] = re.sub(re.compile("<.*?>"), "", data["description"])
         return (
             data.get("isAdult", False),
             data.get("bannerImage"),

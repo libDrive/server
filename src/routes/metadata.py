@@ -2,6 +2,9 @@ import random
 
 import flask
 import src.functions.config
+import src.functions.credentials
+import src.functions.drivetools
+import src.functions.metadata
 
 metadataBP = flask.Blueprint("metadata", __name__)
 

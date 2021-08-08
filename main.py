@@ -70,7 +70,7 @@ print("DONE.\n")
 
 if not config.get("account_list"):
     config["account_list"] = []
-if config.get("account_list") == []:
+if config.get("account_list") == [] and config.get("signup") == False:
     config["auth"] = False
 if not config.get("auth"):
     config["auth"] = False

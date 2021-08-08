@@ -594,7 +594,6 @@ def writeMetadata(config):
                         root, drive, "video"
                     ):
                         if root["mimeType"] == "application/vnd.google-apps.folder":
-                            item["type"] = "directory"
                             item["children"] = []
                             for x in src.functions.drivetools.driveIter(
                                 item, drive, "video"
@@ -618,7 +617,6 @@ def writeMetadata(config):
                         root, drive, "video"
                     ):
                         if root["mimeType"] == "application/vnd.google-apps.folder":
-                            item["type"] = "directory"
                             root["children"].append(item)
             tmp_metadata = root
             tmp_metadata["categoryInfo"] = category

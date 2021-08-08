@@ -28,7 +28,10 @@ def driveIter(root, drive, mimeType):
                 LOGGER.error(str(e))
                 time.sleep(0.5)
         for file in response["files"]:
-            file["type"] = "file"
+            if file["mimeType"] == "application/vnd.google-apps.folder":
+                file["type"] = "directory"
+            else:
+                file["type"] = "file"
             yield file
         try:
             params["pageToken"] = response["nextPageToken"]
@@ -50,7 +53,6 @@ def driveWalk(root, drive, walk, mimeType):
 def driveTree(root, drive, mimeType):
     if root.get("mimeType") == "application/vnd.google-apps.folder":
         tree = root
-        tree["type"] = "directory"
         tree["children"] = [
             driveTree(item, drive, mimeType)
             for item in driveIter(root, drive, mimeType)

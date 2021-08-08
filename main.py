@@ -17,6 +17,7 @@ import requests
 import src.functions.config
 import src.functions.credentials
 import src.functions.metadata
+import src.functions.tests
 
 colorama.init()
 print(
@@ -65,11 +66,12 @@ if os.getenv("LIBDRIVE_CLOUD") and config.get("refresh_token"):
         metadata = json.loads(fh.getvalue())
         with open("metadata.json", "w+") as w:
             json.dump(metadata, w)
-
 print("DONE.\n")
 
 if not config.get("account_list"):
     config["account_list"] = []
+if config.get("account_list") == []:
+    config["auth"] = False
 if not config.get("auth"):
     config["auth"] = False
 if not config.get("build_interval"):
@@ -95,11 +97,15 @@ if not config.get("transcoded"):
 if not config.get("ui_config"):
     config["ui_config"] = {}
 
-if config.get("account_list") == []:
-    config["auth"] = False
-
 with open("config.json", "w+") as w:
     json.dump(obj=config, fp=w, sort_keys=True, indent=4)
+
+print("\033[32mTESTING YOUR CONFIG...\033[0m")
+src.functions.tests.tmdb_test(config)
+src.functions.tests.category_list_test(config)
+src.functions.tests.account_list_test(config)
+src.functions.tests.cloudflare_test(config)
+print("DONE.\n")
 
 
 def threaded_metadata():

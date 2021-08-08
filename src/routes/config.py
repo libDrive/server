@@ -1,7 +1,7 @@
 import datetime
 
 import flask
-import src.config
+import src.functions.config
 
 configBP = flask.Blueprint("config", __name__)
 
@@ -11,7 +11,7 @@ import main
 @configBP.route("/api/v1/config", methods=["GET", "POST"])
 async def configFunction():
     secret = flask.request.args.get("secret")  # SECRET
-    config = src.config.readConfig()
+    config = src.functions.config.readConfig()
 
     if flask.request.method == "GET":
         if secret == config.get("secret_key"):
@@ -44,10 +44,10 @@ async def configFunction():
             data = flask.request.json
             data["token_expiry"] = str(datetime.datetime.utcnow())
             if data.get("category_list") != config.get("category_list"):
-                src.config.updateConfig(data)
+                src.functions.config.updateConfig(data)
                 main.threaded_metadata()
             else:
-                src.config.updateConfig(data)
+                src.functions.config.updateConfig(data)
             return (
                 flask.jsonify(
                     {

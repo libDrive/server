@@ -3,7 +3,7 @@ import urllib
 
 import flask
 import requests
-import src.config
+import src.functions.config
 
 streammapBP = flask.Blueprint("streammap", __name__)
 
@@ -14,7 +14,7 @@ async def streammapFunction():
     id = flask.request.args.get("id")  # ID
     name = flask.request.args.get("name")  # NAME
     server = flask.request.args.get("server")  # SERVER
-    config = src.config.readConfig()
+    config = src.functions.config.readConfig()
 
     if config.get("kill_switch") == True:
         return flask.jsonify(
@@ -58,7 +58,7 @@ async def streammapFunction():
 
         subtitle = {"url": ""}
         if config.get("subtitles") == True:
-            config, drive = src.credentials.refreshCredentials(src.config.readConfig())
+            config, drive = src.functions.credentials.refreshCredentials(src.functions.config.readConfig())
             params = {
                 "supportsAllDrives": True,
                 "fields": "parents",

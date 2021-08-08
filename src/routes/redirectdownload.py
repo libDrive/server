@@ -5,7 +5,7 @@ import urllib
 
 import flask
 import requests
-import src.config
+import src.functions.config
 
 redirectdownloadBP = flask.Blueprint("redirectdownload", __name__)
 
@@ -15,7 +15,7 @@ async def redirectdownloadFunction(name):
     id = flask.request.args.get("id")
     itag = flask.request.args.get("itag")
 
-    config = src.config.readConfig()
+    config = src.functions.config.readConfig()
     if config.get("kill_switch") == True:
         return
 
@@ -26,12 +26,12 @@ async def redirectdownloadFunction(name):
         )
         <= datetime.datetime.utcnow()
     ):
-        config, drive = src.credentials.refreshCredentials(config)
+        config, drive = src.functions.credentials.refreshCredentials(config)
         with open("config.json", "w+") as w:
             json.dump(obj=config, fp=w, sort_keys=True, indent=4)
 
-    tmp_metadata = src.metadata.jsonExtract(
-        src.metadata.readMetadata(config), "id", id, False
+    tmp_metadata = src.functions.metadata.jsonExtract(
+        src.functions.metadata.readMetadata(config), "id", id, False
     )
     if tmp_metadata:
         name = tmp_metadata.get("name", name)

@@ -1,5 +1,5 @@
 import flask
-import src.config
+import src.functions.config
 
 environmentBP = flask.Blueprint("environment", __name__)
 
@@ -7,7 +7,7 @@ environmentBP = flask.Blueprint("environment", __name__)
 @environmentBP.route("/api/v1/environment")
 async def environmentFunction():
     a = flask.request.args.get("a")  # AUTH
-    config = src.config.readConfig()
+    config = src.functions.config.readConfig()
 
     if (
         any(a == account["auth"] for account in config["account_list"])

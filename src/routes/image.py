@@ -2,7 +2,7 @@ import io
 import re
 
 import flask
-import src.config
+import src.functions.config
 from PIL import Image, ImageDraw, ImageFont
 
 imageBP = flask.Blueprint("image", __name__)
@@ -80,7 +80,7 @@ async def imageFunction(image_type):
         )
     elif image_type == "thumbnail":
         id = flask.request.args.get("id")
-        config, drive = src.credentials.refreshCredentials(src.config.readConfig())
+        config, drive = src.functions.credentials.refreshCredentials(src.functions.config.readConfig())
         params = {
             "fileId": id,
             "fields": "thumbnailLink",

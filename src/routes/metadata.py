@@ -1,7 +1,7 @@
 import random
 
 import flask
-import src.config
+import src.functions.config
 
 metadataBP = flask.Blueprint("metadata", __name__)
 
@@ -15,8 +15,8 @@ async def metadataFunction():
     q = flask.request.args.get("q")  # QUERY
     r = flask.request.args.get("r")  # RANGE
     s = flask.request.args.get("s")  # SORT-ORDER
-    config = src.config.readConfig()
-    tmp_metadata = src.metadata.readMetadata(config)
+    config = src.functions.config.readConfig()
+    tmp_metadata = src.functions.metadata.readMetadata(config)
 
     if (
         any(a == account["auth"] for account in config["account_list"])
@@ -166,8 +166,8 @@ async def metadataFunction():
         for x in tmp_metadata:
             x["length"] = len(x["children"])
         if id:
-            tmp_metadata = src.metadata.jsonExtract(tmp_metadata, "id", id, False)
-            config, drive = src.credentials.refreshCredentials(config)
+            tmp_metadata = src.functions.metadata.jsonExtract(tmp_metadata, "id", id, False)
+            config, drive = src.functions.credentials.refreshCredentials(config)
             if tmp_metadata:
                 if config.get("build_type") == "full":
                     pass
@@ -177,7 +177,7 @@ async def metadataFunction():
                         tmp_metadata.get("title")
                         and tmp_metadata.get("type") == "directory"
                     ):
-                        for item in src.drivetools.driveIter(
+                        for item in src.functions.drivetools.driveIter(
                             tmp_metadata, drive, "video"
                         ):
                             if item["mimeType"] == "application/vnd.google-apps.folder":
@@ -203,7 +203,7 @@ async def metadataFunction():
             if tmp_metadata["mimeType"] == "application/vnd.google-apps.folder":
                 tmp_metadata["type"] = "directory"
                 tmp_metadata["children"] = []
-                for item in src.drivetools.driveIter(tmp_metadata, drive, "video"):
+                for item in src.functions.drivetools.driveIter(tmp_metadata, drive, "video"):
                     if (
                         tmp_metadata.get("mimeType")
                         == "application/vnd.google-apps.folder"

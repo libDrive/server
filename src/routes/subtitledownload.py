@@ -3,7 +3,7 @@ import re
 import chardet
 import flask
 import requests
-import src.config
+import src.functions.config
 
 subtitledownloadBP = flask.Blueprint("subtitledownload", __name__)
 
@@ -12,7 +12,7 @@ subtitledownloadBP = flask.Blueprint("subtitledownload", __name__)
 async def subtitledownloadFunction(name):
     a = flask.request.args.get("a")  # AUTH
     id = flask.request.args.get("id")  # ID
-    config = src.config.readConfig()
+    config = src.functions.config.readConfig()
 
     def download_file(streamable):
         with streamable as stream:
@@ -42,7 +42,7 @@ async def subtitledownloadFunction(name):
         any(a == account["auth"] for account in config["account_list"])
         or config.get("auth") == False
     ):
-        config, drive = src.credentials.refreshCredentials(src.config.readConfig())
+        config, drive = src.functions.credentials.refreshCredentials(src.functions.config.readConfig())
         headers = {
             key: value for (key, value) in flask.request.headers if key != "Host"
         }

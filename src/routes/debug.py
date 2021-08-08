@@ -9,14 +9,14 @@ import flask
 import flask.views
 import humanize
 import pathlib2
-import src.config
+import src.functions.config
 import werkzeug.utils
 
 debugBP = flask.Blueprint("debug", __name__)
 
 root = os.getcwd()
 
-config = src.config.readConfig()
+config = src.functions.config.readConfig()
 
 ignored = [
     ".bzr",

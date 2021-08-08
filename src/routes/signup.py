@@ -1,14 +1,14 @@
 import random
 
 import flask
-import src.config
+import src.functions.config
 
 signupBP = flask.Blueprint("signup", __name__)
 
 
 @signupBP.route("/api/v1/signup")
 async def signupFunction():
-    config = src.config.readConfig()
+    config = src.functions.config.readConfig()
     u = flask.request.args.get("u")  # USERNAME
     p = flask.request.args.get("p")  # PASSWORD
 
@@ -31,7 +31,7 @@ async def signupFunction():
             )
             account = {"username": u, "password": p, "pic": "", "auth": auth}
             config["account_list"].append(account)
-            src.config.updateConfig(config)
+            src.functions.config.updateConfig(config)
             return (
                 flask.jsonify(
                     {

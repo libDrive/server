@@ -2,14 +2,14 @@ import os
 import sys
 
 import flask
-import src.config
+import src.functions.config
 
 restartBP = flask.Blueprint("restart", __name__)
 
 
 @restartBP.route("/api/v1/restart")
 def restartFunction():
-    config = src.config.readConfig()
+    config = src.functions.config.readConfig()
     secret = flask.request.args.get("secret")
     if secret == config.get("secret_key"):
         os.execv(sys.executable, [sys.executable] + sys.argv)

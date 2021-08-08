@@ -4,7 +4,7 @@ import json
 
 import flask
 import requests
-import src.config
+import src.functions.config
 
 downloadBP = flask.Blueprint("download", __name__)
 
@@ -12,7 +12,7 @@ downloadBP = flask.Blueprint("download", __name__)
 @downloadBP.route("/api/v1/download/<name>")
 async def downloadFunction(name):
     a = flask.request.args.get("a")  # AUTH
-    config = src.config.readConfig()
+    config = src.functions.config.readConfig()
 
     def download_file(streamable):
         with streamable as stream:
@@ -37,7 +37,7 @@ async def downloadFunction(name):
             )
             <= datetime.datetime.utcnow()
         ):
-            config, drive = src.credentials.refreshCredentials(config)
+            config, drive = src.functions.credentials.refreshCredentials(config)
             with open("config.json", "w+") as w:
                 json.dump(obj=config, fp=w, sort_keys=True, indent=4)
         headers = {

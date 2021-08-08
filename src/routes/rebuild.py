@@ -1,5 +1,5 @@
 import flask
-import src.config
+import src.functions.config
 
 rebuildBP = flask.Blueprint("rebuild", __name__)
 
@@ -9,7 +9,7 @@ import main
 @rebuildBP.route("/api/v1/rebuild")
 def rebuildFunction():
     secret = flask.request.args.get("secret")  # SECRET
-    config = src.config.readConfig()
+    config = src.functions.config.readConfig()
 
     if secret == config.get("secret_key"):
         res, code = main.threaded_metadata()

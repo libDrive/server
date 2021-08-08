@@ -14,27 +14,27 @@ import flask_cors
 import googleapiclient
 import requests
 
-import src.config
-import src.credentials
-import src.metadata
+import src.functions.config
+import src.functions.credentials
+import src.functions.metadata
 
 colorama.init()
 print(
-    "====================================================\n\033[96m               libDrive - \033[92mv1.3.10\033[94m\n                   @eliasbenb\033[0m\n====================================================\n"
+    "====================================================\n\033[96m               libDrive - v1.3.10\033[94m\n                   @eliasbenb\033[0m\n====================================================\n"
 )
 
-print("\033[91mREADING CONFIG...\033[0m")
+print("\033[32mREADING CONFIG...\033[0m")
 if os.getenv("LIBDRIVE_CONFIG"):
     config_str = os.getenv("LIBDRIVE_CONFIG")
     with open("config.json", "w+") as w:
         json.dump(obj=json.loads(config_str), fp=w, sort_keys=True, indent=4)
-config = src.config.readConfig()
+config = src.functions.config.readConfig()
 print("DONE.\n")
 
-print("\033[91mREADING METADATA...\033[0m")
-metadata = src.metadata.readMetadata(config)
+print("\033[32mREADING METADATA...\033[0m")
+metadata = src.functions.metadata.readMetadata(config)
 if os.getenv("LIBDRIVE_CLOUD") and config.get("refresh_token"):
-    config, drive = src.credentials.refreshCredentials(config)
+    config, drive = src.functions.credentials.refreshCredentials(config)
     params = {
         "supportsAllDrives": True,
         "includeItemsFromAllDrives": True,
@@ -53,8 +53,8 @@ if os.getenv("LIBDRIVE_CLOUD") and config.get("refresh_token"):
         while done is False:
             status, done = downloader.next_chunk()
         config = json.loads(fh.getvalue())
-        config, drive = src.credentials.refreshCredentials(config)
-        src.config.updateConfig(config)
+        config, drive = src.functions.credentials.refreshCredentials(config)
+        src.functions.config.updateConfig(config)
     if metadata_file:
         request = drive.files().get_media(fileId=metadata_file["id"])
         fh = io.BytesIO()
@@ -115,10 +115,10 @@ def threaded_metadata():
                 },
                 500,
             )
-    config = src.config.readConfig()
+    config = src.functions.config.readConfig()
     if len(config.get("category_list")) > 0:
         metadata_thread = threading.Thread(
-            target=src.metadata.writeMetadata,
+            target=src.functions.metadata.writeMetadata,
             args=(config,),
             daemon=True,
             name="metadata_thread",
@@ -236,7 +236,7 @@ def create_app():
     if not build_interval:
         build_interval = 360
     if build_interval != 0:
-        print("\033[91mCREATING CRON JOB...\033[0m")
+        print("\033[32mCREATING CRON JOB...\033[0m")
         sched = apscheduler.schedulers.background.BackgroundScheduler(daemon=True)
         sched.add_job(
             threaded_metadata,
@@ -308,7 +308,7 @@ async def serve(path):
 
 
 if __name__ == "__main__":
-    print("\033[91mSERVING SERVER...\033[0m")
+    print("\033[32mSERVING SERVER...\033[0m")
 
     LIBDRIVE_DEBUG = os.getenv("LIBDRIVE_DEBUG")
     if LIBDRIVE_DEBUG:

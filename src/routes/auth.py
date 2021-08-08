@@ -1,5 +1,5 @@
 import flask
-import src.config
+import src.functions.config
 
 authBP = flask.Blueprint("auth", __name__)
 
@@ -9,7 +9,7 @@ async def authFunction():
     a = flask.request.args.get("a")  # AUTH
     p = flask.request.args.get("p")  # PASSWORD
     u = flask.request.args.get("u")  # USERNAME
-    config = src.config.readConfig()
+    config = src.functions.config.readConfig()
 
     rules = flask.request.args.get("rules")  # RULES
     if config.get("auth") == False:

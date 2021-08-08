@@ -1,3 +1,5 @@
+import time
+
 def driveIter(root, drive, mimeType):
     params = {
         "pageToken": None,
@@ -9,7 +11,18 @@ def driveIter(root, drive, mimeType):
         "orderBy": "name",
     }
     while True:
-        response = drive.files().list(**params).execute()
+        for n in range(3):
+            try:
+                response = drive.files().list(**params).execute()
+                break
+            except Exception as e:
+                n += 1
+                print(
+                    "\033[31mERROR RETRIEVING FILE '%s'! RETRYING %s/%s...\033[0m"
+                    % (root["id"], n, 3),
+                )
+                print(str(e))
+                time.sleep(0.5)
         for file in response["files"]:
             file["type"] = "file"
             yield file

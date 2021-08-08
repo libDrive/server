@@ -588,7 +588,29 @@ def writeMetadata(config):
         elif category["type"] == "TV Shows":
             if root["mimeType"] == "application/vnd.google-apps.folder":
                 if config.get("build_type") == "full":
-                    root = src.functions.drivetools.driveTree(root, drive, "video")
+                    root["type"] = "directory"
+                    root["children"] = []
+                    for item in src.functions.drivetools.driveIter(
+                        root, drive, "video"
+                    ):
+                        if root["mimeType"] == "application/vnd.google-apps.folder":
+                            item["type"] = "directory"
+                            item["children"] = []
+                            for x in src.functions.drivetools.driveIter(
+                                item, drive, "video"
+                            ):
+                                if (
+                                    x["mimeType"]
+                                    == "application/vnd.google-apps.folder"
+                                ):
+                                    x["children"] = []
+                                    for y in src.functions.drivetools.driveIter(
+                                        x, drive, "video"
+                                    ):
+                                        if "video" in y["mimeType"]:
+                                            x["children"].append(y)
+                                    item["children"].append(x)
+                            root["children"].append(item)
                 else:
                     root["type"] = "directory"
                     root["children"] = []

@@ -53,3 +53,46 @@ async def trailerFunction(id):
                 },
                 404,
             )
+        elif api == "anilist":
+            query = """
+                query ($id: Int) {
+                    Media(id: $id, type: ANIME) {
+                        trailer {
+                            id
+                            site
+                        }
+                    }
+                }
+            """
+            variables = {"id": id}
+            response = requests.post(
+                "https://graphql.anilist.co",
+                json={"query": query, "variables": variables},
+            ).json()
+            if response != None:
+                if response.get("data", {}).get("Media", {}).get("trailer"):
+                    trailer = response["data"]["Media"]["trailer"]
+                    if trailer.get("site") == "youtube":
+                        trailer = {
+                            "type": "trailer",
+                            "site": "YouTube",
+                            "key": trailer.get("id"),
+                        }
+                        return (
+                            {
+                                "code": 200,
+                                "content": trailer,
+                                "message": "Trailer found successfully.",
+                                "success": True,
+                            },
+                            200,
+                        )
+            return (
+                {
+                    "code": 404,
+                    "content": None,
+                    "message": "Trailer could not be found.",
+                    "success": False,
+                },
+                404,
+            )

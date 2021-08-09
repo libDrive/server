@@ -108,6 +108,7 @@ def mediaIdentifier(
                     "adult": False,
                     "backdrop_path": None,
                     "genre_ids": [],
+                    "id": None,
                     "original_language": None,
                     "overview": None,
                     "popularity": 70.412,
@@ -117,8 +118,8 @@ def mediaIdentifier(
                     "vote_average": 0.0,
                 },
             )
-
         adult = data.get("adult", False)
+        apiId = data.get("id")
         backdropPath = data.get("backdrop_path", None)
         genres = data.get("genre_ids", [])
         tmp_genres = []
@@ -137,6 +138,7 @@ def mediaIdentifier(
         voteAverage = data.get("vote_average", 0.0)
         return (
             adult,
+            apiId,
             backdropPath,
             genres,
             language,
@@ -181,6 +183,7 @@ def mediaIdentifier(
                     "backdrop_path": None,
                     "first_air_date": "%s-01-01" % (tmp_year),
                     "genre_ids": [],
+                    "id": None,
                     "name": title,
                     "original_language": None,
                     "overview": None,
@@ -189,6 +192,7 @@ def mediaIdentifier(
                     "vote_average": 0.0,
                 },
             )
+        apiId = data.get("id")
         backdropPath = data.get("backdrop_path", None)
         genres = data.get("genre_ids", [])
         tmp_genres = []
@@ -206,6 +210,7 @@ def mediaIdentifier(
         title = data.get("name", title)
         voteAverage = data.get("vote_average", 0.0)
         return (
+            apiId,
             backdropPath,
             genres,
             language,
@@ -225,6 +230,7 @@ def mediaIdentifier(
                         romaji
                         native
                     }
+                    id
                     description
                     genres
                     isAdult
@@ -263,6 +269,7 @@ def mediaIdentifier(
         data = dict(
             {
                 "isAdult": False,
+                "id": None,
                 "title": {"english": title},
                 "startDate": {"year": tmp_year, "month": "01", "day": "01"},
                 "genres": [],
@@ -302,6 +309,7 @@ def mediaIdentifier(
             data["description"] = re.sub(re.compile("<.*?>"), "", data["description"])
         return (
             data.get("isAdult", False),
+            data.get("id"),
             data.get("bannerImage"),
             genres,
             data.get("original_language"),
@@ -321,6 +329,7 @@ def mediaIdentifier(
                         romaji
                         native
                     }
+                    id
                     description
                     genres
                     isAdult
@@ -359,6 +368,7 @@ def mediaIdentifier(
         data = dict(
             {
                 "isAdult": False,
+                "id": None,
                 "title": {"english": title},
                 "startDate": {"year": tmp_year, "month": "01", "day": "01"},
                 "genres": [],
@@ -398,6 +408,7 @@ def mediaIdentifier(
             data["description"] = re.sub(re.compile("<.*?>"), "", data["description"])
         return (
             data.get("isAdult", False),
+            data.get("id"),
             data.get("bannerImage"),
             genres,
             data.get("original_language"),
@@ -520,8 +531,10 @@ def writeMetadata(config):
                             title = item["name"]
                         if year == None:
                             year = ""
+                        item["api"] = "tmdb"
                         (
                             item["adult"],
+                            item["apiId"],
                             item["backdropPath"],
                             item["genres"],
                             item["language"],
@@ -559,8 +572,10 @@ def writeMetadata(config):
                             title = item["name"]
                         if year == None:
                             year = ""
+                        item["api"] = "tmdb"
                         (
                             item["adult"],
+                            item["apiId"],
                             item["backdropPath"],
                             item["genres"],
                             item["language"],
@@ -637,8 +652,10 @@ def writeMetadata(config):
                             title = item["name"]
                         if year == None:
                             year = ""
+                        item["api"] = "anilist"
                         (
                             item["adult"],
+                            item["apiId"],
                             item["backdropPath"],
                             item["genres"],
                             item["language"],
@@ -676,7 +693,9 @@ def writeMetadata(config):
                             title = item["name"]
                         if year == None:
                             year = ""
+                        item["api"] = "tmdb"
                         (
+                            item["apiId"],
                             item["backdropPath"],
                             item["genres"],
                             item["language"],

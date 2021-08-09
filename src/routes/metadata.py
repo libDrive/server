@@ -203,7 +203,11 @@ async def metadataFunction():
                     200,
                 )
             tmp_metadata = (
-                drive.files().get(fileId=id, supportsAllDrives=True).execute()
+                drive.files()
+                .get(
+                    fileId=id, supportsAllDrives=True, fields="id,name,mimeType,parents"
+                )
+                .execute()
             )
             if tmp_metadata["mimeType"] == "application/vnd.google-apps.folder":
                 tmp_metadata["type"] = "directory"

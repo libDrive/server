@@ -71,7 +71,7 @@ async def streammapFunction():
                 "pageToken": None,
                 "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,
-                "fields": "files(id,name,mimeType), incompleteSearch, nextPageToken",
+                "fields": "files(id,name,mimeType,parents), incompleteSearch, nextPageToken",
                 "q": "'%s' in parents and trashed = false and (name contains '.srt' or name contains '.vtt')"
                 % (parent),
                 "orderBy": "name",

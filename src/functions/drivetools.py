@@ -9,7 +9,7 @@ def driveIter(root, drive, mimeType):
         "pageToken": None,
         "supportsAllDrives": True,
         "includeItemsFromAllDrives": True,
-        "fields": "files(id,name,mimeType), incompleteSearch, nextPageToken",
+        "fields": "files(id,name,mimeType,parents), incompleteSearch, nextPageToken",
         "q": "'%s' in parents and trashed = false and (mimeType = 'application/vnd.google-apps.folder' or mimeType contains '%s')"
         % (root["id"], mimeType),
         "orderBy": "name",

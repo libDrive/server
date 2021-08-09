@@ -28,7 +28,7 @@ async def trailerFunction(id):
                             i
                             for i in trailers["results"]
                             if i["official"] == True
-                            and i["type"] == "trailer"
+                            and i["type"] == "Trailer"
                             and i["site"] == "YouTube"
                         ),
                         None,

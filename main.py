@@ -287,6 +287,7 @@ from src.routes.restart import restartBP
 from src.routes.signup import signupBP
 from src.routes.streammap import streammapBP
 from src.routes.subtitledownload import subtitledownloadBP
+from src.routes.trailer import trailerBP
 
 app.register_blueprint(authBP)
 app.register_blueprint(configBP)
@@ -302,6 +303,7 @@ app.register_blueprint(restartBP)
 app.register_blueprint(signupBP)
 app.register_blueprint(streammapBP)
 app.register_blueprint(subtitledownloadBP)
+app.register_blueprint(trailerBP)
 
 
 @app.route("/", defaults={"path": ""})

@@ -18,6 +18,7 @@ async def metadataFunction():
     q = flask.request.args.get("q")  # QUERY
     r = flask.request.args.get("r")  # RANGE
     s = flask.request.args.get("s")  # SORT-ORDER
+    rmdup = flask.request.args.get("rmdup")  # REMOVE DUPLICATES
     config = src.functions.config.readConfig()
     tmp_metadata = src.functions.metadata.readMetadata(config)
 
@@ -231,6 +232,15 @@ async def metadataFunction():
                     "category['children']" + "[" + r + "]"
                 )
                 index += 1
+        if rmdup == "true":
+            for category in tmp_metadata:
+                unique = []
+                tmp_metadata2 = []
+                for item in category["children"]:
+                    if item["apiId"] not in unique:
+                        unique.append(item["apiId"])
+                        tmp_metadata2.append(item)
+                category["children"] = tmp_metadata2
         return (
             flask.jsonify(
                 {

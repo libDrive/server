@@ -234,10 +234,10 @@ async def metadataFunction():
                 index += 1
         if rmdup == "true":
             for category in tmp_metadata:
-                unique = []
+                unique = ["null"]
                 tmp_metadata2 = []
                 for item in category["children"]:
-                    if item["apiId"] not in unique:
+                    if item.get("apiId", "null") not in unique and item.get("apiId") != None:
                         unique.append(item["apiId"])
                         tmp_metadata2.append(item)
                 category["children"] = tmp_metadata2

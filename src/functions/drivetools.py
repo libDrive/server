@@ -24,8 +24,12 @@ def driveIter(root, drive, mimeType):
             )
             LOGGER.error(str(e))
         for file in response["files"]:
-            if file["mimeType"] == "application/vnd.google-apps.folder":
+            if mimeType in file["mimeType"]:
+                file["type"] = "file"
+                yield file
+            elif file["mimeType"] == "application/vnd.google-apps.folder":
                 file["type"] = "directory"
+                yield file
             elif file["mimeType"] == "application/vnd.google-apps.shortcut":
                 tmp_file = {
                     "id": file["shortcutDetails"]["targetId"],
@@ -35,12 +39,12 @@ def driveIter(root, drive, mimeType):
                 }
                 if tmp_file["mimeType"] == "application/vnd.google-apps.folder":
                     tmp_file["type"] = "directory"
-                else:
+                    file = tmp_file
+                    yield file
+                elif mimeType in tmp_file["mimeType"]:
                     tmp_file["type"] = "file"
-                file = tmp_file
-            else:
-                file["type"] = "file"
-            yield file
+                    file = tmp_file
+                    yield file
         try:
             params["pageToken"] = response["nextPageToken"]
         except KeyError:

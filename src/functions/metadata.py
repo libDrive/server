@@ -79,19 +79,14 @@ def mediaIdentifier(
             "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&primary_release_year=%s&language=%s"
             % (tmdb_api_key, urllib.parse.quote(title.encode("utf-8")), year, language)
         )
-        search_content = {"total_results": 0}
-        for n in range(3):
-            try:
-                search_content = json.loads((requests.get(search_url)).content)
-                break
-            except Exception as e:
-                n += 1
-                LOGGER.error(
-                    "\033[31mERROR RETRIEVING TMDB DATA FOR '%s'! RETRYING %s/%s...\033[0m"
-                    % (title, n, 3),
-                )
-                LOGGER.error(str(e))
-                time.sleep(0.5)
+        try:
+            search_content = requests.get(search_url).json()
+        except Exception as e:
+            search_content = {"total_results": 0}
+            LOGGER.error(
+                "\033[31mERROR RETRIEVING TMDB DATA FOR '%s'!\033[0m" % (title),
+            )
+            LOGGER.error(str(e))
         if search_content.get("total_results") > 0:
             data = search_content["results"][0]
             if data.get("backdrop_path"):
@@ -154,19 +149,14 @@ def mediaIdentifier(
             "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&first_air_date_year=%s&language=%s"
             % (tmdb_api_key, urllib.parse.quote(title.encode("utf-8")), year, language)
         )
-        search_content = {"total_results": 0}
-        for n in range(3):
-            try:
-                search_content = json.loads((requests.get(search_url)).content)
-                break
-            except Exception as e:
-                n += 1
-                LOGGER.error(
-                    "\033[31mERROR RETRIEVING TMDB DATA FOR '%s'! RETRYING %s/%s...\033[0m"
-                    % (title, n, 3),
-                )
-                LOGGER.error(str(e))
-                time.sleep(0.5)
+        try:
+            search_content = requests.get(search_url).json()
+        except Exception as e:
+            search_content = {"total_results": 0}
+            LOGGER.error(
+                "\033[31mERROR RETRIEVING TMDB DATA FOR '%s'!\033[0m" % (title,),
+            )
+            LOGGER.error(str(e))
         if search_content.get("total_results") > 0:
             data = search_content["results"][0]
             if data.get("backdrop_path"):
@@ -251,21 +241,17 @@ def mediaIdentifier(
         variables = {"search": title}
         if year != None and year != "":
             variables["seasonYear"] = year
-        for n in range(3):
-            try:
-                response = requests.post(
-                    "https://graphql.anilist.co",
-                    json={"query": query, "variables": variables},
-                ).json()
-                break
-            except Exception as e:
-                n += 1
-                LOGGER.error(
-                    "\033[31mERROR RETRIEVING ANILIST DATA FOR '%s'! RETRYING %s/%s...\033[0m"
-                    % (title, n, 3),
-                )
-                LOGGER.error(str(e))
-                time.sleep(0.5)
+        try:
+            response = requests.post(
+                "https://graphql.anilist.co",
+                json={"query": query, "variables": variables},
+            ).json()
+        except Exception as e:
+            response = None
+            LOGGER.error(
+                "\033[31mERROR RETRIEVING ANILIST DATA FOR '%s'!\033[0m" % (title),
+            )
+            LOGGER.error(str(e))
         data = dict(
             {
                 "isAdult": False,
@@ -350,21 +336,17 @@ def mediaIdentifier(
         variables = {"search": title}
         if year != None and year != "":
             variables["seasonYear"] = year
-        for n in range(3):
-            try:
-                response = requests.post(
-                    "https://graphql.anilist.co",
-                    json={"query": query, "variables": variables},
-                ).json()
-                break
-            except Exception as e:
-                n += 1
-                LOGGER.error(
-                    "\033[31mERROR RETRIEVING ANILIST DATA FOR '%s'! RETRYING %s/%s...\033[0m"
-                    % (title, n, 3),
-                )
-                LOGGER.error(str(e))
-                time.sleep(0.5)
+        try:
+            response = requests.post(
+                "https://graphql.anilist.co",
+                json={"query": query, "variables": variables},
+            ).json()
+        except Exception as e:
+            response = None
+            LOGGER.error(
+                "\033[31mERROR RETRIEVING ANILIST DATA FOR '%s'!\033[0m" % (title),
+            )
+            LOGGER.error(str(e))
         data = dict(
             {
                 "isAdult": False,
@@ -383,16 +365,17 @@ def mediaIdentifier(
         if response != None:
             if response.get("data", {}).get("Media", None):
                 data = response["data"]["Media"]
-        if data.get("title", {}).get("english") == None:
-            if data.get("title", {}).get("romaji") == None:
-                if data.get("title", {}).get("native") == None:
+        title_dict = data.get("title", {})
+        if title_dict.get("english") == None:
+            if title_dict.get("romaji") == None:
+                if title_dict.get("native") == None:
                     data["title"] = title
                 else:
-                    data["title"] = data["title"]["native"]
+                    data["title"] = title_dict["native"]
             else:
-                data["title"] = data["title"]["romaji"]
+                data["title"] = title_dict["romaji"]
         else:
-            data["title"] = data["title"]["english"]
+            data["title"] = title_dict["english"]
         startDate = data.get("startDate", {})
         releases_date = "%s-%s-%s" % (
             startDate.get("year", tmp_year),
@@ -490,22 +473,17 @@ def writeMetadata(config):
             "\033[32mBUILDING METADATA FOR CATEGORY %s/%s %s...\033[0m\n"
             % (count, len(config["category_list"]), category["name"])
         )
-        for n in range(3):
-            try:
-                root = (
-                    drive.files()
-                    .get(fileId=category["id"], supportsAllDrives=True)
-                    .execute()
-                )
-                break
-            except Exception as e:
-                n += 1
-                LOGGER.error(
-                    "\033[31mERROR RETRIEVING FOLDER '%s'! RETRYING %s/%s...\033[0m"
-                    % (category["name"], n, 3),
-                )
-                LOGGER.error(str(e))
-                time.sleep(0.5)
+        try:
+            root = (
+                drive.files()
+                .get(fileId=category["id"], supportsAllDrives=True)
+                .execute()
+            )
+        except Exception as e:
+            LOGGER.error(
+                "\033[31mERROR RETRIEVING FOLDER '%s'!\033[0m" % (category["name"]),
+            )
+            LOGGER.error(str(e))
         if category["type"] == "Movies":
             tree = root
             tree["type"] = "directory"

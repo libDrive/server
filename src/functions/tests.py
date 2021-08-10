@@ -21,7 +21,7 @@ def category_list_test(config):
         for item in config.get("category_list"):
             if (
                 (isinstance(item, dict))
-                and (len(item.get("id", "")) >= 32)
+                and (item.get("id", "") != "")
                 and (item.get("name", "") != "")
                 and (item.get("type") in ["Movies", "TV Shows"])
             ):

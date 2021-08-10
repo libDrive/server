@@ -15,18 +15,15 @@ def driveIter(root, drive, mimeType):
         "orderBy": "name",
     }
     while True:
-        for n in range(3):
-            try:
-                response = drive.files().list(**params).execute()
-                break
-            except Exception as e:
-                n += 1
-                LOGGER.error(
-                    "\033[31mERROR RETRIEVING FILE '%s'! RETRYING %s/%s...\033[0m"
-                    % (root["id"], n, 3),
-                )
-                LOGGER.error(str(e))
-                time.sleep(0.5)
+        try:
+            response = drive.files().list(**params).execute()
+        except Exception as e:
+            response = {"files": []}
+            LOGGER.error(
+                "\033[31mERROR RETRIEVING FILE '%s'!\033[0m"
+                % (root["id"]),
+            )
+            LOGGER.error(str(e))
         for file in response["files"]:
             if file["mimeType"] == "application/vnd.google-apps.folder":
                 file["type"] = "directory"

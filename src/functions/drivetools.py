@@ -9,8 +9,8 @@ def driveIter(root, drive, mimeType):
         "pageToken": None,
         "supportsAllDrives": True,
         "includeItemsFromAllDrives": True,
-        "fields": "files(id,name,mimeType,parents), incompleteSearch, nextPageToken",
-        "q": "'%s' in parents and trashed = false and (mimeType = 'application/vnd.google-apps.folder' or mimeType contains '%s')"
+        "fields": "files(id,name,mimeType,parents,shortcutDetails), incompleteSearch, nextPageToken",
+        "q": "'%s' in parents and trashed = false and (mimeType = 'application/vnd.google-apps.folder' or mimeType = 'application/vnd.google-apps.shortcut' or mimeType contains '%s')"
         % (root["id"], mimeType),
         "orderBy": "name",
     }
@@ -20,13 +20,24 @@ def driveIter(root, drive, mimeType):
         except Exception as e:
             response = {"files": []}
             LOGGER.error(
-                "\033[31mERROR RETRIEVING FILE '%s'!\033[0m"
-                % (root["id"]),
+                "\033[31mERROR RETRIEVING FILE '%s'!\033[0m" % (root["id"]),
             )
             LOGGER.error(str(e))
         for file in response["files"]:
             if file["mimeType"] == "application/vnd.google-apps.folder":
                 file["type"] = "directory"
+            elif file["mimeType"] == "application/vnd.google-apps.shortcut":
+                tmp_file = {
+                    "id": file["shortcutDetails"]["targetId"],
+                    "name": file["name"],
+                    "mimeType": file["shortcutDetails"]["targetMimeType"],
+                    "parents": file["parents"],
+                }
+                if tmp_file["mimeType"] == "application/vnd.google-apps.folder":
+                    tmp_file["type"] = "directory"
+                else:
+                    tmp_file["type"] = "file"
+                file = tmp_file
             else:
                 file["type"] = "file"
             yield file

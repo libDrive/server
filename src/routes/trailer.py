@@ -18,7 +18,7 @@ async def trailerFunction(id):
     ):
         if api == "tmdb":
             trailers = requests.get(
-                "https://api.themoviedb.org/3/%s/%s/videos?api_key=%s"
+                "https://api.themoviedb.org/3/%s/%s/videos?api_key=%s&language=en"
                 % (t, id, config.get("tmdb_api_key"))
             ).json()
             if trailers:
@@ -31,10 +31,15 @@ async def trailerFunction(id):
                             and i["type"] == "Trailer"
                             and i["site"] == "YouTube"
                         ),
-                        None,
+                        next(
+                            (
+                                i
+                                for i in trailers["results"]
+                                if i["type"] == "Trailer" and i["site"] == "YouTube"
+                            ),
+                            trailers["results"][0],
+                        ),
                     )
-                    if not trailer:
-                        trailer = trailers["results"][0]
                     return (
                         {
                             "code": 200,

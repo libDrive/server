@@ -18,8 +18,8 @@ async def trailerFunction(id):
     ):
         if api == "tmdb":
             trailers = requests.get(
-                "https://api.themoviedb.org/3/%s/%s/videos?api_key=%s&language=en"
-                % (t, id, config.get("tmdb_api_key"))
+                "https://api.themoviedb.org/3/%s/%s/videos?api_key=%s&language=%s"
+                % (t, id, config.get("tmdb_api_key"), config.get("language", "en"))
             ).json()
             if trailers:
                 if len(trailers.get("results", [])) > 0:

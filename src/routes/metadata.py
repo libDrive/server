@@ -167,6 +167,21 @@ async def metadataFunction():
                         400,
                     )
                 index += 1
+        if rmdup == "true":
+            for category in tmp_metadata:
+                unique = ["null"]
+                tmp_metadata2 = []
+                for item in category["children"]:
+                    try:
+                        if (
+                            item.get("apiId", "null") not in unique
+                            and item.get("apiId") != None
+                        ):
+                            unique.append(item["apiId"])
+                            tmp_metadata2.append(item)
+                    except:
+                        pass
+                category["children"] = tmp_metadata2
         for x in tmp_metadata:
             x["length"] = len(x["children"])
         if id:
@@ -225,21 +240,6 @@ async def metadataFunction():
                     else:
                         tmp_metadata["type"] = "file"
                         tmp_metadata["children"].append(item)
-        if rmdup == "true":
-            for category in tmp_metadata:
-                unique = ["null"]
-                tmp_metadata2 = []
-                for item in category["children"]:
-                    try:
-                        if (
-                            item.get("apiId", "null") not in unique
-                            and item.get("apiId") != None
-                        ):
-                            unique.append(item["apiId"])
-                            tmp_metadata2.append(item)
-                    except:
-                        pass
-                category["children"] = tmp_metadata2
         if r:
             index = 0
             for category in tmp_metadata:

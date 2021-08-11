@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import re
-import time
 import urllib
 
 import googleapiclient
@@ -58,14 +57,9 @@ def parseTV(name):
 
 
 def mediaIdentifier(
-    tmdb_api_key,
+    ider_vars,
     title,
     year,
-    backdrop_base_url,
-    poster_base_url,
-    movie_genre_ids,
-    tv_genre_ids,
-    language,
     movie=False,
     tv=False,
     anime=False,
@@ -75,10 +69,20 @@ def mediaIdentifier(
     else:
         tmp_year = year
     if movie == True and anime == False:
-        search_url = (
-            "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&primary_release_year=%s&language=%s"
-            % (tmdb_api_key, urllib.parse.quote(title.encode("utf-8")), year, language)
-        )
+        if ider_vars["adult"] == True:
+            search_url = "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&primary_release_year=%s&language=%s&include_adult=true" % (
+                ider_vars["tmdb_api_key"],
+                urllib.parse.quote(title.encode("utf-8")),
+                year,
+                ider_vars["language"],
+            )
+        else:
+            search_url = "https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&primary_release_year=%s&language=%s" % (
+                ider_vars["tmdb_api_key"],
+                urllib.parse.quote(title.encode("utf-8")),
+                year,
+                ider_vars["language"],
+            )
         try:
             search_content = requests.get(search_url).json()
         except Exception as e:
@@ -87,14 +91,18 @@ def mediaIdentifier(
                 "\033[31mERROR RETRIEVING TMDB DATA FOR '%s'!\033[0m" % (title),
             )
             LOGGER.error(str(e))
-        if search_content.get("total_results") > 0:
+        if search_content.get("total_results", 0) > 0:
             data = search_content["results"][0]
             if data.get("backdrop_path"):
-                data["backdrop_path"] = backdrop_base_url + data.get("backdrop_path")
+                data["backdrop_path"] = ider_vars["backdrop_base_url"] + data.get(
+                    "backdrop_path"
+                )
             else:
                 data["backdrop_path"] = None
             if data.get("poster_path"):
-                data["poster_path"] = poster_base_url + data.get("poster_path")
+                data["poster_path"] = ider_vars["poster_base_url"] + data.get(
+                    "poster_path"
+                )
             else:
                 data["poster_path"] = None
         else:
@@ -119,7 +127,7 @@ def mediaIdentifier(
         genres = data.get("genre_ids", [])
         tmp_genres = []
         for genre in genres:
-            for item in movie_genre_ids["genres"]:
+            for item in ider_vars["movie_genre_ids"]["genres"]:
                 if item["id"] == genre:
                     tmp_genres.append(item["name"])
                     break
@@ -145,10 +153,20 @@ def mediaIdentifier(
             voteAverage,
         )
     elif tv == True and anime == False:
-        search_url = (
-            "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&first_air_date_year=%s&language=%s"
-            % (tmdb_api_key, urllib.parse.quote(title.encode("utf-8")), year, language)
-        )
+        if ider_vars["adult"] == True:
+            search_url = "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&first_air_date_year=%s&language=%s&include_adult=true" % (
+                ider_vars["tmdb_api_key"],
+                urllib.parse.quote(title.encode("utf-8")),
+                year,
+                ider_vars["language"],
+            )
+        else:
+            search_url = "https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s&first_air_date_year=%s&language=%s" % (
+                ider_vars["tmdb_api_key"],
+                urllib.parse.quote(title.encode("utf-8")),
+                year,
+                ider_vars["language"],
+            )
         try:
             search_content = requests.get(search_url).json()
         except Exception as e:
@@ -157,14 +175,18 @@ def mediaIdentifier(
                 "\033[31mERROR RETRIEVING TMDB DATA FOR '%s'!\033[0m" % (title,),
             )
             LOGGER.error(str(e))
-        if search_content.get("total_results") > 0:
+        if search_content.get("total_results", 0) > 0:
             data = search_content["results"][0]
             if data.get("backdrop_path"):
-                data["backdrop_path"] = backdrop_base_url + data.get("backdrop_path")
+                data["backdrop_path"] = ider_vars["backdrop_base_url"] + data.get(
+                    "backdrop_path"
+                )
             else:
                 data["backdrop_path"] = None
             if data.get("poster_path"):
-                data["poster_path"] = poster_base_url + data.get("poster_path")
+                data["poster_path"] = ider_vars["poster_base_url"] + data.get(
+                    "poster_path"
+                )
             else:
                 data["poster_path"] = None
         else:
@@ -187,7 +209,7 @@ def mediaIdentifier(
         genres = data.get("genre_ids", [])
         tmp_genres = []
         for genre in genres:
-            for item in tv_genre_ids["genres"]:
+            for item in ider_vars["tv_genre_ids"]["genres"]:
                 if item["id"] == genre:
                     tmp_genres.append(item["name"])
                     break
@@ -213,8 +235,8 @@ def mediaIdentifier(
         )
     elif movie == True and anime == True:
         query = """
-            query ($search: String, $seasonYear: Int) {
-                Media(search: $search, seasonYear: $seasonYear, type: ANIME) {
+            query ($search: String, $seasonYear: Int, $isAdult: Boolean) {
+                Media(search: $search, seasonYear: $seasonYear, type: ANIME, isAdult: $isAdult) {
                     title {
                         english
                         romaji
@@ -239,6 +261,8 @@ def mediaIdentifier(
             }
         """
         variables = {"search": title}
+        if ider_vars["adult"] == False:
+            variables["isAdult"] = False
         if year != None and year != "":
             variables["seasonYear"] = year
         try:
@@ -308,8 +332,8 @@ def mediaIdentifier(
         )
     elif tv == True and anime == True:
         query = """
-            query ($search: String, $seasonYear: Int) {
-                Media(search: $search, seasonYear: $seasonYear, type: ANIME) {
+            query ($search: String, $seasonYear: Int, $isAdult: Boolean) {
+                Media(search: $search, seasonYear: $seasonYear, type: ANIME, isAdult: $isAdult) {
                     title {
                         english
                         romaji
@@ -334,6 +358,8 @@ def mediaIdentifier(
             }
         """
         variables = {"search": title}
+        if ider_vars["adult"] == False:
+            variables["isAdult"] = False
         if year != None and year != "":
             variables["seasonYear"] = year
         try:
@@ -466,6 +492,15 @@ def writeMetadata(config):
     placeholder_metadata = []
     count = 0
     for category in config["category_list"]:
+        ider_vars = {
+            "tmdb_api_key": config.get("tmdb_api_key"),
+            "backdrop_base_url": backdrop_base_url,
+            "poster_base_url": poster_base_url,
+            "movie_genre_ids": movie_genre_ids,
+            "tv_genre_ids": tv_genre_ids,
+            "language": category.get("language", config.get("language", "en")),
+            "adult": category.get("adult", config.get("adult", False)),
+        }
         count += 1
         start_time = datetime.datetime.utcnow()
         config, drive = src.functions.credentials.refreshCredentials(config)
@@ -509,7 +544,7 @@ def writeMetadata(config):
                             title = item["name"]
                         if year == None:
                             year = ""
-                        item["api"] = "tmdb"
+                        item["api"] = "anilist"
                         (
                             item["adult"],
                             item["apiId"],
@@ -523,17 +558,12 @@ def writeMetadata(config):
                             item["title"],
                             item["voteAverage"],
                         ) = mediaIdentifier(
-                            config.get("tmdb_api_key"),
+                            ider_vars,
                             title,
                             year,
-                            backdrop_base_url,
-                            poster_base_url,
-                            movie_genre_ids,
-                            tv_genre_ids,
-                            category.get("language"),
-                            True,
-                            False,
-                            True,
+                            movie=True,
+                            tv=False,
+                            anime=True,
                         )
             else:
                 items_count = 0
@@ -564,17 +594,12 @@ def writeMetadata(config):
                             item["title"],
                             item["voteAverage"],
                         ) = mediaIdentifier(
-                            config.get("tmdb_api_key"),
+                            ider_vars,
                             title,
                             year,
-                            backdrop_base_url,
-                            poster_base_url,
-                            movie_genre_ids,
-                            tv_genre_ids,
-                            category.get("language"),
-                            True,
-                            False,
-                            False,
+                            movie=True,
+                            tv=False,
+                            anime=False,
                         )
 
             placeholder_metadata.append(tmp_metadata)
@@ -644,17 +669,12 @@ def writeMetadata(config):
                             item["title"],
                             item["voteAverage"],
                         ) = mediaIdentifier(
-                            config.get("tmdb_api_key"),
+                            ider_vars,
                             title,
                             year,
-                            backdrop_base_url,
-                            poster_base_url,
-                            movie_genre_ids,
-                            tv_genre_ids,
-                            category.get("language"),
-                            False,
-                            True,
-                            True,
+                            movie=False,
+                            tv=True,
+                            anime=True,
                         )
             else:
                 items_count = 0
@@ -684,17 +704,12 @@ def writeMetadata(config):
                             item["title"],
                             item["voteAverage"],
                         ) = mediaIdentifier(
-                            config.get("tmdb_api_key"),
+                            ider_vars,
                             title,
                             year,
-                            backdrop_base_url,
-                            poster_base_url,
-                            movie_genre_ids,
-                            tv_genre_ids,
-                            category.get("language"),
-                            False,
-                            True,
-                            False,
+                            movie=False,
+                            tv=True,
+                            anime=False,
                         )
 
             placeholder_metadata.append(tmp_metadata)

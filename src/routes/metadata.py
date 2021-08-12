@@ -103,7 +103,7 @@ async def metadataFunction():
                     try:
                         tmp_metadata[index]["children"] = sorted(
                             category["children"],
-                            key=lambda k: tuple(map(int, k["releaseDate"].split("-"))),
+                            key=lambda k: tuple(map(int, k.get("releaseDate", "1900-01-01").split("-"))),
                         )
                     except:
                         pass
@@ -111,7 +111,7 @@ async def metadataFunction():
                     try:
                         tmp_metadata[index]["children"] = sorted(
                             category["children"],
-                            key=lambda k: tuple(map(int, k["releaseDate"].split("-"))),
+                            key=lambda k: tuple(map(int, k.get("releaseDate", "1900-01-01").split("-"))),
                             reverse=True,
                         )
                     except:
@@ -119,7 +119,7 @@ async def metadataFunction():
                 elif s == "popularity-asc":
                     try:
                         tmp_metadata[index]["children"] = sorted(
-                            category["children"], key=lambda k: float(k["popularity"])
+                            category["children"], key=lambda k: float(k.get("popularity", 0.0))
                         )
                     except:
                         pass
@@ -127,7 +127,7 @@ async def metadataFunction():
                     try:
                         tmp_metadata[index]["children"] = sorted(
                             category["children"],
-                            key=lambda k: float(k["popularity"]),
+                            key=lambda k: float(k.get("popularity", 0.0)),
                             reverse=True,
                         )
                     except:
@@ -135,7 +135,7 @@ async def metadataFunction():
                 elif s == "vote-asc":
                     try:
                         tmp_metadata[index]["children"] = sorted(
-                            category["children"], key=lambda k: float(k["voteAverage"])
+                            category["children"], key=lambda k: float(k.get("voteAverage", 0.0))
                         )
                     except:
                         pass
@@ -143,7 +143,7 @@ async def metadataFunction():
                     try:
                         tmp_metadata[index]["children"] = sorted(
                             category["children"],
-                            key=lambda k: float(k["voteAverage"]),
+                            key=lambda k: float(k.get("voteAverage", 0.0)),
                             reverse=True,
                         )
                     except:

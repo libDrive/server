@@ -310,6 +310,8 @@ def mediaIdentifier(
             startDate.get("month", "01"),
             startDate.get("day", "01"),
         )
+        if "None" in releases_date:
+            releases_date = "%s-%s-%s" % (tmp_year, "01", "01")
         genres = []
         for genre in data.get("genres", []):
             genres.append(genre)
@@ -408,6 +410,8 @@ def mediaIdentifier(
             startDate.get("month", "01"),
             startDate.get("day", "01"),
         )
+        if "None" in releases_date:
+            releases_date = "%s-%s-%s" % (tmp_year, "01", "01")
         genres = []
         for genre in data.get("genres", []):
             genres.append(genre)

@@ -103,7 +103,9 @@ async def metadataFunction():
                     try:
                         tmp_metadata[index]["children"] = sorted(
                             category["children"],
-                            key=lambda k: tuple(map(int, k.get("releaseDate", "1900-01-01").split("-"))),
+                            key=lambda k: tuple(
+                                map(int, k.get("releaseDate", "1900-01-01").split("-"))
+                            ),
                         )
                     except:
                         pass
@@ -111,7 +113,9 @@ async def metadataFunction():
                     try:
                         tmp_metadata[index]["children"] = sorted(
                             category["children"],
-                            key=lambda k: tuple(map(int, k.get("releaseDate", "1900-01-01").split("-"))),
+                            key=lambda k: tuple(
+                                map(int, k.get("releaseDate", "1900-01-01").split("-"))
+                            ),
                             reverse=True,
                         )
                     except:
@@ -119,7 +123,8 @@ async def metadataFunction():
                 elif s == "popularity-asc":
                     try:
                         tmp_metadata[index]["children"] = sorted(
-                            category["children"], key=lambda k: float(k.get("popularity", 0.0))
+                            category["children"],
+                            key=lambda k: float(k.get("popularity", 0.0)),
                         )
                     except:
                         pass
@@ -135,7 +140,8 @@ async def metadataFunction():
                 elif s == "vote-asc":
                     try:
                         tmp_metadata[index]["children"] = sorted(
-                            category["children"], key=lambda k: float(k.get("voteAverage", 0.0))
+                            category["children"],
+                            key=lambda k: float(k.get("voteAverage", 0.0)),
                         )
                     except:
                         pass
@@ -167,17 +173,16 @@ async def metadataFunction():
                         400,
                     )
                 index += 1
-        if rmdup == "true":
+        if rmdup == "true" or config.get("remove_duplicates") == True:
             for category in tmp_metadata:
                 unique = ["null"]
                 tmp_metadata2 = []
                 for item in category["children"]:
                     try:
-                        if (
-                            item.get("apiId", "null") not in unique
-                            and item.get("apiId") != None
-                        ):
+                        if item.get("apiId", "null") not in unique:
                             unique.append(item["apiId"])
+                            tmp_metadata2.append(item)
+                        elif item.get("apiId") == None:
                             tmp_metadata2.append(item)
                     except:
                         pass

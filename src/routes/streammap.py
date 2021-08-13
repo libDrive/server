@@ -1,6 +1,7 @@
-import os
+import difflib
 import urllib
 
+import pathlib
 import flask
 import requests
 import src.functions.config
@@ -13,6 +14,8 @@ async def streammapFunction():
     a = flask.request.args.get("a")  # AUTH
     id = flask.request.args.get("id")  # ID
     name = flask.request.args.get("name")  # NAME
+    parent = flask.request.args.get("parent")  # PARENT
+    t = flask.request.args.get("t")  # TYPE
     server = flask.request.args.get("server")  # SERVER
     config = src.functions.config.readConfig()
 
@@ -20,8 +23,8 @@ async def streammapFunction():
         return flask.jsonify(
             {
                 "code": 200,
-                "content": [{"name": "UNAVAILABLE", "url": "", "type": "normal"}],
-                "message": "Stream list generated successfully.",
+                "content": [{"name": "UNAVAILABLE", "url": "", "type": "auto"}],
+                "message": "Stream map was not generated because the kill_switch is enabled.",
                 "success": True,
             }
         )
@@ -30,12 +33,12 @@ async def streammapFunction():
         any(a == account["auth"] for account in config["account_list"])
         or config.get("auth") == False
     ):
-        stream_list = [
+        videos = [
             {
                 "name": "Original",
                 "url": "%s/api/v1/redirectdownload/%s?a=%s&id=%s"
                 % (server, urllib.parse.quote(name), a, id),
-                "type": "normal",
+                "type": "auto",
             }
         ]
         if config.get("transcoded") == True:
@@ -47,7 +50,7 @@ async def streammapFunction():
             if parsed.get("status") == ["ok"]:
                 for fmt in parsed["fmt_list"][0].split(","):
                     fmt_data = fmt.split("/")
-                    stream_list.append(
+                    videos.append(
                         {
                             "name": fmt_data[1],
                             "url": "%s/api/v1/redirectdownload/%s?a=%s&id=%s&itag=%s"
@@ -56,35 +59,52 @@ async def streammapFunction():
                         }
                     )
 
-        subtitle = {"url": ""}
-        if config.get("subtitles") == True:
+        tracks = []
+        if config.get("fetch_assets") == True and parent != None and parent != "":
             config, drive = src.functions.credentials.refreshCredentials(
                 src.functions.config.readConfig()
             )
-            params = {
-                "supportsAllDrives": True,
-                "fields": "parents",
-                "fileId": id,
-            }
-            parent = drive.files().get(**params).execute()["parents"][0]
             params = {
                 "pageToken": None,
                 "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,
                 "fields": "files(id,name,mimeType,parents), incompleteSearch, nextPageToken",
-                "q": "'%s' in parents and trashed = false and (name contains '.srt' or name contains '.vtt')"
+                "q": "'%s' in parents and trashed = false and (mimeType contains 'video' or mimeType contains 'image' or name contains '.srt' or name contains '.vtt')"
                 % (parent),
                 "orderBy": "name",
             }
+            og_name_path = pathlib.Path(name)
+            og_file_name = og_name_path.stem
             while True:
                 response = drive.files().list(**params).execute()
                 for file in response["files"]:
-                    name_split = os.path.splitext(name)[0]
-                    if name_split in file["name"]:
-                        subtitle = {
-                            "url": "%s/api/v1/subtitledownload/%s?a=%s&id=%s"
-                            % (server, file["name"], a, file["id"])
-                        }
+                    name_path = pathlib.Path(file["name"])
+                    file_name = name_path.stem
+                    extention = name_path.suffix
+                    if (
+                        id != file["id"]
+                        and difflib.SequenceMatcher(
+                            None, og_file_name, file_name
+                        ).ratio()
+                        > 0.7
+                    ):
+                        if "video" in file["mimeType"] and t != "directory":
+                            videos.append(
+                                {
+                                    "name": file_name.replace(og_file_name, ""),
+                                    "url": "%s/api/v1/redirectdownload/%s?a=%s&id=%s"
+                                    % (server, urllib.parse.quote(file["name"]), a, id),
+                                    "type": "auto",
+                                }
+                            )
+                        elif extention in [".srt", ".vtt"]:
+                            tracks.append(
+                                {
+                                    "name": file["name"],
+                                    "url": "%s/api/v1/subtitledownload/%s?a=%s&id=%s"
+                                    % (server, file["name"], a, file["id"]),
+                                }
+                            )
                 try:
                     params["pageToken"] = response["nextPageToken"]
                 except KeyError:
@@ -93,27 +113,28 @@ async def streammapFunction():
         if (
             config.get("prefer_mkv") == False
             and config.get("prefer_mp4") == False
-            and len(stream_list) > 1
+            and len(videos) > 1
         ):
-            default_quality = 1
+            default_video = 1
         elif config.get("prefer_mp4", True) == True and name.endswith(".mp4"):
-            default_quality = 0
+            default_video = 0
         elif config.get("prefer_mkv", False) == True and name.endswith(".mkv"):
-            default_quality = 0
-        elif len(stream_list) > 1:
-            default_quality = 1
+            default_video = 0
+        elif len(videos) > 1:
+            default_video = 1
         else:
-            default_quality = 0
+            default_video = 0
 
         return flask.jsonify(
             {
                 "code": 200,
                 "content": {
-                    "default_quality": default_quality,
-                    "sources": stream_list,
-                    "subtitle": subtitle,
+                    "default_track": 0,
+                    "default_video": default_video,
+                    "tracks": tracks,
+                    "videos": videos,
                 },
-                "message": "Stream list generated successfully!",
+                "message": "Stream map generated successfully.",
                 "success": True,
             }
         )

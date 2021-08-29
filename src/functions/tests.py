@@ -1,3 +1,4 @@
+import json
 import sys
 
 import requests
@@ -58,7 +59,7 @@ def account_list_test(config):
 
 
 def cloudflare_test(config):
-    if config.get("cloudflare", "") != "":
+    if config.get("cloudflare") not in ["local", "", None]:
         if not config.get("cloudflare").startswith("http") and not config.get(
             "cloudflare"
         ).startswith("//"):
@@ -69,6 +70,25 @@ def cloudflare_test(config):
         res = requests.get(config.get("cloudflare")).text
         if not res.startswith("libDrive"):
             print(
-                "\033[31mERROR! YOUR CLOUDFLARE DEPLOYMENT IS NOT RETURNING A VALID RESPONSE! MAKE SURE IT IS CORRECTLY CONFIGURED!\033[0m"
+                "\033[31mERROR! YOUR WEB HOSTED CLOUDFLARE DEPLOYMENT IS NOT RETURNING A VALID RESPONSE! MAKE SURE IT IS CORRECTLY CONFIGURED!\033[0m"
             )
             sys.exit()
+    elif config.get("cloudflare") == "local":
+        res = requests.get("http://localhost:31146").text
+        if not res.startswith("libDrive"):
+            print(
+                "\033[31mERROR! YOUR LOCALLY HOSTED CLOUDFLARE DEPLOYMENT IS NOT RETURNING A VALID RESPONSE! MAKE SURE IT IS CORRECTLY CONFIGURED!\033[0m"
+            )
+    else:
+        try:
+            res = requests.get("http://localhost:31146").text
+            if res:
+                if res.startswith("libDrive"):
+                    print(
+                        "\033[33mA LOCALLY HOSTED CLOUDFLARE WORKER WAS FOUND, IT WILL BE USED INSTEAD.\033[0m"
+                    )
+                    config["cloudflare"] = "local"
+                    with open("config.json", "w+") as w:
+                        json.dump(obj=config, fp=w, sort_keys=True, indent=4)
+        except requests.exceptions.ConnectionError:
+            pass

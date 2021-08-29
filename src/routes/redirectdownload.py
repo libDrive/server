@@ -70,10 +70,16 @@ async def redirectdownloadFunction(name):
 
     sessionB64 = base64.b64encode(json.dumps(session).encode("ascii")).decode("ascii")
 
-    if config.get("cloudflare") and config.get("cloudflare") != "":
+    if config.get("cloudflare") not in ["local", "", None]:
         return flask.redirect(
             config.get("cloudflare")
             + "/api/v1/download/%s%ssession=%s&" % (name, args, sessionB64),
+            code=302,
+        )
+    elif config.get("cloudflare") == "local":
+        return flask.redirect(
+            "http://localhost:31146/api/v1/download/%s%ssession=%s&"
+            % (name, args, sessionB64),
             code=302,
         )
     else:

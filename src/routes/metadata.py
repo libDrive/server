@@ -19,6 +19,7 @@ async def metadataFunction():
     r = flask.request.args.get("r")  # RANGE
     s = flask.request.args.get("s")  # SORT-ORDER
     rmdup = flask.request.args.get("rmdup")  # REMOVE DUPLICATES
+    rmnobanner = flask.request.args.get("rmnobanner")  # REMOVE NO BANNER
     config = src.functions.config.readConfig()
     tmp_metadata = src.functions.metadata.readMetadata(config)
 
@@ -173,20 +174,30 @@ async def metadataFunction():
                         400,
                     )
                 index += 1
+        if rmnobanner == "true" or config.get("remove_no_poster") == True:
+            for category in tmp_metadata:
+                tmp_children = []
+                for item in category["children"]:
+                    try:
+                        if item.get("posterPath") not in ["", None]:
+                            tmp_children.append(item)
+                    except:
+                        pass
+                category["children"] = tmp_children
         if rmdup == "true" or config.get("remove_duplicates") == True:
             for category in tmp_metadata:
                 unique = ["null"]
-                tmp_metadata2 = []
+                tmp_children = []
                 for item in category["children"]:
                     try:
                         if item.get("apiId", "null") not in unique:
                             unique.append(item["apiId"])
-                            tmp_metadata2.append(item)
+                            tmp_children.append(item)
                         elif item.get("apiId") == None:
-                            tmp_metadata2.append(item)
+                            tmp_children.append(item)
                     except:
                         pass
-                category["children"] = tmp_metadata2
+                category["children"] = tmp_children
         for x in tmp_metadata:
             x["length"] = len(x["children"])
         if id:

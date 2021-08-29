@@ -1,10 +1,10 @@
-import difflib
+import pathlib
 import urllib
 
-import pathlib
 import flask
 import requests
 import src.functions.config
+import src.functions.metadata
 
 streammapBP = flask.Blueprint("streammap", __name__)
 
@@ -64,39 +64,47 @@ async def streammapFunction():
             config, drive = src.functions.credentials.refreshCredentials(
                 src.functions.config.readConfig()
             )
+            og_title, og_year = src.functions.metadata.parseMovie(name)
+            if og_title == None:
+                og_name_path = pathlib.Path(name)
+                og_title = og_name_path.stem
             params = {
                 "pageToken": None,
                 "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,
-                "fields": "files(id,name,mimeType,parents), incompleteSearch, nextPageToken",
-                "q": "'%s' in parents and trashed = false and (mimeType contains 'video' or mimeType contains 'image' or name contains '.srt' or name contains '.vtt')"
-                % (parent),
+                "fields": "files(id,name,mimeType,parents,videoMediaMetadata), incompleteSearch, nextPageToken",
+                "q": "'%s' in parents and trashed = false and ((mimeType contains 'video' and name contains '%s') or name contains '.srt' or name contains '.vtt')"
+                % (parent, og_title),
                 "orderBy": "name",
             }
-            og_name_path = pathlib.Path(name)
-            og_file_name = og_name_path.stem
-            while True:
+            try:
                 response = drive.files().list(**params).execute()
-                for file in response["files"]:
+            except:
+                response = {"files": []}
+            count = 0
+            for file in response["files"]:
+                if count < 3:
                     name_path = pathlib.Path(file["name"])
-                    file_name = name_path.stem
                     extention = name_path.suffix
-                    if (
-                        id != file["id"]
-                        and difflib.SequenceMatcher(
-                            None, og_file_name, file_name
-                        ).ratio()
-                        > 0.7
-                    ):
+                    if id != file["id"]:
                         if "video" in file["mimeType"] and t != "directory":
+                            if file.get("videoMediaMetadata"):
+                                videoMediaMetadata = file["videoMediaMetadata"]
+                            else:
+                                videoMediaMetadata = {"width": "null", "height": "null"}
                             videos.append(
                                 {
-                                    "name": file_name.replace(og_file_name, ""),
+                                    "name": "%sx%s"
+                                    % (
+                                        videoMediaMetadata.get("width", "null"),
+                                        videoMediaMetadata.get("height", "null"),
+                                    ),
                                     "url": "%s/api/v1/redirectdownload/%s?a=%s&id=%s"
                                     % (server, urllib.parse.quote(file["name"]), a, id),
                                     "type": "auto",
                                 }
                             )
+                            count += 1
                         elif extention in [".srt", ".vtt"]:
                             tracks.append(
                                 {
@@ -105,11 +113,6 @@ async def streammapFunction():
                                     % (server, file["name"], a, file["id"]),
                                 }
                             )
-                try:
-                    params["pageToken"] = response["nextPageToken"]
-                except KeyError:
-                    break
-
         if (
             config.get("prefer_mkv") == False
             and config.get("prefer_mp4") == False

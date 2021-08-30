@@ -75,3 +75,15 @@ async def environmentFunction():
                 ),
                 200,
             )
+    else:
+        return (
+            flask.jsonify(
+                {
+                    "code": 401,
+                    "content": None,
+                    "message": "Your credentials are invalid.",
+                    "success": False,
+                }
+            ),
+            401,
+        )

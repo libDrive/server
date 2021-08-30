@@ -17,7 +17,7 @@ async def authFunction():
             flask.jsonify(
                 {
                     "code": 200,
-                    "content": "/browse",
+                    "content": {"ui_config": config.get("ui_config", {})},
                     "message": "Authentication completed successfully.",
                     "success": True,
                 }
@@ -64,7 +64,7 @@ async def authFunction():
             flask.jsonify(
                 {
                     "code": 200,
-                    "content": account,
+                    "content": {"auth": account["auth"], "ui_config": config.get("ui_config", {})},
                     "message": "Authentication was successful.",
                     "success": True,
                 }

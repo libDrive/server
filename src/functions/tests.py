@@ -74,11 +74,18 @@ def cloudflare_test(config):
             )
             sys.exit()
     elif config.get("cloudflare") == "local":
-        res = requests.get("http://localhost:31146").text
-        if not res.startswith("libDrive"):
+        try:
+            res = requests.get("http://localhost:31146").text
+            if not res.startswith("libDrive"):
+                print(
+                    "\033[31mERROR! YOUR LOCALLY HOSTED CLOUDFLARE DEPLOYMENT IS NOT RETURNING A VALID RESPONSE! MAKE SURE IT IS CORRECTLY CONFIGURED!\033[0m"
+                )
+                sys.exit()
+        except:
             print(
                 "\033[31mERROR! YOUR LOCALLY HOSTED CLOUDFLARE DEPLOYMENT IS NOT RETURNING A VALID RESPONSE! MAKE SURE IT IS CORRECTLY CONFIGURED!\033[0m"
             )
+            sys.exit()
     else:
         try:
             res = requests.get("http://localhost:31146").text
@@ -90,5 +97,10 @@ def cloudflare_test(config):
                     config["cloudflare"] = "local"
                     with open("config.json", "w+") as w:
                         json.dump(obj=config, fp=w, sort_keys=True, indent=4)
-        except requests.exceptions.ConnectionError:
+                else:
+                    print(
+                        "\033[31mERROR! YOUR LOCALLY HOSTED CLOUDFLARE DEPLOYMENT IS NOT RETURNING A VALID RESPONSE! MAKE SURE IT IS CORRECTLY CONFIGURED!\033[0m"
+                    )
+                    sys.exit()
+        except:
             pass

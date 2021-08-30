@@ -81,38 +81,35 @@ async def streammapFunction():
                 response = drive.files().list(**params).execute()
             except:
                 response = {"files": []}
-            count = 0
             for file in response["files"]:
-                if count < 3:
-                    name_path = pathlib.Path(file["name"])
-                    extention = name_path.suffix
-                    if id != file["id"]:
-                        if "video" in file["mimeType"] and t != "directory":
-                            if file.get("videoMediaMetadata"):
-                                videoMediaMetadata = file["videoMediaMetadata"]
-                            else:
-                                videoMediaMetadata = {"width": "null", "height": "null"}
-                            videos.append(
-                                {
-                                    "name": "%sx%s"
-                                    % (
-                                        videoMediaMetadata.get("width", "null"),
-                                        videoMediaMetadata.get("height", "null"),
-                                    ),
-                                    "url": "%s/api/v1/redirectdownload/%s?a=%s&id=%s"
-                                    % (server, urllib.parse.quote(file["name"]), a, id),
-                                    "type": "auto",
-                                }
-                            )
-                            count += 1
-                        elif extention in [".srt", ".vtt"]:
-                            tracks.append(
-                                {
-                                    "name": file["name"],
-                                    "url": "%s/api/v1/subtitledownload/%s?a=%s&id=%s"
-                                    % (server, file["name"], a, file["id"]),
-                                }
-                            )
+                name_path = pathlib.Path(file["name"])
+                extention = name_path.suffix
+                if id != file["id"]:
+                    if "video" in file["mimeType"] and t != "directory":
+                        if file.get("videoMediaMetadata"):
+                            videoMediaMetadata = file["videoMediaMetadata"]
+                        else:
+                            videoMediaMetadata = {"width": "null", "height": "null"}
+                        videos.append(
+                            {
+                                "name": "%sx%s"
+                                % (
+                                    videoMediaMetadata.get("width", "null"),
+                                    videoMediaMetadata.get("height", "null"),
+                                ),
+                                "url": "%s/api/v1/redirectdownload/%s?a=%s&id=%s"
+                                % (server, urllib.parse.quote(file["name"]), a, id),
+                                "type": "auto",
+                            }
+                        )
+                    elif extention in [".srt", ".vtt"]:
+                        tracks.append(
+                            {
+                                "name": file["name"],
+                                "url": "%s/api/v1/subtitledownload/%s?a=%s&id=%s"
+                                % (server, file["name"], a, file["id"]),
+                            }
+                        )
         if (
             config.get("prefer_mkv") == False
             and config.get("prefer_mp4") == False

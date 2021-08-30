@@ -292,8 +292,9 @@ def mediaIdentifier(
             },
         )
         if response != None:
-            if response.get("data", {}).get("Media", None):
-                data = response["data"]["Media"]
+            if isinstance(response.get("data"), dict):
+                if response.get("data", {}).get("Media", None):
+                    data = response["data"]["Media"]
         if data.get("title", {}).get("english") == None:
             if data.get("title", {}).get("romaji") == None:
                 if data.get("title", {}).get("native") == None:
@@ -391,8 +392,9 @@ def mediaIdentifier(
             },
         )
         if response != None:
-            if response.get("data", {}).get("Media", None):
-                data = response["data"]["Media"]
+            if isinstance(response.get("data"), dict):
+                if response.get("data", {}).get("Media", None):
+                    data = response["data"]["Media"]
         title_dict = data.get("title", {})
         if title_dict.get("english") == None:
             if title_dict.get("romaji") == None:

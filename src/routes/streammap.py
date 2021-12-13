@@ -60,7 +60,12 @@ async def streammapFunction():
                     )
 
         tracks = []
-        if config.get("fetch_assets") == True and parent != None and parent != "":
+        if (
+            config.get("fetch_assets") == True
+            and t != "directory"
+            and parent != None
+            and parent != ""
+        ):
             config, drive = src.functions.credentials.refreshCredentials(
                 src.functions.config.readConfig()
             )
@@ -82,10 +87,14 @@ async def streammapFunction():
             except:
                 response = {"files": []}
             for file in response["files"]:
-                name_path = pathlib.Path(file["name"])
-                extention = name_path.suffix
+                title, year = src.functions.metadata.parseMovie(file["name"])
+                extention = pathlib.Path(file["name"]).suffix
                 if id != file["id"]:
-                    if "video" in file["mimeType"] and t != "directory":
+                    if (
+                        "video" in file["mimeType"]
+                        and title == og_title
+                        and year == og_year
+                    ):
                         if file.get("videoMediaMetadata"):
                             videoMediaMetadata = file["videoMediaMetadata"]
                         else:

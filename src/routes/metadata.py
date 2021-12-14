@@ -209,11 +209,11 @@ async def metadataFunction():
                 if config.get("build_type") == "full":
                     pass
                 else:
-                    tmp_metadata["children"] = []
                     if (
                         tmp_metadata.get("title")
                         and tmp_metadata.get("type") == "directory"
                     ):
+                        tmp_metadata["children"] = []
                         for item in src.functions.drivetools.driveIter(
                             tmp_metadata, drive, "video"
                         ):
@@ -223,6 +223,14 @@ async def metadataFunction():
                             else:
                                 item["type"] = "file"
                                 tmp_metadata["children"].append(item)
+                    elif tmp_metadata.get("type") == "directory":
+                        tmp_metadata["parent_children"] = []
+                        for item in src.functions.drivetools.driveIter(
+                            {"id": tmp_metadata["parents"][0]}, drive, "PLACEHOLDER-X"
+                        ):
+                            if item["mimeType"] == "application/vnd.google-apps.folder":
+                                item["type"] = "directory"
+                                tmp_metadata["parent_children"].append(item)
                 return (
                     flask.jsonify(
                         {
@@ -244,6 +252,7 @@ async def metadataFunction():
             if tmp_metadata["mimeType"] == "application/vnd.google-apps.folder":
                 tmp_metadata["type"] = "directory"
                 tmp_metadata["children"] = []
+                tmp_metadata["parent_children"] = []
                 for item in src.functions.drivetools.driveIter(
                     tmp_metadata, drive, "video"
                 ):
@@ -256,6 +265,12 @@ async def metadataFunction():
                     else:
                         tmp_metadata["type"] = "file"
                         tmp_metadata["children"].append(item)
+                for item in src.functions.drivetools.driveIter(
+                    {"id": tmp_metadata["parents"][0]}, drive, "PLACEHOLDER-X"
+                ):
+                    if item["mimeType"] == "application/vnd.google-apps.folder":
+                        item["type"] = "directory"
+                        tmp_metadata["parent_children"].append(item)
         if r:
             index = 0
             for category in tmp_metadata:

@@ -207,7 +207,14 @@ async def metadataFunction():
             config, drive = src.functions.credentials.refreshCredentials(config)
             if tmp_metadata:
                 if config.get("build_type") == "full":
-                    pass
+                    if tmp_metadata.get("type") == "directory":
+                        tmp_metadata["parent_children"] = []
+                        for item in src.functions.drivetools.driveIter(
+                            {"id": tmp_metadata["parents"][0]}, drive, "PLACEHOLDER-X"
+                        ):
+                            if item["mimeType"] == "application/vnd.google-apps.folder":
+                                item["type"] = "directory"
+                                tmp_metadata["parent_children"].append(item)
                 else:
                     if (
                         tmp_metadata.get("title")
